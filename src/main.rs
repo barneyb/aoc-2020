@@ -10,7 +10,18 @@ fn main() {
                 ')' => -1,
                 _ => panic!("Unrecognized char '{}'", c),
             })
-            .sum::<i32>()
+            .enumerate()
+            .fold((0, None as Option<usize>), |(mut floor, pos), (i, d)| {
+                if pos.is_none() {
+                    floor += d;
+                    if floor == -1 {
+                        return (floor, Some(i + 1));
+                    }
+                }
+                (floor, pos)
+            })
+            .1
+            .unwrap()
     );
 }
 
