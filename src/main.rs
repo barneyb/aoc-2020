@@ -1,10 +1,7 @@
-use aoc_2020::read_input;
+use aoc_2020::read_lines;
 
 fn main() {
-    let expenses = read_input()
-        .lines()
-        .map(|s| s.parse().unwrap())
-        .collect::<Vec<i32>>();
+    let expenses = read_lines(|s| s.parse::<i32>().unwrap());
     'outer: for (i, a) in expenses.iter().enumerate() {
         for (j, b) in expenses.iter().skip(i + 1).enumerate() {
             for c in expenses.iter().skip(j + 1) {
