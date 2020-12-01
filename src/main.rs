@@ -1,4 +1,4 @@
-use std::fs;
+use aoc_2020::read_input;
 
 fn main() {
     println!(
@@ -23,8 +23,4 @@ fn main() {
             .1
             .unwrap()
     );
-}
-
-fn read_input() -> String {
-    fs::read_to_string("input.txt").unwrap().trim().to_string()
 }
