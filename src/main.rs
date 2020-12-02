@@ -1,26 +1,19 @@
-use aoc_2020::read_input;
+use aoc_2020 as aoc;
 
 fn main() {
-    println!(
-        "{:?}",
-        read_input()
-            .chars()
-            .map(|c| match c {
-                '(' => 1,
-                ')' => -1,
-                _ => panic!("Unrecognized char '{}'", c),
-            })
-            .enumerate()
-            .fold((0, None as Option<usize>), |(mut floor, pos), (i, d)| {
-                if pos.is_none() {
-                    floor += d;
-                    if floor == -1 {
-                        return (floor, Some(i + 1));
-                    }
+    let expenses = aoc::read_lines(|s| s.parse::<i32>().unwrap());
+    'outer: for (i, &a) in expenses.iter().enumerate() {
+        for (j, &b) in expenses.iter().skip(i + 1).enumerate() {
+            let remaining = 2020 - a - b;
+            if remaining <= 0 {
+                continue;
+            }
+            for &c in expenses.iter().skip(j + 1) {
+                if c == remaining {
+                    println!("{} * {} * {} = {}", a, b, c, a * b * c);
+                    break 'outer;
                 }
-                (floor, pos)
-            })
-            .1
-            .unwrap()
-    );
+            }
+        }
+    }
 }
