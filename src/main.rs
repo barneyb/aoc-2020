@@ -1,4 +1,5 @@
 use aoc_2020 as aoc;
+use regex::Regex;
 
 #[derive(Debug)]
 struct Policy {
@@ -14,21 +15,16 @@ struct Record {
 }
 
 fn main() {
+    let re = Regex::new(r"^(\d+)-(\d+) ([a-z]): ([a-z]+)$").unwrap();
     let database = aoc::read_lines(|s| {
-        let di = s.find('-').expect("failed to find dash");
-        let si = s.find(' ').expect("failed to find space");
-        let ci = s.find(':').expect("failed to find colon");
-        let min = s[0..di].parse().expect("failed to parse min");
-        let max = s[(di + 1)..si].parse().expect("failed to parse max");
-        let &char = &s[(si + 1)..ci].chars().next().expect("failed to get policy char");
-        let password = String::from(s[(ci + 1)..s.len()].trim());
+        let parts = re.captures(s).unwrap();
         Record {
             policy: Policy {
-                min,
-                max,
-                char,
+                min: parts.get(1).unwrap().as_str().parse().unwrap(),
+                max: parts.get(2).unwrap().as_str().parse().unwrap(),
+                char: parts.get(3).unwrap().as_str().chars().next().unwrap(),
             },
-            password,
+            password: String::from(parts.get(4).unwrap().as_str()),
         }
     });
     println!("{}", database.iter().filter(|r| {
