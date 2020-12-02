@@ -4,6 +4,9 @@ fn main() {
     let expenses = read_lines(|s| s.parse::<i32>().unwrap());
     'outer: for (i, &a) in expenses.iter().enumerate() {
         for (j, &b) in expenses.iter().skip(i + 1).enumerate() {
+            if a + b > 2020 {
+                continue;
+            }
             for &c in expenses.iter().skip(j + 1) {
                 if a + b + c == 2020 {
                     println!("{} * {} * {} = {}", a, b, c, a * b * c);
