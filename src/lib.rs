@@ -1,4 +1,5 @@
 use std::fs;
+use std::time::{Duration, Instant};
 
 pub fn read_input() -> String {
     fs::read_to_string("input.txt").unwrap().trim().to_string()
@@ -9,4 +10,23 @@ where
     F: Fn(&str) -> T,
 {
     read_input().lines().map(f).collect::<Vec<T>>()
+}
+
+pub fn with_duration<T, F>(f: F) -> (T, Duration)
+where
+    F: Fn() -> T,
+{
+    let start = Instant::now();
+    let r = f();
+    let elapsed = start.elapsed();
+    (r, elapsed)
+}
+
+pub fn print_duration<T, F>(f: F) -> T
+where
+    F: Fn() -> T,
+{
+    let (r, elapsed) = with_duration(f);
+    println!("{:?}", elapsed);
+    r
 }
