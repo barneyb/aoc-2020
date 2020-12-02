@@ -30,3 +30,15 @@ where
     println!("{:?}", elapsed);
     r
 }
+
+pub fn benchmark<T, F>(iterations: usize, f: F)
+where
+    F: Fn() -> T,
+{
+    let mut total = Duration::new(0, 0);
+    for _ in 0..iterations {
+        let (_, elapsed) = with_duration(&f);
+        total += elapsed;
+    }
+    println!("{:?}", total / iterations as u32);
+}
