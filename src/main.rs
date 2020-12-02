@@ -32,7 +32,10 @@ fn main() {
         }
     });
     println!("{}", database.iter().filter(|r| {
-        let c = r.password.chars().filter(|&c| c == r.policy.char).count();
-        c >= r.policy.min && c <= r.policy.max
+        let min = r.policy.min - 1;
+        let first = r.password.len() > min && r.password.chars().nth(min).expect("failed to get first char") == r.policy.char;
+        let max = r.policy.max - 1;
+        let last = r.password.len() > max && r.password.chars().nth(max).expect("failed to get second char") == r.policy.char;
+        (first && !last) || (!first && last)
     }).count())
 }
