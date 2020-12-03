@@ -14,7 +14,7 @@ git checkout master
 git pull
 git merge --no-ff -m "Merge branch '$BRANCH'" $BRANCH
 git push
-git branch -d $BRANCH
+git branch -D $BRANCH
 git push origin :$BRANCH
 
 let "d = ${BRANCH//[^0-9]} + 1"
