@@ -24,4 +24,3 @@ if [ ${#d} = 1 ]; then
 fi
 BRANCH="day$d"
 git checkout -b $BRANCH master
-git push --set-upstream origin $BRANCH
