@@ -1,8 +1,4 @@
-#[macro_use]
-extern crate lazy_static;
-
 use aoc_2020 as aoc;
-use regex::Regex;
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -30,22 +26,23 @@ struct Record {
     password: String,
 }
 
-lazy_static! {
-    static ref RECORD_RE: Regex = Regex::new(r"^(\d+)-(\d+) ([a-z]): ([a-z]+)$").unwrap();
-}
-
 impl FromStr for Record {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts = RECORD_RE.captures(s).unwrap();
+        let di = s.find('-').expect("failed to find dash");
+        let si = s.find(' ').expect("failed to find space");
+        let ci = s.find(':').expect("failed to find colon");
         Ok(Record {
             policy: Policy {
-                min: parts.get(1).unwrap().as_str().parse().unwrap(),
-                max: parts.get(2).unwrap().as_str().parse().unwrap(),
-                char: parts.get(3).unwrap().as_str().chars().next().unwrap(),
+                min: s[0..di].parse().expect("failed to parse min"),
+                max: s[(di + 1)..si].parse().expect("failed to parse max"),
+                char: s[(si + 1)..ci]
+                    .chars()
+                    .next()
+                    .expect("failed to get policy char"),
             },
-            password: String::from(parts.get(4).unwrap().as_str()),
+            password: String::from(s[(ci + 1)..s.len()].trim()),
         })
     }
 }
