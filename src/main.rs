@@ -25,10 +25,8 @@ fn tree_count(input: &String, right: usize, down: usize) -> usize {
         .lines()
         .enumerate()
         .filter(|(i, _)| i % down == 0)
-        .map(|(_, line)| line)
-        .enumerate()
-        .map(|(i, line)| line.chars().nth((i * right) % line.len()).unwrap())
+        .map(|(i, line)| ((i / down * right) % line.len(), line))
+        .map(|(idx, line)| line.chars().nth(idx).unwrap())
         .filter(|&c| c == '#')
         .count()
 }
-
