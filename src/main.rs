@@ -1,57 +1,32 @@
 use aoc_2020 as aoc;
-use std::str::FromStr;
-
-#[derive(Debug)]
-struct Policy {
-    min: usize,
-    max: usize,
-    char: char,
-}
-
-impl Policy {
-    fn is_valid(&self, pw: &str) -> bool {
-        let first = self.test_char(pw, self.min - 1);
-        let last = self.test_char(pw, self.max - 1);
-        first ^ last
-    }
-
-    fn test_char(&self, pw: &str, i: usize) -> bool {
-        pw.len() > i && pw.chars().nth(i).expect("failed to get char") == self.char
-    }
-}
-
-#[derive(Debug)]
-struct Record {
-    policy: Policy,
-    password: String,
-}
-
-impl FromStr for Record {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let di = s.find('-').expect("failed to find dash");
-        let si = s.find(' ').expect("failed to find space");
-        let ci = s.find(':').expect("failed to find colon");
-        Ok(Record {
-            policy: Policy {
-                min: s[0..di].parse().expect("failed to parse min"),
-                max: s[(di + 1)..si].parse().expect("failed to parse max"),
-                char: s[(si + 1)..ci]
-                    .chars()
-                    .next()
-                    .expect("failed to get policy char"),
-            },
-            password: String::from(s[(ci + 1)..s.len()].trim()),
-        })
-    }
-}
 
 fn main() {
-    let database = aoc::read_lines(|s| s.parse::<Record>().unwrap());
-    let num_valid = database
-        .iter()
-        .filter(|r| r.policy.is_valid(&r.password))
-        .count();
-    println!("{}", num_valid)
+    let input = aoc::read_input();
+    let mut total = 1;
+    let one_one = tree_count(&input, 1, 1);
+    total *= one_one;
+    println!("{:3} => {:10}", one_one, total);
+    let three_one = tree_count(&input, 3, 1);
+    total *= three_one;
+    println!("{:3} => {:10}", three_one, total);
+    let five_one = tree_count(&input, 5, 1);
+    total *= five_one;
+    println!("{:3} => {:10}", five_one, total);
+    let seven_one = tree_count(&input, 7, 1);
+    total *= seven_one;
+    println!("{:3} => {:10}", seven_one, total);
+    let one_two = tree_count(&input, 1, 2);
+    total *= one_two;
+    println!("{:3} => {:10}", one_two, total);
+}
+
+fn tree_count(input: &String, right: usize, down: usize) -> usize {
+    input
+        .lines()
+        .enumerate()
+        .filter(|(i, _)| i % down == 0)
+        .map(|(i, line)| ((i / down * right) % line.len(), line))
+        .map(|(idx, line)| line.chars().nth(idx).unwrap())
+        .filter(|&c| c == '#')
+        .count()
 }
