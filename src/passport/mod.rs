@@ -127,12 +127,13 @@ impl<'a> FromStr for Passport {
             .split(" ")
             .map(|s| s.trim())
             .filter(|s| s.len() > 0)
-            .map(|p| p.split(":").map(|s| s.trim()))
-            .for_each(|mut p| {
-                pp.set_field(
-                    p.next().unwrap().parse().unwrap(),
-                    p.next().unwrap().to_string(),
-                );
+            .for_each(|str| {
+                let p = str
+                    .split(":")
+                    .map(|s| s.trim())
+                    .take(2)
+                    .collect::<Vec<&str>>();
+                pp.set_field(p[0].parse().unwrap(), p[1].to_string());
             });
         Ok(pp)
     }
