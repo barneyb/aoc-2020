@@ -10,12 +10,13 @@ fi
 
 git tag -f before-start-day
 BRANCH=`git rev-parse --abbrev-ref HEAD`
+REMOTE_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d / -f 2-`
 git checkout master
 git pull
 git merge --no-ff -m "Merge branch '$BRANCH'" $BRANCH
 git push
 git branch -D $BRANCH
-git push origin :$BRANCH
+git push origin :$REMOTE_BRANCH
 
 let "d = ${BRANCH//[^0-9]} + 1"
 echo $d
