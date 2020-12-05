@@ -29,26 +29,22 @@ impl FromStr for BoardingPass {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut row = (0, 127);
-        let mut col = (0, 7);
+        let mut rows = 0..128;
+        let mut cols = (0, 7);
         for c in s.chars() {
             match c {
-                'F' => row.1 -= (row.1 - row.0 + 1) / 2,
-                'B' => row.0 += (row.1 - row.0 + 1) / 2,
-                'L' => col.1 -= (col.1 - col.0 + 1) / 2,
-                'R' => col.0 += (col.1 - col.0 + 1) / 2,
+                'F' => rows.end = rows.start + rows.len() / 2,
+                'B' => rows.start += rows.len() / 2,
+                'L' => cols.1 -= (cols.1 - cols.0 + 1) / 2,
+                'R' => cols.0 += (cols.1 - cols.0 + 1) / 2,
                 _ => return Err(format!("Unrecognized '{}' in input!?", c)),
             }
         }
-        if row.0 != row.1 {
-            return Err("Pass didn't restrict to a single row".to_string());
-        }
-        if col.0 != col.1 {
-            return Err("Pass didn't restrict to a single column".to_string());
-        }
+        debug_assert!(rows.len() == 1, "Pass didn't restrict to a single row");
+        debug_assert!(cols.0 == cols.1, "Pass didn't restrict to a single col");
         Ok(BoardingPass {
-            row: row.0,
-            col: col.0,
+            row: rows.start,
+            col: cols.0,
         })
     }
 }
