@@ -58,6 +58,24 @@ impl Field {
     }
 }
 
+impl FromStr for Field {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "byr" => Ok(Field::BirthYear),
+            "iyr" => Ok(Field::IssueYear),
+            "eyr" => Ok(Field::ExpirationYear),
+            "hgt" => Ok(Field::Height),
+            "hcl" => Ok(Field::HairColor),
+            "ecl" => Ok(Field::EyeColor),
+            "pid" => Ok(Field::PassportID),
+            "cid" => Ok(Field::CountryID),
+            k => Err(format!("Unrecognized '{}' key!", k)),
+        }
+    }
+}
+
 pub struct Passport {
     fields: HashMap<Field, String>,
 }
@@ -112,17 +130,7 @@ impl<'a> FromStr for Passport {
             .map(|p| p.split(":").map(|s| s.trim()))
             .for_each(|mut p| {
                 pp.set_field(
-                    match p.next().unwrap() {
-                        "byr" => Field::BirthYear,
-                        "iyr" => Field::IssueYear,
-                        "eyr" => Field::ExpirationYear,
-                        "hgt" => Field::Height,
-                        "hcl" => Field::HairColor,
-                        "ecl" => Field::EyeColor,
-                        "pid" => Field::PassportID,
-                        "cid" => Field::CountryID,
-                        k => panic!("Unrecognized '{}' key!", k),
-                    },
+                    p.next().unwrap().parse().unwrap(),
                     p.next().unwrap().to_string(),
                 );
             });
