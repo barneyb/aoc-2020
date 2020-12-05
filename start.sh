@@ -8,9 +8,16 @@ if [ `git status --porcelain | wc -l` != "0" ]; then
   exit 1
 fi
 
-git tag -f before-start-day
 BRANCH=`git rev-parse --abbrev-ref HEAD`
+if [ "$BRANCH" = "master" ]; then
+  echo "You're already on master. You probably want:"
+  echo
+  echo "    git checkout -b dayXX"
+  echo
+  exit 0
+fi
 REMOTE_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d / -f 2-`
+git tag -f before-start-day
 git checkout master
 git pull
 git merge --no-ff -m "Merge branch '$BRANCH'" $BRANCH
