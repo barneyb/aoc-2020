@@ -26,6 +26,51 @@ enum Field {
     CountryID,
 }
 
+impl Field {
+
+    fn is_valid(&self, v:&str) -> bool {
+        match self {
+            Field::BirthYear => {
+                let i: i32 = v.parse().unwrap();
+                i >= 1920 && i <= 2002
+            },
+            Field::IssueYear => {
+                let i: i32 = v.parse().unwrap();
+                i >= 2010 && i <= 2020
+            },
+            Field::ExpirationYear => {
+                let i: i32 = v.parse().unwrap();
+                i >= 2020 && i <= 2030
+            },
+            Field::Height => {
+                if v.ends_with("cm") && v.len() == 5 {
+                    let i: i32 = v[0..3].parse().unwrap();
+                    i >= 150 && i <= 193
+                } else if v.ends_with("in") && v.len() == 4 {
+                    let i: i32 = v[0..2].parse().unwrap();
+                    i >= 59 && i <= 76
+                } else {
+                    false
+                }
+            },
+            Field::HairColor => {
+                COLOR_RE.is_match(v)
+            },
+            Field::EyeColor => {
+                match v {
+                    "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => true,
+                    _ => false,
+                }
+            },
+            Field::PassportID => {
+                PID_RE.is_match(v)
+            },
+            Field::CountryID => true,
+        }
+    }
+
+}
+
 fn break_on_blank_lines(input: &str) -> Vec<String> {
     input.split("\n\n").map(|s| s.replace('\n', " ")).collect()
 }
@@ -70,60 +115,7 @@ fn is_valid(passport: &Passport) -> bool {
         }
         match passport.get(&f) {
             None => return false,
-            Some(&v) => match f {
-                Field::BirthYear => {
-                    let i: i32 = v.parse().unwrap();
-                    if i < 1920 || i > 2002 {
-                        return false;
-                    }
-                },
-                Field::IssueYear => {
-                    let i: i32 = v.parse().unwrap();
-                    if i < 2010 || i > 2020 {
-                        return false;
-                    }
-                },
-                Field::ExpirationYear => {
-                    let i: i32 = v.parse().unwrap();
-                    if i < 2020 || i > 2030 {
-                        return false;
-                    }
-                },
-                Field::Height => {
-                    if v.ends_with("cm") && v.len() == 5 {
-                        let i: i32 = v[0..3].parse().unwrap();
-                        if i < 150 || i > 193 {
-                            return false;
-                        }
-                    } else if v.ends_with("in") && v.len() == 4 {
-                        let i: i32 = v[0..2].parse().unwrap();
-                        if i < 59 || i > 76 {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                },
-                Field::HairColor => {
-                    if !COLOR_RE.is_match(v) {
-                        return false;
-                    }
-                },
-                Field::EyeColor => {
-                    match v {
-                        "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => {}
-                        _ => {
-                            return false;
-                        }
-                    }
-                },
-                Field::PassportID => {
-                    if !PID_RE.is_match(v) {
-                        return false;
-                    }
-                },
-                Field::CountryID => panic!(""),
-            },
+            Some(&v) => if !f.is_valid(v) { return false },
         }
     }
     true
