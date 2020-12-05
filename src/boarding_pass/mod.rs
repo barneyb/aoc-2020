@@ -1,5 +1,18 @@
 use std::str::FromStr;
 
+pub fn find_empty_seat(passes: Vec<BoardingPass>) -> Result<usize, &'static str> {
+    let mut map = [false; 843];
+    for p in passes {
+        map[p.seat_id()] = true
+    }
+    for i in 1..841 {
+        if map[i - 1] && !map[i] && map[i + 1] {
+            return Ok(i);
+        }
+    }
+    Err("No empty seat found")
+}
+
 #[derive(Eq, PartialEq)]
 pub struct BoardingPass {
     row: usize,

@@ -33,7 +33,10 @@ where
 /// of text.
 ///
 /// A second paragraph!";
-/// assert_eq!(unwrap_paragraphs(s), vec!["I'm a long paragraph of text.", "A second paragraph!"])
+/// assert_eq!(unwrap_paragraphs(s), vec![
+///     "I'm a long paragraph of text.",
+///     "A second paragraph!"
+/// ])
 /// ```
 pub fn unwrap_paragraphs(input: &str) -> Vec<String> {
     input.split("\n\n").map(|s| s.replace('\n', " ")).collect()
