@@ -26,12 +26,12 @@ where
 /// ```
 /// use aoc_2020::unwrap_paragraphs;
 ///
-/// let s = "I am a
+/// let s = "I'm a
 /// long paragraph
 /// of text.
 ///
 /// A second paragraph!";
-/// assert_eq!(unwrap_paragraphs(s), vec!["I am a long paragraph of text.", "A second paragraph!"])
+/// assert_eq!(unwrap_paragraphs(s), vec!["I'm a long paragraph of text.", "A second paragraph!"])
 /// ```
 pub fn unwrap_paragraphs(input: &str) -> Vec<String> {
     input.split("\n\n").map(|s| s.replace('\n', " ")).collect()
