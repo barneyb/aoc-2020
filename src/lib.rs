@@ -70,5 +70,9 @@ where
         let (_, elapsed) = with_duration(&f);
         total += elapsed;
     }
-    println!("{:?}", total / iterations as u32);
+    let avg = total / iterations as u32;
+    println!(
+        "{:?} average, {:?} total ({} iterations)",
+        avg, total, iterations,
+    );
 }
