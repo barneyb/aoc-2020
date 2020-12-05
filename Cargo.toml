@@ -11,3 +11,4 @@ regex = "1.4"
 lazy_static = "1.4"
 strum = "0.20"
 strum_macros = "0.20"
+console = { version = "0.13", default-features = false }
