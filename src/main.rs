@@ -26,31 +26,44 @@ enum Field {
     CountryID,
 }
 
+lazy_static! {
+    static ref COLOR_RE: Regex = Regex::new(r"^#[a-f0-9]{6}$").unwrap();
+    static ref PID_RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
+}
+
 impl Field {
 
     fn is_valid(&self, v:&str) -> bool {
         match self {
             Field::BirthYear => {
-                let i: i32 = v.parse().unwrap();
-                i >= 1920 && i <= 2002
+                match v.parse::<i32>() {
+                    Ok(i) => i >= 1920 && i <= 2002,
+                    Err(_) => false,
+                }
             },
             Field::IssueYear => {
-                let i: i32 = v.parse().unwrap();
-                i >= 2010 && i <= 2020
+                match v.parse::<i32>() {
+                    Ok(i) => i >= 2010 && i <= 2020,
+                    Err(_) => false,
+                }
             },
             Field::ExpirationYear => {
-                let i: i32 = v.parse().unwrap();
-                i >= 2020 && i <= 2030
+                match v.parse::<i32>() {
+                    Ok(i) => i >= 2020 && i <= 2030,
+                    Err(_) => false,
+                }
             },
             Field::Height => {
-                if v.ends_with("cm") && v.len() == 5 {
-                    let i: i32 = v[0..3].parse().unwrap();
-                    i >= 150 && i <= 193
-                } else if v.ends_with("in") && v.len() == 4 {
-                    let i: i32 = v[0..2].parse().unwrap();
-                    i >= 59 && i <= 76
-                } else {
-                    false
+                match &v[(v.len() - 2)..v.len()] {
+                    "cm" => match v[0..3].parse::<i32>() {
+                        Ok(i) => i >= 150 && i <= 193,
+                        Err(_) => false,
+                    },
+                    "in" => match v[0..2].parse::<i32>() {
+                        Ok(i) => i >= 59 && i <= 76,
+                        Err(_) => false,
+                    },
+                    _ => false,
                 }
             },
             Field::HairColor => {
@@ -103,11 +116,6 @@ fn parse(input: &str) -> Passport {
     passport
 }
 
-lazy_static! {
-    static ref COLOR_RE: Regex = Regex::new(r"^#[a-f0-9]{6}$").unwrap();
-    static ref PID_RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
-}
-
 fn is_valid(passport: &Passport) -> bool {
     for f in Field::iter() {
         if f == Field::CountryID {
@@ -130,21 +138,21 @@ mod test {
     fn test_is_valid() {
         let mut pp = HashMap::new();
         assert!(!is_valid(&pp));
-        pp.insert(Field::BirthYear, "123");
+        pp.insert(Field::BirthYear, "1980");
         assert!(!is_valid(&pp));
-        pp.insert(Field::IssueYear, "123");
+        pp.insert(Field::IssueYear, "2015");
         assert!(!is_valid(&pp));
-        pp.insert(Field::ExpirationYear, "123");
+        pp.insert(Field::ExpirationYear, "2025");
         assert!(!is_valid(&pp));
-        pp.insert(Field::Height, "123");
+        pp.insert(Field::Height, "192cm");
         assert!(!is_valid(&pp));
-        pp.insert(Field::HairColor, "123");
+        pp.insert(Field::HairColor, "#123abc");
         assert!(!is_valid(&pp));
-        pp.insert(Field::EyeColor, "123");
+        pp.insert(Field::EyeColor, "grn");
         assert!(!is_valid(&pp));
-        pp.insert(Field::PassportID, "123");
+        pp.insert(Field::PassportID, "123456789");
         assert!(is_valid(&pp));
-        pp.insert(Field::CountryID, "123");
+        pp.insert(Field::CountryID, "garbage");
         assert!(is_valid(&pp));
     }
 
