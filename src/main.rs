@@ -1,7 +1,11 @@
+#[macro_use]
+extern crate lazy_static;
+
 use aoc_2020 as aoc;
 use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use regex::Regex;
 
 fn main() {
     let input = aoc::read_input();
@@ -54,17 +58,74 @@ fn parse(input: &str) -> Passport {
     passport
 }
 
+lazy_static! {
+    static ref COLOR_RE: Regex = Regex::new(r"^#[a-f0-9]{6}$").unwrap();
+    static ref PID_RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
+}
+
 fn is_valid(passport: &Passport) -> bool {
     for f in Field::iter() {
         if f == Field::CountryID {
             continue;
         }
-        if !passport.contains_key(&f) {
-        println!("{:?} doesn't have {:?}", passport, f);
-            return false;
+        match passport.get(&f) {
+            None => return false,
+            Some(&v) => match f {
+                Field::BirthYear => {
+                    let i: i32 = v.parse().unwrap();
+                    if i < 1920 || i > 2002 {
+                        return false;
+                    }
+                },
+                Field::IssueYear => {
+                    let i: i32 = v.parse().unwrap();
+                    if i < 2010 || i > 2020 {
+                        return false;
+                    }
+                },
+                Field::ExpirationYear => {
+                    let i: i32 = v.parse().unwrap();
+                    if i < 2020 || i > 2030 {
+                        return false;
+                    }
+                },
+                Field::Height => {
+                    if v.ends_with("cm") && v.len() == 5 {
+                        let i: i32 = v[0..3].parse().unwrap();
+                        if i < 150 || i > 193 {
+                            return false;
+                        }
+                    } else if v.ends_with("in") && v.len() == 4 {
+                        let i: i32 = v[0..2].parse().unwrap();
+                        if i < 59 || i > 76 {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                },
+                Field::HairColor => {
+                    if !COLOR_RE.is_match(v) {
+                        return false;
+                    }
+                },
+                Field::EyeColor => {
+                    match v {
+                        "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => {}
+                        _ => {
+                            return false;
+                        }
+                    }
+                },
+                Field::PassportID => {
+                    if !PID_RE.is_match(v) {
+                        return false;
+                    }
+                },
+                Field::CountryID => panic!(""),
+            },
         }
     }
-    println!("we good");
     true
 }
 
