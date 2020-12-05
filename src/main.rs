@@ -1,8 +1,6 @@
 use aoc_2020 as aoc;
 
-mod boarding_pass;
-
-use crate::boarding_pass::BoardingPass;
+use aoc::boarding_pass::BoardingPass;
 
 fn main() {
     let passes = aoc::read_lines(|s| s.parse::<BoardingPass>().unwrap());
