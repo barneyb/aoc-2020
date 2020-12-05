@@ -1,5 +1,10 @@
+#[macro_use]
+extern crate lazy_static;
+
 use std::fs;
 use std::time::{Duration, Instant};
+
+pub mod passport;
 
 pub fn read_input() -> String {
     fs::read_to_string("input.txt").unwrap().trim().to_string()

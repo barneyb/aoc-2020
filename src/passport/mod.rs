@@ -142,7 +142,7 @@ impl<'a> FromStr for Passport {
 #[cfg(test)]
 mod test {
     use super::*;
-    use aoc_2020 as aoc;
+    use crate as aoc;
 
     #[test]
     fn test_is_valid() {

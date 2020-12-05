@@ -1,11 +1,6 @@
-#[macro_use]
-extern crate lazy_static;
-
 use aoc_2020 as aoc;
 
-mod passport;
-
-use crate::passport::Passport;
+use aoc::passport::Passport;
 
 fn main() {
     let input = aoc::read_input();
