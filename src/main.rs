@@ -5,17 +5,17 @@ use aoc_2020 as aoc;
 
 mod passport;
 
-use crate::passport::{break_on_blank_lines, is_valid, parse};
+use crate::passport::Passport;
 
 fn main() {
     let input = aoc::read_input();
-    let passports = break_on_blank_lines(&input);
+    let passports = aoc::unwrap_paragraphs(&input);
     println!(
         "{}",
         passports
             .iter()
-            .map(|s| parse(s))
-            .filter(|p| is_valid(&p))
+            .map(|s| s.parse::<Passport>().unwrap())
+            .filter(|p| p.is_valid())
             .count()
     );
 }

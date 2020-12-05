@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::collections::HashMap;
+use std::str::FromStr;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -57,90 +58,111 @@ impl Field {
     }
 }
 
-pub fn break_on_blank_lines(input: &str) -> Vec<String> {
-    input.split("\n\n").map(|s| s.replace('\n', " ")).collect()
+pub struct Passport {
+    fields: HashMap<Field, String>,
 }
 
-pub type Passport<'a> = HashMap<Field, &'a str>;
-
-pub fn parse(input: &str) -> Passport {
-    let mut passport = HashMap::new();
-    input
-        .trim()
-        .split(" ")
-        .map(|s| s.trim())
-        .filter(|s| s.len() > 0)
-        .map(|p| p.split(":").map(|s| s.trim()))
-        .for_each(|mut p| {
-            passport.insert(
-                match p.next().unwrap() {
-                    "byr" => Field::BirthYear,
-                    "iyr" => Field::IssueYear,
-                    "eyr" => Field::ExpirationYear,
-                    "hgt" => Field::Height,
-                    "hcl" => Field::HairColor,
-                    "ecl" => Field::EyeColor,
-                    "pid" => Field::PassportID,
-                    "cid" => Field::CountryID,
-                    k => panic!("Unrecognized '{}' key!", k),
-                },
-                p.next().unwrap(),
-            );
-        });
-    passport
-}
-
-pub fn is_valid(passport: &Passport) -> bool {
-    for f in Field::iter() {
-        if f == Field::CountryID {
-            continue;
+impl Passport {
+    fn new() -> Passport {
+        Passport {
+            fields: HashMap::new(),
         }
-        match passport.get(&f) {
-            None => return false,
-            Some(&v) => {
-                if !f.is_valid(v) {
-                    return false;
+    }
+
+    fn get_field(&self, f: &Field) -> Option<&String> {
+        self.fields.get(f)
+    }
+
+    #[allow(dead_code)]
+    fn has_field(&self, f: &Field) -> bool {
+        self.fields.contains_key(f)
+    }
+
+    fn set_field(&mut self, f: Field, value: String) -> Option<String> {
+        self.fields.insert(f, value)
+    }
+
+    pub fn is_valid(&self) -> bool {
+        for f in Field::iter() {
+            if f == Field::CountryID {
+                continue;
+            }
+            match self.get_field(&f) {
+                None => return false,
+                Some(v) => {
+                    if !f.is_valid(v) {
+                        return false;
+                    }
                 }
             }
         }
+        true
     }
-    true
+}
+
+impl<'a> FromStr for Passport {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut pp = Passport::new();
+        s.trim()
+            .split(" ")
+            .map(|s| s.trim())
+            .filter(|s| s.len() > 0)
+            .map(|p| p.split(":").map(|s| s.trim()))
+            .for_each(|mut p| {
+                pp.set_field(
+                    match p.next().unwrap() {
+                        "byr" => Field::BirthYear,
+                        "iyr" => Field::IssueYear,
+                        "eyr" => Field::ExpirationYear,
+                        "hgt" => Field::Height,
+                        "hcl" => Field::HairColor,
+                        "ecl" => Field::EyeColor,
+                        "pid" => Field::PassportID,
+                        "cid" => Field::CountryID,
+                        k => panic!("Unrecognized '{}' key!", k),
+                    },
+                    p.next().unwrap().to_string(),
+                );
+            });
+        Ok(pp)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::collections::HashMap;
+    use aoc_2020 as aoc;
 
     #[test]
     fn test_is_valid() {
-        let mut pp = HashMap::new();
-        assert!(!is_valid(&pp));
-        pp.insert(Field::BirthYear, "1980");
-        assert!(!is_valid(&pp));
-        pp.insert(Field::IssueYear, "2015");
-        assert!(!is_valid(&pp));
-        pp.insert(Field::ExpirationYear, "2025");
-        assert!(!is_valid(&pp));
-        pp.insert(Field::Height, "192cm");
-        assert!(!is_valid(&pp));
-        pp.insert(Field::HairColor, "#123abc");
-        assert!(!is_valid(&pp));
-        pp.insert(Field::EyeColor, "grn");
-        assert!(!is_valid(&pp));
-        pp.insert(Field::PassportID, "123456789");
-        assert!(is_valid(&pp));
-        pp.insert(Field::CountryID, "garbage");
-        assert!(is_valid(&pp));
+        let mut pp = Passport::new();
+        assert!(!pp.is_valid());
+        pp.set_field(Field::BirthYear, "1980".to_string());
+        assert!(!pp.is_valid());
+        pp.set_field(Field::IssueYear, "2015".to_string());
+        assert!(!pp.is_valid());
+        pp.set_field(Field::ExpirationYear, "2025".to_string());
+        assert!(!pp.is_valid());
+        pp.set_field(Field::Height, "192cm".to_string());
+        assert!(!pp.is_valid());
+        pp.set_field(Field::HairColor, "#123abc".to_string());
+        assert!(!pp.is_valid());
+        pp.set_field(Field::EyeColor, "grn".to_string());
+        assert!(!pp.is_valid());
+        pp.set_field(Field::PassportID, "123456789".to_string());
+        assert!(pp.is_valid());
+        pp.set_field(Field::CountryID, "garbage".to_string());
+        assert!(pp.is_valid());
     }
 
     #[test]
     fn test_parse() {
         let input = "iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884 hcl:#cfa07d byr:1929";
-        let pp = parse(input);
-        assert_eq!(7, pp.len());
-        assert!(pp.contains_key(&Field::EyeColor));
-        assert!(!pp.contains_key(&Field::Height));
+        let pp = input.parse::<Passport>().unwrap();
+        assert!(pp.has_field(&Field::EyeColor));
+        assert!(!pp.has_field(&Field::Height));
     }
 
     #[test]
@@ -160,7 +182,7 @@ hcl:#cfa07d eyr:2025 pid:166559648
 iyr:2011 ecl:brn hgt:59in
 ",
         );
-        let passports = break_on_blank_lines(&input);
+        let passports = aoc::unwrap_paragraphs(&input);
         assert_eq!(4, passports.len());
         for p in passports.iter() {
             println!("{:?}", p);
@@ -170,8 +192,8 @@ iyr:2011 ecl:brn hgt:59in
             2,
             passports
                 .iter()
-                .map(|s| parse(s))
-                .filter(|p| is_valid(&p))
+                .map(|s| s.parse::<Passport>().unwrap())
+                .filter(|p| p.is_valid())
                 .count()
         );
     }

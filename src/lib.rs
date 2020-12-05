@@ -12,6 +12,26 @@ where
     read_input().lines().map(f).collect::<Vec<T>>()
 }
 
+/// I convert a multi-line `&str` into a `Vec<String>` by splitting on "paragraph breaks" which are
+/// defined as two sequential newline characters. Each paragraph is further "unwrapped" by replacing
+/// all internal newlines w/ a single space.
+///
+/// # Examples
+///
+/// ```
+/// use aoc_2020::unwrap_paragraphs;
+///
+/// let s = "I am a
+/// long paragraph
+/// of text.
+///
+/// A second paragraph!";
+/// assert_eq!(unwrap_paragraphs(s), vec!["I am a long paragraph of text.", "A second paragraph!"])
+/// ```
+pub fn unwrap_paragraphs(input: &str) -> Vec<String> {
+    input.split("\n\n").map(|s| s.replace('\n', " ")).collect()
+}
+
 pub fn with_duration<T, F>(f: F) -> (T, Duration)
 where
     F: Fn() -> T,
