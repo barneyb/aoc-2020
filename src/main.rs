@@ -1,6 +1,5 @@
 use aoc::boarding_pass::{find_empty_seat, BoardingPass};
 use aoc_2020 as aoc;
-use console::{set_colors_enabled, style};
 
 fn the_work() {
     let passes = aoc::read_lines(|s| s.parse::<BoardingPass>().unwrap());
@@ -13,6 +12,7 @@ fn the_work() {
 
 fn main() {
     let (_, elapsed) = aoc::with_duration(the_work);
-    set_colors_enabled(true);
-    println!("{:>12} {:?}", style("Finished").bold().green(), elapsed);
+    console::set_colors_enabled(true);
+    let success = console::Style::new().bold().green();
+    println!("{:>12} {:?}", success.apply_to("Finished"), elapsed);
 }
