@@ -3,18 +3,14 @@ use std::str::FromStr;
 
 fn main() {
     let passes = aoc::read_lines(|s| s.parse::<BoardingPass>().unwrap());
-    let part_one = passes
-        .iter()
-        .map(|p| p.seat_id())
-        .max()
-        .unwrap();
+    let part_one = passes.iter().map(|p| p.seat_id()).max().unwrap();
     println!("{}", part_one);
     let mut map = [false; 843];
     for p in passes {
         map[p.seat_id()] = true
     }
     for i in 1..841 {
-        if map[i-1] && !map[i] && map[i+1] {
+        if map[i - 1] && !map[i] && map[i + 1] {
             println!("{}", i)
         }
     }
@@ -33,7 +29,7 @@ impl BoardingPass {
 }
 
 impl FromStr for BoardingPass {
-    type Err = ();
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut row = (0, 127);
@@ -44,11 +40,15 @@ impl FromStr for BoardingPass {
                 'B' => row.0 += (row.1 - row.0 + 1) / 2,
                 'L' => col.1 -= (col.1 - col.0 + 1) / 2,
                 'R' => col.0 += (col.1 - col.0 + 1) / 2,
-                _ => panic!("Unrecognized '{}' in input!?", c),
+                _ => return Err(format!("Unrecognized '{}' in input!?", c)),
             }
         }
-        assert_eq!(row.0, row.1);
-        assert_eq!(col.0, col.1);
+        if row.0 != row.1 {
+            return Err("Pass didn't restrict to a single row".to_string());
+        }
+        if col.0 != col.1 {
+            return Err("Pass didn't restrict to a single column".to_string());
+        }
         Ok(BoardingPass {
             row: row.0,
             col: col.0,
