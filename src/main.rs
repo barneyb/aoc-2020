@@ -2,12 +2,22 @@ use aoc_2020 as aoc;
 use std::str::FromStr;
 
 fn main() {
-    let part_one = aoc::read_lines(|s| s.parse::<BoardingPass>().unwrap())
+    let passes = aoc::read_lines(|s| s.parse::<BoardingPass>().unwrap());
+    let part_one = passes
         .iter()
         .map(|p| p.seat_id())
         .max()
         .unwrap();
-    println!("{}", part_one)
+    println!("{}", part_one);
+    let mut map = [false; 843];
+    for p in passes {
+        map[p.seat_id()] = true
+    }
+    for i in 1..841 {
+        if map[i-1] && !map[i] && map[i+1] {
+            println!("{}", i)
+        }
+    }
 }
 
 #[derive(Eq, PartialEq)]
@@ -34,14 +44,14 @@ impl FromStr for BoardingPass {
                 'B' => row.0 += (row.1 - row.0 + 1) / 2,
                 'L' => col.1 -= (col.1 - col.0 + 1) / 2,
                 'R' => col.0 += (col.1 - col.0 + 1) / 2,
-                _ => panic!("Unrecognized '{}' in input!?", c)
+                _ => panic!("Unrecognized '{}' in input!?", c),
             }
         }
         assert_eq!(row.0, row.1);
         assert_eq!(col.0, col.1);
         Ok(BoardingPass {
-            row : row.0,
-            col : col.0,
+            row: row.0,
+            col: col.0,
         })
     }
 }
