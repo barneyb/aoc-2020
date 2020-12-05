@@ -4,8 +4,9 @@ extern crate lazy_static;
 use std::fs;
 use std::time::{Duration, Instant};
 
-pub mod boarding_pass;
+pub mod password;
 pub mod passport;
+pub mod boarding_pass;
 
 pub fn read_input() -> String {
     fs::read_to_string("input.txt").unwrap().trim().to_string()
