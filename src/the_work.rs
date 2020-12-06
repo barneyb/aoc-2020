@@ -1,5 +1,5 @@
 use aoc_2020 as aoc;
-use aoc_2020::histogram::Histogram;
+use aoc_2020::histogram::{Histogram, MappedHistogram};
 
 pub fn the_work() {
     let input = aoc::read_input();
@@ -16,7 +16,7 @@ fn both_parts(input: &str) -> (usize, usize) {
     input
         .split("\n\n")
         .map(|group| {
-            let mut hist = Histogram::new(&letter_index);
+            let mut hist = MappedHistogram::new(&letter_index);
             for c in group.chars().filter(|&c| c != '\n') {
                 hist.increment(&c);
             }
