@@ -6,14 +6,14 @@ pub fn the_work() {
     let part_one: usize = groups
         .iter()
         .map(|g| {
-            let mut map = [false; 26];
-            for c in g.chars() {
-                if c == ' ' {
-                    continue;
+            let mut map = [0; 26];
+            for p in g.split(' ') {
+                for c in p.chars() {
+                    map[(c as usize) - a] += 1;
                 }
-                map[(c as usize) - a] = true;
             }
-            map.iter().filter(|&&b| b).count()
+            let pc = g.split(' ').count();
+            map.iter().filter(|&&c| c == pc).count()
         })
         .sum();
     println!("{}", part_one)
