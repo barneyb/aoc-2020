@@ -1,6 +1,30 @@
 use std::fmt;
 use std::slice::Iter;
 
+/// I'm a simple heap-allocated, auto-expanding histogram. I.e., a `Vec<usize>` with a couple higher
+/// level operations. Behind the scenes, the histogram is represented as zero-indexed count buckets.
+///
+/// # Examples
+///
+/// Build a histogram of integers from `8` to `21` by their ones place. In particular note that a
+/// count is not retrieved via a bucket index, but rather via something that would end up in that
+/// bucket.
+///
+/// ```
+/// use aoc_2020::histogram::Histogram;
+///
+/// fn to_idx(i: &i32) -> usize {
+///     (i % 10) as usize
+/// }
+///
+/// let mut hist = Histogram::new(&to_idx);
+/// for i in 8..=21 {
+///     hist.increment(&i);
+/// }
+///
+/// assert_eq!(hist.get_count(&58), 2);
+/// assert_eq!(hist.raw(), vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
+/// ```
 pub struct Histogram<'a, C> {
     hist: Vec<usize>,
     to_index: &'a dyn Fn(&C) -> usize,
@@ -27,12 +51,15 @@ impl<'a, C> Histogram<'a, C> {
     }
 
     pub fn increment(&mut self, cat: &C) {
-        let idx: usize = (self.to_index)(cat);
-        if let None = self.hist.get(idx) {
-            self.hist.resize(idx, 0);
+        self.increment_idx((self.to_index)(cat));
+    }
+
+    pub fn increment_idx(&mut self, cat_idx: usize) {
+        if let None = self.hist.get(cat_idx) {
+            self.hist.resize(cat_idx, 0);
             self.hist.push(1);
         } else {
-            self.hist[idx] += 1;
+            self.hist[cat_idx] += 1;
         }
     }
 
@@ -65,11 +92,12 @@ mod test {
         fn to_idx(i: &i32) -> usize {
             (i % 10) as usize
         }
+
         let mut hist = Histogram::new(&to_idx);
         for i in 8..=21 {
             hist.increment(&i);
         }
-        println!("{:?}", hist);
+
         assert_eq!(hist.raw(), vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
     }
 
@@ -120,7 +148,7 @@ mod test {
         assert_eq!(sec_hist_indirect.get_count(&'a'), 3); // the a's
         assert_eq!(sec_hist_indirect.get_count_idx(0), 3); // the a's
         println!("{:?}", sec_hist_direct);
-        assert_eq!(sec_hist_direct.get_count(&things[2]), 1); // the o's
+        assert_eq!(sec_hist_direct.get_count(&Thing::new("Louis")), 1); // the o's
         assert_eq!(sec_hist_direct.get_count_idx(0), 3); // the a's
     }
 }
