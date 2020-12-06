@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::hash::Hash;
 
 /// Histograms are a set of buckets with a count of how many items are in the bucket. The buckets
@@ -125,9 +126,64 @@ impl<T: Eq + Hash> Histogram<T> for HashMap<T, usize> {
     }
 }
 
+pub fn render(hist: &Vec<usize>) -> String {
+    render_width(hist, 72)
+}
+
+#[allow(unused_must_use)]
+pub fn render_width(hist: &Vec<usize>, max_width: usize) -> String {
+    let mut s = String::new();
+    let gutter_width = hist.len().to_string().len();
+    let bar_width = max_width - gutter_width - 2;
+    let &max = hist.iter().max().unwrap();
+    for (i, &v) in hist.iter().enumerate() {
+        writeln!(
+            s,
+            "{:width$} |{}",
+            i,
+            "#".repeat(v * bar_width / max),
+            width = gutter_width
+        );
+    }
+    s.push_str(&"-".repeat(gutter_width + 1));
+    s.push('+');
+    s.push_str(&"-".repeat(bar_width - 1));
+    s.push('+');
+    s.push('\n');
+    writeln!(
+        s,
+        "{:>g$}{:b$}|",
+        "|0",
+        max,
+        g = gutter_width + 3,
+        b = bar_width - 2
+    );
+    s
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_render() {
+        let hist = vec![17, 40, 10, 12, 13, 14, 100, 98, 74, 12, 0];
+        let result = render(&hist);
+        println!("{}", result);
+
+        let hist = vec![1, 2, 3];
+        let result = render_width(&hist, 10);
+        println!("{}", result);
+        assert_eq!(
+            result,
+            "0 |##
+1 |####
+2 |#######
+--+------+
+  |0    3|
+"
+        );
+    }
 
     #[test]
     fn vec() {
