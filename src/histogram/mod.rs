@@ -1,145 +1,127 @@
-use std::fmt;
-use std::slice::Iter;
+use std::collections::HashMap;
+use std::hash::Hash;
 
-/// I represent a histogram as a heap-allocated, auto-expanding set of zero-indexed counts.
-/// Conceptually, a `Vec<usize>` with histogram-y methods. Implementations are free to use a `T`
-/// different than `usize` if it's more natural to talk about the counts via a different type.
-pub trait Histogram<T> {
-    /// Increment bucket `c` by one. If this is the first time `c` has been incremented, the
-    /// histogram will be expanded to include it.
-    fn increment(&mut self, c: T);
-
-    /// Retrieve the value of bucket `c`. If `c` has never been incremented, zero will be returned,
-    /// but the histogram will not be expanded.
-    fn get_count(&self, c: T) -> usize;
-
-    /// Return an `Iter` over the values in the Histogram, in bucket order.
-    fn values(&self) -> Iter<'_, usize>;
-
-    /// Return a slice of the values in the Histogram, in bucket order.
-    fn raw(&self) -> &[usize];
-}
-
-/// I am a `Histogram` that exposes its counts directly by their indexes.
+/// Histograms are a set of buckets with a count of how many items are in the bucket. The buckets
+/// are usually a set of discrete segments which cover a continuous interval, but don't have to be.
+/// Buckets always start with a count of zero.
 ///
-/// # Example
+/// The two primary implementations are:
 ///
-/// Build a histogram of the ones digit for the integers `8` to `21`.
+/// 1.  `Vec<usize>` which requires `usize` bucket labels, and is fast for small numbers of buckets
+///     that have labels close to zero.
+/// 1.  `HashMap<T, usize>` which allows arbitrary `Eq + Hash` bucket labels, and is better suited
+///     to sparsely filled buckets or those which don't naturally map onto `usize`.
+///
+/// # Examples
+///
+/// Ages of people at a kid's birthday party, using `Vec` w/ `usize` as the bucket type:
 ///
 /// ```
-/// use aoc_2020::histogram::{VecHistogram, Histogram};
+/// use aoc_2020::histogram::Histogram;
 ///
-/// let mut hist = VecHistogram::new();
-/// for i in 8..=21 {
-///     hist.increment(i % 10);
+/// let ages = vec![
+///     0, 1, 2, 3, // younger siblings
+///     5, 5, 5, 5, // friends
+///     6,          // HAPPY BIRTHDAY TO YOU!
+///     6, 6, 6, 6, // more friends
+///     34, 35,     // parents
+///     62, 62, 63  // grandparents
+/// ];
+/// let mut hist = Vec::new();
+/// for a in ages {
+///     hist.increment(a);
 /// }
-///
-/// assert_eq!(hist.get_count(8), 2);
-/// assert_eq!(hist.raw(), vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
+/// assert_eq!(4, hist.get_count(&5));
+/// assert_eq!(0, hist.get_count(&7));
+/// assert_eq!(0, hist.get_count(&99));
+/// assert_eq!(Some(&4), hist.get(5));
+/// assert_eq!(Some(&0), hist.get(7));
+/// assert_eq!(None, hist.get(99));
 /// ```
-#[derive(Debug)]
-pub struct VecHistogram {
-    values: Vec<usize>,
-}
-
-impl VecHistogram {
-    pub fn new() -> VecHistogram {
-        VecHistogram { values: Vec::new() }
+///
+/// Cups of coffee by day of week, using as `HashMap` w/ `String` as the bucket type.
+///
+/// ```
+/// use aoc_2020::histogram::Histogram;
+/// use std::collections::HashMap;
+///
+/// let cups = vec!["mon", "mon", "tue", "wed", "wed", "wed", "fri"];
+/// let mut hist = HashMap::new();
+/// for c in cups {
+///     hist.increment(c);
+/// }
+/// assert_eq!(3, hist.get_count(&"wed"));
+/// assert_eq!(0, hist.get_count(&"sat"));
+/// assert_eq!(Some(&3), hist.get(&"wed"));
+/// assert_eq!(None, hist.get(&"sat"));
+/// ```
+///
+pub trait Histogram<T> {
+    /// Increment a bucket by one and return the new value.
+    fn increment(&mut self, bucket: T) -> usize {
+        self.increment_by(bucket, 1)
     }
+
+    /// Increment a bucket by an arbitrary step and return the new value. Useful if you have
+    /// pre-aggregated data.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use aoc_2020::histogram::Histogram;
+    /// use std::collections::HashMap;
+    ///
+    /// let cups = vec![("mon", 1), ("tue", 3), /* on to next week */ ("mon", 2), ("tue", 1)];
+    /// let mut hist = HashMap::new();
+    /// for (day, n) in cups {
+    ///     hist.increment_by(day, n);
+    /// }
+    /// assert_eq!(4, hist.get_count(&"tue"));
+    /// assert_eq!(0, hist.get_count(&"sat"));
+    /// ```
+    fn increment_by(&mut self, bucket: T, step: usize) -> usize;
+
+    /// Retrieve the value of a bucket.
+    fn get_count(&self, bucket: &T) -> usize;
 }
 
-impl Histogram<usize> for VecHistogram {
-    fn increment(&mut self, cat_idx: usize) {
-        if let None = self.values.get(cat_idx) {
-            self.values.resize(cat_idx, 0);
-            self.values.push(1);
+impl Histogram<usize> for Vec<usize> {
+    /// Increment a bucket by the given amount, creating it (and all lower-numbered buckets) if
+    /// needed.
+    fn increment_by(&mut self, bucket: usize, step: usize) -> usize {
+        if let None = self.get(bucket) {
+            self.resize(bucket, 0);
+            self.push(step);
+            return step;
         } else {
-            self.values[cat_idx] += 1;
+            self[bucket] += step;
         }
+        self[bucket]
     }
 
-    fn get_count(&self, cat_idx: usize) -> usize {
-        match self.values.get(cat_idx) {
+    /// Get a bucket's count; missing buckets are not created.
+    fn get_count(&self, &bucket: &usize) -> usize {
+        match self.get(bucket) {
             Some(&c) => c,
             None => 0,
         }
     }
-
-    fn values(&self) -> Iter<'_, usize> {
-        self.values.iter()
-    }
-
-    fn raw(&self) -> &[usize] {
-        &self.values
-    }
 }
 
-/// I am `Histogram` which exposes its counts based on a `Fn(&T) -> usize` mapping, which is useful
-/// to hide the indexes inside a `Histogram`.
-///
-/// # Examples
-///
-/// Build a histogram of the ones digit for the integers `8` to `21`. In particular note that a
-/// count is not retrieved via a bucket index, but rather via something that would end up in that
-/// bucket.
-///
-/// ```
-/// use aoc_2020::histogram::{MappedHistogram, Histogram};
-///
-/// fn to_idx(i: &i32) -> usize {
-///     (i % 10) as usize
-/// }
-///
-/// let mut hist = MappedHistogram::new(&to_idx);
-/// let numbers = (8..=21).collect::<Vec<i32>>();
-/// for i in &numbers {
-///     hist.increment(i);
-/// }
-///
-/// assert_eq!(hist.get_count(&58), 2);
-/// assert_eq!(hist.raw(), vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
-/// ```
-pub struct MappedHistogram<'a, T> {
-    hist: VecHistogram,
-    to_index: &'a dyn Fn(&T) -> usize,
-}
-
-// Fn isn't Debug, so implement manually...
-impl<T> fmt::Debug for MappedHistogram<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("MappedHistogram")
-            .field("values", &self.hist.values)
-            .finish()
+impl<T: Eq + Hash> Histogram<T> for HashMap<T, usize> {
+    /// Increment a bucket by the given amount, inserting it - and only it - if needed.
+    fn increment_by(&mut self, bucket: T, step: usize) -> usize {
+        let v = self.entry(bucket).or_default();
+        *v = *v + step;
+        *v
     }
-}
 
-impl<'a, T> MappedHistogram<'a, T> {
-    pub fn new<F>(f: &'a F) -> MappedHistogram<'a, T>
-    where
-        F: Fn(&T) -> usize,
-    {
-        MappedHistogram {
-            hist: VecHistogram::new(),
-            to_index: f,
+    /// Get a bucket's count; missing buckets are not created.
+    fn get_count(&self, bucket: &T) -> usize {
+        match self.get(bucket) {
+            Some(&c) => c,
+            None => 0,
         }
-    }
-}
-
-impl<T> Histogram<&T> for MappedHistogram<'_, T> {
-    fn increment(&mut self, cat: &T) {
-        self.hist.increment((self.to_index)(cat));
-    }
-
-    fn get_count(&self, cat: &T) -> usize {
-        self.hist.get_count((self.to_index)(cat))
-    }
-
-    fn values(&self) -> Iter<'_, usize> {
-        self.hist.values()
-    }
-
-    fn raw(&self) -> &[usize] {
-        &self.hist.raw()
     }
 }
 
@@ -148,34 +130,32 @@ mod test {
     use super::*;
 
     #[test]
-    fn of_ints() {
-        fn to_idx(i: &i32) -> usize {
-            (i % 10) as usize
-        }
-
-        let mut hist = MappedHistogram::new(&to_idx);
-        let numbers = (8..=21).collect::<Vec<i32>>();
-        for i in &numbers {
-            hist.increment(i);
-        }
-
-        assert_eq!(hist.get_count(&58), 2);
-        assert_eq!(hist.raw(), vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
-    }
-
-    #[test]
-    fn raw_indexes() {
-        let mut hist = VecHistogram::new();
+    fn vec() {
+        let mut hist = Vec::new();
         for i in 8..=21 {
             hist.increment(i % 10);
         }
 
-        assert_eq!(hist.get_count(8), 2);
-        assert_eq!(hist.raw(), vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
+        assert_eq!(hist.get_count(&8), 2);
+        assert_eq!(hist, vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
     }
 
     #[test]
-    fn of_refs() {
+    fn int_map() {
+        let mut hist = HashMap::new();
+        let numbers = (8..=21).collect::<Vec<i32>>();
+        for &i in &numbers {
+            hist.increment(i % 10);
+        }
+
+        assert_eq!(hist.get_count(&2), 1);
+        assert_eq!(hist.get_count(&8), 2);
+        assert_eq!(hist.get_count(&99), 0);
+    }
+
+    #[test]
+    fn ref_map() {
+        #[derive(Eq, PartialEq, Hash)]
         struct Thing {
             name: String,
         }
@@ -188,38 +168,21 @@ mod test {
             }
         }
 
-        fn to_idx_len(t: &Thing) -> usize {
-            t.name.len()
-        }
-
-        fn to_idx_letter(&c: &char) -> usize {
-            (c as usize) - ('a' as usize)
-        }
-
-        fn to_idx_name_char_2(t: &Thing) -> usize {
-            to_idx_letter(&t.name.chars().nth(1).unwrap())
-        }
-
         let things = vec![
             Thing::new("Barney"),
             Thing::new("Sally"),
             Thing::new("Johann"),
             Thing::new("Jackie"),
+            Thing::new("Johann"),
+            Thing::new("Johann"),
         ];
-        let mut len_hist = MappedHistogram::new(&to_idx_len);
-        let mut sec_hist_indirect = VecHistogram::new();
-        let mut sec_hist_direct = MappedHistogram::new(&to_idx_name_char_2);
-        for t in &things {
-            len_hist.increment(t);
-            sec_hist_indirect.increment(to_idx_letter(&t.name.chars().nth(1).unwrap()));
-            sec_hist_direct.increment(t);
+
+        let mut hist = HashMap::new();
+        for t in things {
+            hist.increment(t);
         }
-        println!("{:?}", len_hist);
-        assert_eq!(len_hist.raw(), vec![0, 0, 0, 0, 0, 1, 3]);
-        println!("{:?}", sec_hist_indirect);
-        assert_eq!(sec_hist_indirect.get_count(0), 3); // the a's
-        assert_eq!(sec_hist_indirect.get_count(14), 1); // the o's
-        println!("{:?}", sec_hist_direct);
-        assert_eq!(sec_hist_direct.get_count(&Thing::new("Louis")), 1); // the o's
+
+        assert_eq!(hist.get_count(&Thing::new("Barney")), 1);
+        assert_eq!(hist.get_count(&Thing::new("Johann")), 3);
     }
 }

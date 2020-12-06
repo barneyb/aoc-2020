@@ -1,5 +1,5 @@
 use aoc_2020 as aoc;
-use aoc_2020::histogram::{Histogram, MappedHistogram};
+use aoc_2020::histogram::Histogram;
 
 pub fn the_work() {
     let input = aoc::read_input();
@@ -10,18 +10,15 @@ pub fn the_work() {
 
 fn both_parts(input: &str) -> (usize, usize) {
     const A: usize = 'a' as usize;
-    fn letter_index(&c: &char) -> usize {
-        (c as usize) - A
-    }
     input
         .split("\n\n")
         .map(|group| {
-            let mut hist = MappedHistogram::new(&letter_index);
+            let mut hist = Vec::new();
             for c in group.chars().filter(|&c| c != '\n') {
-                hist.increment(&c);
+                hist.increment((c as usize) - A);
             }
             let person_count = group.split('\n').count();
-            hist.values().fold((0, 0), |a, &count| {
+            hist.iter().fold((0, 0), |a, &count| {
                 if count == 0 {
                     return a;
                 }
