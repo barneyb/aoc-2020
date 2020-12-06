@@ -26,14 +26,13 @@ where
 /// # Examples
 ///
 /// ```
-/// use aoc_2020::unwrap_paragraphs;
-///
 /// let s = "I'm a
 /// long paragraph
 /// of text.
 ///
 /// A second paragraph!";
-/// assert_eq!(unwrap_paragraphs(s), vec![
+///
+/// assert_eq!(aoc_2020::unwrap_paragraphs(s), vec![
 ///     "I'm a long paragraph of text.",
 ///     "A second paragraph!"
 /// ])
