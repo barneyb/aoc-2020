@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 
+use std::fmt;
 use std::fs;
 use std::time::{Duration, Instant};
 
@@ -60,18 +61,88 @@ where
     r
 }
 
-pub fn benchmark<T, F>(iterations: usize, f: F)
+pub struct Benchmark {
+    iterations: usize,
+    total_time: Duration,
+    average_time: Duration,
+}
+
+impl Benchmark {
+    fn new(iterations: usize, total_time: Duration) -> Benchmark {
+        let b = Benchmark {
+            iterations,
+            total_time,
+            average_time: total_time / iterations as u32,
+        };
+        // printing in a constructor is weird, but it matches the normal use case
+        println!("{}", &b);
+        b
+    }
+}
+
+impl fmt::Display for Benchmark {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:?} average, {:?} total ({} iterations)",
+            self.average_time, self.total_time, self.iterations,
+        )
+    }
+}
+
+/// I benchmark the passed `Fn` for up to 500ms _or_ 1000 iterations, whichever comes first. This
+/// is a great place to start if you have no idea about performance characteristics. If the results
+/// are unsatisfactory, switch to `benchmark_for` or `benchmark_times` with your newfound knowledge.
+pub fn benchmark<T, F>(f: F) -> Benchmark
+where
+    F: Fn() -> T,
+{
+    let max_runtime = Duration::from_millis(500);
+    let max_iterations = 1000;
+
+    let start = Instant::now();
+    let mut times: usize = 0;
+    let mut total = Duration::new(0, 0);
+    for _ in 0..max_iterations {
+        times += 1;
+        bench_itr(&f, &mut total);
+        if start.elapsed() >= max_runtime {
+            break;
+        }
+    }
+    Benchmark::new(times, total)
+}
+
+pub fn benchmark_for<T, F>(duration: Duration, f: F) -> Benchmark
+where
+    F: Fn() -> T,
+{
+    let start = Instant::now();
+    let mut times: usize = 0;
+    let mut total = Duration::new(0, 0);
+    while start.elapsed() < duration {
+        times += 1;
+        bench_itr(&f, &mut total)
+    }
+    Benchmark::new(times, total)
+}
+
+pub fn benchmark_times<T, F>(times: usize, f: F) -> Benchmark
 where
     F: Fn() -> T,
 {
     let mut total = Duration::new(0, 0);
-    for _ in 0..iterations {
-        let (_, elapsed) = with_duration(&f);
-        total += elapsed;
+    for _ in 0..times {
+        bench_itr(&f, &mut total)
     }
-    let avg = total / iterations as u32;
-    println!(
-        "{:?} average, {:?} total ({} iterations)",
-        avg, total, iterations,
-    );
+    Benchmark::new(times, total)
+}
+
+#[inline]
+fn bench_itr<T, F>(f: F, duration: &mut Duration)
+where
+    F: Fn() -> T,
+{
+    let (_, elapsed) = with_duration(&f);
+    *duration = *duration + elapsed;
 }
