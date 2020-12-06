@@ -1,11 +1,28 @@
-use aoc::boarding_pass::{find_empty_seat, BoardingPass};
 use aoc_2020 as aoc;
 
 pub fn the_work() {
-    let passes = aoc::read_lines(|s| s.parse::<BoardingPass>().unwrap());
-    let part_one = passes.iter().map(|p| p.seat_id()).max().unwrap();
-    println!("{}", part_one);
-    if let Ok(id) = find_empty_seat(passes) {
-        println!("{}", id);
+    let groups = aoc::unwrap_paragraphs(&aoc::read_input());
+    let a = 'a' as usize;
+    let part_one: usize = groups
+        .iter()
+        .map(|g| {
+            let mut map = [false; 26];
+            for c in g.chars() {
+                if c == ' ' {
+                    continue;
+                }
+                map[(c as usize) - a] = true;
+            }
+            map.iter().filter(|&&b| b).count()
+        })
+        .sum();
+    println!("{}", part_one)
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn lakjdsf() {
+        println!("{}", ('c' as usize) - ('a' as usize))
     }
 }
