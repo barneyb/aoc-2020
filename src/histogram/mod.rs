@@ -134,30 +134,21 @@ pub fn render(hist: &Vec<usize>) -> String {
 pub fn render_width(hist: &Vec<usize>, max_width: usize) -> String {
     let mut s = String::new();
     let gutter_width = hist.len().to_string().len();
-    let bar_width = max_width - gutter_width - 2;
     let &max = hist.iter().max().unwrap();
+    let val_len = max.to_string().len();
+    let bar_width = max_width - gutter_width - 2 - 2 - val_len;
     for (i, &v) in hist.iter().enumerate() {
         writeln!(
             s,
-            "{:width$} |{}",
+            "{:gw$} |{:bw$}| {:>vw$}",
             i,
             "#".repeat(v * bar_width / max),
-            width = gutter_width
+            v,
+            gw = gutter_width,
+            bw = bar_width,
+            vw = val_len,
         );
     }
-    s.push_str(&"-".repeat(gutter_width + 1));
-    s.push('+');
-    s.push_str(&"-".repeat(bar_width - 1));
-    s.push('+');
-    s.push('\n');
-    writeln!(
-        s,
-        "{:>g$}{:b$}|",
-        "|0",
-        max,
-        g = gutter_width + 3,
-        b = bar_width - 2
-    );
     s
 }
 
@@ -167,20 +158,18 @@ mod test {
 
     #[test]
     fn test_render() {
-        let hist = vec![17, 40, 10, 12, 13, 14, 100, 98, 74, 12, 0];
+        let hist = vec![17, 40, 10, 12, 13, 14, 0, 98, 74, 12, 0];
         let result = render(&hist);
         println!("{}", result);
 
         let hist = vec![1, 2, 3];
-        let result = render_width(&hist, 10);
+        let result = render_width(&hist, 12);
         println!("{}", result);
         assert_eq!(
             result,
-            "0 |##
-1 |####
-2 |#######
---+------+
-  |0    3|
+            "0 |##    | 1
+1 |####  | 2
+2 |######| 3
 "
         );
     }
