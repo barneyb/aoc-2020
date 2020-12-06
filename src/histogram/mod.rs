@@ -136,7 +136,7 @@ pub fn render_width(hist: &Vec<usize>, max_width: usize) -> String {
     let gutter_width = hist.len().to_string().len();
     let &max = hist.iter().max().unwrap();
     let val_len = max.to_string().len();
-    let bar_width = max_width - gutter_width - 2 - 2 - val_len;
+    let bar_width = (max * 4).min(max_width - gutter_width - 2 - 2 - val_len);
     for (i, &v) in hist.iter().enumerate() {
         writeln!(
             s,
@@ -163,13 +163,13 @@ mod test {
         println!("{}", result);
 
         let hist = vec![1, 2, 3];
-        let result = render_width(&hist, 12);
+        let result = render(&hist);
         println!("{}", result);
         assert_eq!(
             result,
-            "0 |##    | 1
-1 |####  | 2
-2 |######| 3
+            "0 |####        | 1
+1 |########    | 2
+2 |############| 3
 "
         );
     }

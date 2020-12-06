@@ -53,7 +53,7 @@ b";
         assert_eq!((11, 6), both_parts(EXAMPLE_INPUT))
     }
 
-    #[test]
+    // #[test]
     fn run_benchmarks() {
         use aoc_2020::benchmark_for;
         use std::time::Duration;
