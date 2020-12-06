@@ -6,6 +6,7 @@ use std::fs;
 use std::time::{Duration, Instant};
 
 pub mod boarding_pass;
+pub mod histogram;
 pub mod passport;
 pub mod password;
 
