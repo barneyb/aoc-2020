@@ -1,7 +1,7 @@
 use aoc_2020 as aoc;
 use std::collections::HashMap;
 
-use petgraph::graph::DiGraph;
+use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::EdgeRef;
 use petgraph::Direction;
 use std::collections::{HashSet, LinkedList};
@@ -9,12 +9,13 @@ use std::str::FromStr;
 
 pub fn the_work() {
     let bags = aoc::read_lines(|l| l.parse::<Bag>().unwrap());
-    println!("{}", count_containers(&bags));
+    let (one, two) = count_containers(&bags);
+    println!("{}\n{}", one, two);
 }
 
-fn count_containers(bags: &[Bag]) -> usize {
+fn count_containers(bags: &[Bag]) -> (usize, usize) {
     let mut lookup = HashMap::new();
-    let mut graph = DiGraph::<&str, &usize>::new();
+    let mut graph = DiGraph::<&str, usize>::new();
     for b in bags {
         lookup.insert(&b.color[..], graph.add_node(&b.color));
     }
@@ -23,28 +24,51 @@ fn count_containers(bags: &[Bag]) -> usize {
             graph.add_edge(
                 *lookup.get(&b.color[..]).unwrap(),
                 *lookup.get(&sb[..]).unwrap(),
-                n,
+                *n,
             );
         }
     }
-    let mut count = 0;
+    let shiny_gold = lookup.get("shiny gold").unwrap();
+    (
+        count_distinct_containers(&graph, &shiny_gold),
+        compute_downstreams(&graph, &shiny_gold),
+    )
+}
+
+fn count_distinct_containers(graph: &DiGraph<&str, usize>, start: &NodeIndex) -> usize {
+    let mut containers = HashSet::new();
     let mut queue = LinkedList::new();
-    queue.push_back(("shiny gold", 1));
+    queue.push_back(*start);
     loop {
         match queue.pop_front() {
             None => break,
-            Some((color, factor)) => {
-                count += factor;
-                let ni = lookup.get(color).unwrap();
-                println!("process '{}' to '{:?}'", color, ni);
-                for e in graph.edges_directed(*ni, Direction::Outgoing) {
-                    println!("  edge '{:?}' -> '{}'", e, graph[e.target()]);
-                    queue.push_back((graph[e.target()], factor * **e.weight()))
+            Some(ni) => {
+                containers.insert(ni);
+                for e in graph.edges_directed(ni, Direction::Incoming) {
+                    queue.push_back(e.source())
                 }
             }
         }
     }
-    count - 1 // the 'shiny gold' one doesn't count
+    containers.len() - 1 // the start node doesn't count
+}
+
+fn compute_downstreams(graph: &DiGraph<&str, usize>, start: &NodeIndex) -> usize {
+    let mut count = 0;
+    let mut queue = LinkedList::new();
+    queue.push_back((*start, 1));
+    loop {
+        match queue.pop_front() {
+            None => break,
+            Some((ni, factor)) => {
+                count += factor;
+                for e in graph.edges_directed(ni, Direction::Outgoing) {
+                    queue.push_back((e.target(), factor * e.weight()))
+                }
+            }
+        }
+    }
+    count - 1 // the start node one doesn't count
 }
 
 #[derive(Debug)]
@@ -70,7 +94,11 @@ impl FromStr for Bag {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut words = s.split(',').map(|s| s.trim()).filter(|s| s.len() > 0);
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        let mut words = s
+            .split(',')
+            .map(|s| s.trim())
+            .filter(|s| s.len() > 0);
         let mut bag = Bag::new(words.next().unwrap().to_string());
         loop {
             let num = match words.next() {
@@ -112,19 +140,24 @@ dark blue , 2 ,dark violet ,
 dark violet ,,";
 
     #[test]
-    fn test_count_containers() {
+    fn example_one() {
         let bags = EXAMPLE_INPUT
             .trim()
             .lines()
             .map(|l| l.parse::<Bag>().unwrap())
             .collect::<Vec<Bag>>();
-        assert_eq!(32, count_containers(&bags));
+        assert_eq!((4, 32), count_containers(&bags));
+    }
+
+    #[test]
+    fn example_two() {
         let bags = EXAMPLE_INPUT_TWO
             .trim()
             .lines()
             .map(|l| l.parse::<Bag>().unwrap())
             .collect::<Vec<Bag>>();
-        assert_eq!(126, count_containers(&bags));
+        // this one's degenerate, shiny is the sole root
+        assert_eq!((0, 126), count_containers(&bags));
     }
 
     #[test]
