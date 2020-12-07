@@ -2,6 +2,7 @@ use aoc_2020 as aoc;
 use std::collections::HashMap;
 
 use petgraph::graph::DiGraph;
+use petgraph::visit::EdgeRef;
 use petgraph::Direction;
 use std::collections::{HashSet, LinkedList};
 use std::str::FromStr;
@@ -26,24 +27,24 @@ fn count_containers(bags: &[Bag]) -> usize {
             );
         }
     }
-    let mut containers = HashSet::new();
+    let mut count = 0;
     let mut queue = LinkedList::new();
-    queue.push_back("shiny gold");
+    queue.push_back(("shiny gold", 1));
     loop {
         match queue.pop_front() {
             None => break,
-            Some(color) => {
-                containers.insert(color);
+            Some((color, factor)) => {
+                count += factor;
                 let ni = lookup.get(color).unwrap();
                 println!("process '{}' to '{:?}'", color, ni);
-                for n in graph.neighbors_directed(*ni, Direction::Incoming) {
-                    println!("  neighbor '{}'", graph[n]);
-                    queue.push_back(graph[n])
+                for e in graph.edges_directed(*ni, Direction::Outgoing) {
+                    println!("  edge '{:?}' -> '{}'", e, graph[e.target()]);
+                    queue.push_back((graph[e.target()], factor * **e.weight()))
                 }
             }
         }
     }
-    containers.len() - 1 // since 'shiny gold' is in there
+    count - 1 // the 'shiny gold' one doesn't count
 }
 
 #[derive(Debug)]
@@ -90,7 +91,8 @@ impl FromStr for Bag {
 mod test {
     use super::*;
 
-    const EXAMPLE_INPUT: &str = "light red , 1, bright white , 2, muted yellow ,
+    const EXAMPLE_INPUT: &str = "
+light red , 1, bright white , 2, muted yellow ,
 dark orange ,  3, bright white ,, 4, muted yellow ,
 bright white ,  1, shiny gold ,
 muted yellow ,  2, shiny gold ,, 9, faded blue ,
@@ -100,18 +102,34 @@ vibrant plum ,  5, faded blue ,, 6, dotted black ,
 faded blue ,  ,, ,
 dotted black ,  ,, ,";
 
+    const EXAMPLE_INPUT_TWO: &str = "
+shiny gold , 2 ,dark red ,
+dark red , 2 ,dark orange ,
+dark orange , 2 ,dark yellow ,
+dark yellow , 2 ,dark green ,
+dark green , 2 ,dark blue ,
+dark blue , 2 ,dark violet ,
+dark violet ,,";
+
     #[test]
-    fn test_wire() {
+    fn test_count_containers() {
         let bags = EXAMPLE_INPUT
+            .trim()
             .lines()
             .map(|l| l.parse::<Bag>().unwrap())
             .collect::<Vec<Bag>>();
-        assert_eq!(4, count_containers(&bags))
+        assert_eq!(32, count_containers(&bags));
+        let bags = EXAMPLE_INPUT_TWO
+            .trim()
+            .lines()
+            .map(|l| l.parse::<Bag>().unwrap())
+            .collect::<Vec<Bag>>();
+        assert_eq!(126, count_containers(&bags));
     }
 
     #[test]
     fn test_parse() {
-        let mut lines = EXAMPLE_INPUT.lines();
+        let mut lines = EXAMPLE_INPUT.trim().lines();
         let b = lines.next().unwrap().parse::<Bag>().unwrap();
         assert_eq!("light red", b.color);
         assert_eq!(&1, b.contains.get("bright white").unwrap());
