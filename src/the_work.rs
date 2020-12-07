@@ -15,7 +15,7 @@ fn both_parts(input: &str) -> (usize, usize) {
         .map(|group| {
             let mut hist = Vec::new();
             for c in group.chars().filter(|&c| c != '\n') {
-                hist.increment((c as usize) - A);
+                hist.increment_bucket((c as usize) - A);
             }
             let person_count = group.split('\n').count();
             hist.iter().fold((0, 0), |a, &count| {

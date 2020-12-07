@@ -5,6 +5,7 @@ use std::fmt;
 use std::fs;
 use std::time::{Duration, Instant};
 
+pub mod ascii;
 pub mod boarding_pass;
 pub mod histogram;
 pub mod passport;

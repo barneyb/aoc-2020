@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::Write;
 use std::hash::Hash;
 
 /// Histograms are a set of buckets with a count of how many items are in the bucket. The buckets
@@ -30,11 +29,11 @@ use std::hash::Hash;
 /// ];
 /// let mut hist = Vec::new();
 /// for a in ages {
-///     hist.increment(a);
+///     hist.increment_bucket(a);
 /// }
-/// assert_eq!(4, hist.get_count(&5));
-/// assert_eq!(0, hist.get_count(&7));
-/// assert_eq!(0, hist.get_count(&99));
+/// assert_eq!(4, hist.get_bucket(&5));
+/// assert_eq!(0, hist.get_bucket(&7));
+/// assert_eq!(0, hist.get_bucket(&99));
 /// assert_eq!(Some(&4), hist.get(5));
 /// assert_eq!(Some(&0), hist.get(7));
 /// assert_eq!(None, hist.get(99));
@@ -49,18 +48,18 @@ use std::hash::Hash;
 /// let cups = vec!["mon", "mon", "tue", "wed", "wed", "wed", "fri"];
 /// let mut hist = HashMap::new();
 /// for c in cups {
-///     hist.increment(c);
+///     hist.increment_bucket(c);
 /// }
-/// assert_eq!(3, hist.get_count(&"wed"));
-/// assert_eq!(0, hist.get_count(&"sat"));
+/// assert_eq!(3, hist.get_bucket(&"wed"));
+/// assert_eq!(0, hist.get_bucket(&"sat"));
 /// assert_eq!(Some(&3), hist.get(&"wed"));
 /// assert_eq!(None, hist.get(&"sat"));
 /// ```
 ///
 pub trait Histogram<T> {
     /// Increment a bucket by one and return the new value.
-    fn increment(&mut self, bucket: T) -> usize {
-        self.increment_by(bucket, 1)
+    fn increment_bucket(&mut self, bucket: T) -> usize {
+        self.increment_bucket_by(bucket, 1)
     }
 
     /// Increment a bucket by an arbitrary step and return the new value. Useful if you have
@@ -75,21 +74,21 @@ pub trait Histogram<T> {
     /// let cups = vec![("mon", 1), ("tue", 3), /* on to next week */ ("mon", 2), ("tue", 1)];
     /// let mut hist = HashMap::new();
     /// for (day, n) in cups {
-    ///     hist.increment_by(day, n);
+    ///     hist.increment_bucket_by(day, n);
     /// }
-    /// assert_eq!(4, hist.get_count(&"tue"));
-    /// assert_eq!(0, hist.get_count(&"sat"));
+    /// assert_eq!(4, hist.get_bucket(&"tue"));
+    /// assert_eq!(0, hist.get_bucket(&"sat"));
     /// ```
-    fn increment_by(&mut self, bucket: T, step: usize) -> usize;
+    fn increment_bucket_by(&mut self, bucket: T, step: usize) -> usize;
 
     /// Retrieve the value of a bucket.
-    fn get_count(&self, bucket: &T) -> usize;
+    fn get_bucket(&self, bucket: &T) -> usize;
 }
 
 impl Histogram<usize> for Vec<usize> {
     /// Increment a bucket by the given amount, creating it (and all lower-numbered buckets) if
     /// needed.
-    fn increment_by(&mut self, bucket: usize, step: usize) -> usize {
+    fn increment_bucket_by(&mut self, bucket: usize, step: usize) -> usize {
         if let None = self.get(bucket) {
             self.resize(bucket, 0);
             self.push(step);
@@ -101,7 +100,7 @@ impl Histogram<usize> for Vec<usize> {
     }
 
     /// Get a bucket's count; missing buckets are not created.
-    fn get_count(&self, &bucket: &usize) -> usize {
+    fn get_bucket(&self, &bucket: &usize) -> usize {
         match self.get(bucket) {
             Some(&c) => c,
             None => 0,
@@ -109,47 +108,24 @@ impl Histogram<usize> for Vec<usize> {
     }
 }
 
-impl<T: Eq + Hash> Histogram<T> for HashMap<T, usize> {
+impl<T> Histogram<T> for HashMap<T, usize>
+where
+    T: Eq + Hash,
+{
     /// Increment a bucket by the given amount, inserting it - and only it - if needed.
-    fn increment_by(&mut self, bucket: T, step: usize) -> usize {
+    fn increment_bucket_by(&mut self, bucket: T, step: usize) -> usize {
         let v = self.entry(bucket).or_default();
         *v = *v + step;
         *v
     }
 
     /// Get a bucket's count; missing buckets are not created.
-    fn get_count(&self, bucket: &T) -> usize {
+    fn get_bucket(&self, bucket: &T) -> usize {
         match self.get(bucket) {
             Some(&c) => c,
             None => 0,
         }
     }
-}
-
-pub fn render(hist: &Vec<usize>) -> String {
-    render_width(hist, 72)
-}
-
-#[allow(unused_must_use)]
-pub fn render_width(hist: &Vec<usize>, max_width: usize) -> String {
-    let mut s = String::new();
-    let gutter_width = hist.len().to_string().len();
-    let &max = hist.iter().max().unwrap();
-    let val_len = max.to_string().len();
-    let bar_width = (max * 4).min(max_width - gutter_width - 2 - 2 - val_len);
-    for (i, &v) in hist.iter().enumerate() {
-        writeln!(
-            s,
-            "{:gw$} |{:bw$}| {:>vw$}",
-            i,
-            "#".repeat(v * bar_width / max),
-            v,
-            gw = gutter_width,
-            bw = bar_width,
-            vw = val_len,
-        );
-    }
-    s
 }
 
 #[cfg(test)]
@@ -157,31 +133,13 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_render() {
-        let hist = vec![17, 40, 10, 12, 13, 14, 0, 98, 74, 12, 0];
-        let result = render(&hist);
-        println!("{}", result);
-
-        let hist = vec![1, 2, 3];
-        let result = render(&hist);
-        println!("{}", result);
-        assert_eq!(
-            result,
-            "0 |####        | 1
-1 |########    | 2
-2 |############| 3
-"
-        );
-    }
-
-    #[test]
     fn vec() {
         let mut hist = Vec::new();
         for i in 8..=21 {
-            hist.increment(i % 10);
+            hist.increment_bucket(i % 10);
         }
 
-        assert_eq!(hist.get_count(&8), 2);
+        assert_eq!(hist.get_bucket(&8), 2);
         assert_eq!(hist, vec![2, 2, 1, 1, 1, 1, 1, 1, 2, 2])
     }
 
@@ -190,12 +148,12 @@ mod test {
         let mut hist = HashMap::new();
         let numbers = (8..=21).collect::<Vec<i32>>();
         for &i in &numbers {
-            hist.increment(i % 10);
+            hist.increment_bucket(i % 10);
         }
 
-        assert_eq!(hist.get_count(&2), 1);
-        assert_eq!(hist.get_count(&8), 2);
-        assert_eq!(hist.get_count(&99), 0);
+        assert_eq!(hist.get_bucket(&2), 1);
+        assert_eq!(hist.get_bucket(&8), 2);
+        assert_eq!(hist.get_bucket(&99), 0);
     }
 
     #[test]
@@ -213,21 +171,24 @@ mod test {
             }
         }
 
-        let things = vec![
-            Thing::new("Barney"),
-            Thing::new("Sally"),
-            Thing::new("Johann"),
-            Thing::new("Jackie"),
-            Thing::new("Johann"),
-            Thing::new("Johann"),
-        ];
+        let names = vec!["Barney", "Sally", "Johann", "Jackie", "Johann", "Johann"];
+
+        let mut hist = HashMap::new();
+        for &n in &names {
+            hist.increment_bucket(n);
+        }
+
+        assert_eq!(hist.get_bucket(&"Barney"), 1);
+        assert_eq!(hist.get_bucket(&"Johann"), 3);
+
+        let things = names.iter().map(|n| Thing::new(n));
 
         let mut hist = HashMap::new();
         for t in things {
-            hist.increment(t);
+            hist.increment_bucket(t);
         }
 
-        assert_eq!(hist.get_count(&Thing::new("Barney")), 1);
-        assert_eq!(hist.get_count(&Thing::new("Johann")), 3);
+        assert_eq!(hist.get_bucket(&Thing::new("Barney")), 1);
+        assert_eq!(hist.get_bucket(&Thing::new("Johann")), 3);
     }
 }
