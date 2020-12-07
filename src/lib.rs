@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate lazy_static;
 
+extern crate num_traits;
+
 use std::fmt;
 use std::fs;
 use std::time::{Duration, Instant};
