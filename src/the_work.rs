@@ -1,81 +1,121 @@
 use aoc_2020 as aoc;
-use aoc_2020::histogram::Histogram;
+use std::collections::HashMap;
+
+use petgraph::graph::DiGraph;
+use petgraph::Direction;
+use std::collections::{HashSet, LinkedList};
+use std::str::FromStr;
 
 pub fn the_work() {
-    let input = aoc::read_input();
-    let (one, two) = both_parts(&input);
-    println!("{}", one);
-    println!("{}", two);
+    let bags = aoc::read_lines(|l| l.parse::<Bag>().unwrap());
+    println!("{}", count_containers(&bags));
 }
 
-fn both_parts(input: &str) -> (usize, usize) {
-    const A: usize = 'a' as usize;
-    input
-        .split("\n\n")
-        .map(|group| {
-            let mut hist = Vec::new();
-            for c in group.chars().filter(|&c| c != '\n') {
-                hist.increment_bucket((c as usize) - A);
-            }
-            let person_count = group.split('\n').count();
-            hist.iter().fold((0, 0), |a, &count| {
-                if count == 0 {
-                    return a;
+fn count_containers(bags: &[Bag]) -> usize {
+    let mut lookup = HashMap::new();
+    let mut graph = DiGraph::<&str, &usize>::new();
+    for b in bags {
+        lookup.insert(&b.color[..], graph.add_node(&b.color));
+    }
+    for b in bags {
+        for (sb, n) in &b.contains {
+            graph.add_edge(
+                *lookup.get(&b.color[..]).unwrap(),
+                *lookup.get(&sb[..]).unwrap(),
+                n,
+            );
+        }
+    }
+    let mut containers = HashSet::new();
+    let mut queue = LinkedList::new();
+    queue.push_back("shiny gold");
+    loop {
+        match queue.pop_front() {
+            None => break,
+            Some(color) => {
+                containers.insert(color);
+                let ni = lookup.get(color).unwrap();
+                println!("process '{}' to '{:?}'", color, ni);
+                for n in graph.neighbors_directed(*ni, Direction::Incoming) {
+                    println!("  neighbor '{}'", graph[n]);
+                    queue.push_back(graph[n])
                 }
-                (a.0 + 1, a.1 + if count == person_count { 1 } else { 0 })
-            })
-        })
-        .fold((0, 0), |a, p| (a.0 + p.0, a.1 + p.1))
+            }
+        }
+    }
+    containers.len() - 1 // since 'shiny gold' is in there
+}
+
+#[derive(Debug)]
+struct Bag {
+    color: String,
+    contains: HashMap<String, usize>,
+}
+
+impl Bag {
+    fn new(color: String) -> Bag {
+        Bag {
+            color,
+            contains: HashMap::new(),
+        }
+    }
+
+    fn add_contains(&mut self, color: String, num: usize) {
+        self.contains.insert(color, num);
+    }
+}
+
+impl FromStr for Bag {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut words = s.split(',').map(|s| s.trim()).filter(|s| s.len() > 0);
+        let mut bag = Bag::new(words.next().unwrap().to_string());
+        loop {
+            let num = match words.next() {
+                None => break,
+                Some(num) => num
+                    .parse::<usize>()
+                    .expect(&format!("failed to parse '{}'", num)),
+            };
+            let clr = words.next().unwrap();
+            bag.add_contains(clr.to_string(), num);
+        }
+
+        Ok(bag)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const EXAMPLE_INPUT: &str = "abc
-
-a
-b
-c
-
-ab
-ac
-
-a
-a
-a
-a
-
-b";
+    const EXAMPLE_INPUT: &str = "light red , 1, bright white , 2, muted yellow ,
+dark orange ,  3, bright white ,, 4, muted yellow ,
+bright white ,  1, shiny gold ,
+muted yellow ,  2, shiny gold ,, 9, faded blue ,
+shiny gold ,  1, dark olive , 2, vibrant plum ,
+dark olive ,  3, faded blue ,, 4, dotted black ,
+vibrant plum ,  5, faded blue ,, 6, dotted black ,
+faded blue ,  ,, ,
+dotted black ,  ,, ,";
 
     #[test]
-    fn test_both_parts() {
-        assert_eq!((11, 6), both_parts(EXAMPLE_INPUT))
+    fn test_wire() {
+        let bags = EXAMPLE_INPUT
+            .lines()
+            .map(|l| l.parse::<Bag>().unwrap())
+            .collect::<Vec<Bag>>();
+        assert_eq!(4, count_containers(&bags))
     }
 
-    // #[test]
-    fn run_benchmarks() {
-        use aoc_2020::benchmark_for;
-        use std::time::Duration;
-
-        fn old_style(input: &str) -> usize {
-            let a = 'a' as usize;
-            input
-                .split("\n\n")
-                .map(|g| {
-                    let mut map = [0; 26];
-                    for c in g.chars().filter(|&c| c != '\n') {
-                        map[(c as usize) - a] += 1;
-                    }
-                    let pc = g.split('\n').count();
-                    // filter/count is a bit slower than fold
-                    // map.iter().filter(|&&c| c == pc).count()
-                    map.iter().fold(0, |s, &c| if c == pc { s + 1 } else { s })
-                })
-                .sum()
-        }
-
-        benchmark_for(Duration::from_secs(1), || old_style(EXAMPLE_INPUT));
-        benchmark_for(Duration::from_secs(1), || both_parts(EXAMPLE_INPUT));
+    #[test]
+    fn test_parse() {
+        let mut lines = EXAMPLE_INPUT.lines();
+        let b = lines.next().unwrap().parse::<Bag>().unwrap();
+        assert_eq!("light red", b.color);
+        assert_eq!(&1, b.contains.get("bright white").unwrap());
+        assert_eq!(&2, b.contains.get("muted yellow").unwrap());
+        assert_eq!(2, b.contains.len());
     }
 }
