@@ -13,3 +13,4 @@ strum = "0.20"
 strum_macros = "0.20"
 console = { version = "0.13", default-features = false }
 num-traits = "0.2"
+petgraph = "0.5"
