@@ -25,7 +25,8 @@ git push
 git branch -D $BRANCH
 git push origin :$REMOTE_BRANCH
 
-let "d = ${BRANCH//[^0-9]} + 1"
+d=`echo $BRANCH | sed -e 's/^[^1-9]*0*\([1-9][0-9]*\).*$/\1/'`
+let "d = $d + 1"
 echo $d
 if [ ${#d} = 1 ]; then
   d="0$d"
