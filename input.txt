@@ -1,594 +1,635 @@
-pale cyan,2,wavy violet,1,clear maroon,2,bright orange,, 
-bright turquoise,5,wavy violet,4,wavy indigo,2,faded beige,2,dim yellow
-drab blue,3,wavy tomato,, ,, ,, 
-plaid plum,5,wavy teal,3,mirrored beige,3,faded silver,, 
-vibrant magenta,2,wavy tan,, ,, ,, 
-drab yellow,5,wavy silver,5,dark orange,3,dark brown,2,bright magenta
-posh chartreuse,5,wavy silver,4,light aqua,, ,, 
-wavy bronze,4,wavy silver,4,light bronze,2,shiny coral,, 
-light bronze,1,wavy silver,3,plaid lavender,4,drab violet,5,mirrored green
-mirrored magenta,5,wavy silver,5,shiny red,5,pale black,, 
-pale tan,5,wavy purple,5,muted orange,5,dark red,, 
-plaid indigo,5,wavy purple,2,pale blue,, ,, 
-dark fuchsia,2,wavy purple,4,pale tan,2,vibrant coral,5,dark brown
-dark olive,2,wavy plum,, ,, ,, 
-dark yellow,5,wavy orange,4,mirrored beige,, ,, 
-shiny indigo,2,wavy magenta,, ,, ,, 
-faded olive,4,wavy indigo,, ,, ,, 
-bright magenta,2,wavy indigo,, ,, ,, 
-light purple,2,wavy green,5,bright brown,5,muted crimson,3,dotted purple
-posh purple,3,wavy gold,, ,, ,, 
-shiny aqua,1,wavy gold,1,plaid gold,, ,, 
-dull lavender,2,wavy chartreuse,3,dull crimson,3,pale tomato,, 
-plaid crimson,2,wavy brown,2,striped maroon,4,dark magenta,, 
-striped chartreuse,3,wavy bronze,, ,, ,, 
-dotted silver,5,wavy bronze,4,vibrant cyan,2,dull blue,2,posh yellow
-faded aqua,4,wavy black,, ,, ,, 
-mirrored chartreuse,3,wavy black,, ,, ,, 
-shiny olive,2,wavy aqua,4,mirrored crimson,, ,, 
-plaid gray,5,wavy aqua,5,vibrant yellow,1,mirrored indigo,1,faded silver
-dim lime,4,vibrant yellow,, ,, ,, 
-drab green,1,vibrant yellow,1,posh tomato,1,dull yellow,5,shiny bronze
-faded cyan,5,vibrant yellow,2,shiny plum,, ,, 
-plaid olive,5,vibrant yellow,1,striped bronze,, ,, 
-dull plum,3,vibrant yellow,1,striped plum,2,dim aqua,, 
-vibrant tomato,5,vibrant white,, ,, ,, 
-dim orange,1,vibrant white,5,bright tomato,, ,, 
-vibrant purple,3,vibrant white,1,posh beige,, ,, 
-wavy green,5,vibrant tan,, ,, ,, 
-bright fuchsia,5,vibrant tan,, ,, ,, 
-dotted orange,5,vibrant tan,, ,, ,, 
-dark lavender,1,vibrant tan,5,plaid lime,, ,, 
-dull crimson,5,vibrant silver,, ,, ,, 
-dotted maroon,2,vibrant silver,, ,, ,, 
-bright purple,1,vibrant purple,2,clear orange,, ,, 
-wavy beige,1,vibrant purple,4,light green,3,light red,, 
-clear black,4,vibrant plum,3,bright brown,2,dark gray,1,clear teal
-pale lavender,1,vibrant plum,5,vibrant yellow,, ,, 
-dull gray,5,vibrant indigo,3,clear fuchsia,4,dotted teal,4,dim bronze
-dull indigo,3,vibrant indigo,4,pale yellow,, ,, 
-faded coral,1,vibrant green,1,drab yellow,4,wavy teal,, 
-pale turquoise,1,vibrant gray,3,plaid purple,5,drab coral,5,plaid indigo
-pale bronze,4,vibrant cyan,, ,, ,, 
-faded lavender,2,vibrant coral,, ,, ,, 
-shiny plum,5,vibrant coral,3,dotted gray,1,pale lime,4,plaid green
-muted tan,3,vibrant coral,5,muted coral,3,light bronze,, 
-pale indigo,5,vibrant chartreuse,5,clear white,1,light lime,3,dull silver
-striped plum,2,vibrant bronze,, ,, ,, 
-shiny coral,3,vibrant bronze,5,dull salmon,, ,, 
-posh yellow,5,vibrant bronze,5,faded lime,4,posh chartreuse,2,bright cyan
-vibrant red,5,vibrant bronze,2,posh tomato,3,dull lime,2,striped violet
-clear aqua,2,vibrant bronze,1,vibrant indigo,4,mirrored tomato,, 
-dark gold,2,vibrant blue,3,muted indigo,, ,, 
-wavy teal,4,vibrant blue,4,posh turquoise,, ,, 
-clear lime,4,vibrant blue,2,wavy silver,5,pale yellow,, 
-vibrant maroon,2,striped yellow,2,muted indigo,3,muted aqua,, 
-posh maroon,2,striped violet,3,plaid lavender,2,clear beige,, 
-drab orange,5,striped turquoise,, ,, ,, 
-bright salmon,3,striped turquoise,2,dark salmon,, ,, 
-dotted purple,2,striped teal,5,clear plum,2,striped lavender,2,dull violet
-plaid brown,4,striped salmon,, ,, ,, 
-shiny beige,5,striped salmon,2,bright cyan,4,striped crimson,, 
-posh tan,4,striped salmon,4,dark brown,, ,, 
-striped crimson,2,striped salmon,5,mirrored magenta,4,drab fuchsia,, 
-faded tan,2,striped salmon,5,muted violet,4,dotted violet,4,light green
-shiny cyan,1,striped salmon,4,vibrant tan,, ,, 
-dull tan,4,striped red,, ,, ,, 
-dull chartreuse,2,striped red,, ,, ,, 
-bright silver,5,striped red,4,dark aqua,, ,, 
-light yellow,5,striped purple,1,faded fuchsia,2,plaid gold,2,dotted olive
-clear brown,1,striped plum,, ,, ,, 
-striped green,4,striped plum,5,dark gold,, ,, 
-faded black,2,striped plum,3,muted indigo,, ,, 
-striped coral,2,striped lime,2,wavy purple,1,striped plum,, 
-light blue,1,striped indigo,4,dark aqua,3,mirrored tomato,2,vibrant blue
-posh turquoise,4,striped indigo,2,dim white,, ,, 
-drab lavender,4,striped indigo,3,vibrant tan,3,plaid aqua,3,plaid bronze
-light gray,2,striped green,3,clear blue,3,shiny coral,, 
-shiny magenta,4,striped green,5,mirrored brown,, ,, 
-dark tan,4,striped gold,, ,, ,, 
-wavy maroon,2,striped fuchsia,, ,, ,, 
-mirrored olive,4,striped fuchsia,2,wavy indigo,3,drab gold,, 
-dotted violet,4,striped fuchsia,4,wavy tomato,3,dim white,2,clear gold
-dim turquoise,3,striped crimson,2,faded silver,, ,, 
-plaid blue,4,striped crimson,2,vibrant lavender,4,faded plum,5,dull salmon
-pale magenta,2,striped coral,1,shiny orange,3,vibrant white,4,posh cyan
-striped blue,1,striped chartreuse,, ,, ,, 
-clear magenta,1,striped brown,1,dull black,5,light lime,, 
-shiny yellow,2,striped aqua,5,drab gray,4,pale aqua,5,dim purple
-posh cyan,5,shiny yellow,, ,, ,, 
-muted yellow,1,shiny turquoise,, ,, ,, 
-dark chartreuse,4,shiny tan,1,wavy lavender,3,vibrant olive,3,light green
-dotted magenta,2,shiny red,, ,, ,, 
-muted gold,5,shiny maroon,, ,, ,, 
-drab gray,4,shiny maroon,, ,, ,, 
-clear chartreuse,4,shiny indigo,2,dim cyan,, ,, 
-clear red,3,shiny indigo,1,vibrant plum,1,dim fuchsia,5,striped teal
-bright black,5,shiny gray,3,dull bronze,4,striped gold,, 
-dim yellow,2,shiny gray,3,faded fuchsia,3,wavy tomato,2,light brown
-light beige,1,shiny gold,4,dark orange,, ,, 
-striped indigo,4,shiny gold,3,dim aqua,5,pale black,, 
-drab purple,1,shiny gold,5,dotted bronze,4,drab gray,, 
-dark coral,1,shiny gold,2,faded turquoise,, ,, 
-dim cyan,2,shiny gold,3,light silver,2,vibrant blue,, 
-clear blue,4,shiny cyan,1,striped fuchsia,, ,, 
-light indigo,3,shiny cyan,3,vibrant yellow,, ,, 
-bright blue,3,shiny coral,, ,, ,, 
-wavy tomato,3,shiny coral,4,posh chartreuse,2,light aqua,3,dark orange
-vibrant teal,3,shiny bronze,5,mirrored green,3,plaid aqua,1,bright olive
-dull beige,1,shiny bronze,1,striped crimson,5,plaid indigo,, 
-muted magenta,5,shiny blue,1,faded olive,4,drab brown,3,dull violet
-posh magenta,3,shiny beige,3,clear gold,, ,, 
-drab fuchsia,3,shiny aqua,2,plaid lavender,1,muted cyan,, 
-posh aqua,2,posh yellow,, ,, ,, 
-bright yellow,4,posh yellow,5,mirrored tan,2,posh tomato,4,light indigo
-wavy coral,2,posh white,1,shiny gold,1,striped aqua,, 
-dark maroon,1,posh white,2,wavy aqua,5,muted brown,, 
-mirrored tomato,1,posh turquoise,2,bright aqua,, ,, 
-bright red,1,posh turquoise,4,clear aqua,, ,, 
-dotted black,2,posh turquoise,3,wavy indigo,4,dotted violet,, 
-dotted brown,5,posh tomato,, ,, ,, 
-bright orange,2,posh tomato,, ,, ,, 
-shiny green,2,posh tomato,, ,, ,, 
-muted cyan,5,posh tomato,2,drab gray,1,dull indigo,3,pale blue
-dull cyan,3,posh tomato,3,drab indigo,2,vibrant blue,, 
-muted plum,2,posh tomato,4,faded lime,5,dull bronze,5,wavy lime
-bright indigo,2,posh tomato,5,vibrant indigo,2,posh chartreuse,1,wavy silver
-bright coral,4,posh teal,3,shiny crimson,5,dim magenta,, 
-posh gray,3,posh tan,4,wavy indigo,5,dark gray,, 
-wavy salmon,5,posh red,, ,, ,, 
-pale brown,3,posh purple,5,light aqua,3,striped maroon,, 
-mirrored lavender,4,posh purple,2,mirrored cyan,3,drab gold,, 
-mirrored orange,5,posh olive,5,dotted tan,5,mirrored salmon,4,posh red
-bright crimson,1,posh olive,5,faded white,, ,, 
-wavy crimson,2,posh maroon,5,clear cyan,1,shiny maroon,2,plaid bronze
-plaid magenta,3,posh maroon,4,drab green,, ,, 
-mirrored gray,1,posh lavender,5,wavy indigo,4,dotted crimson,, 
-light violet,2,posh gray,5,dotted cyan,, ,, 
-posh olive,4,posh fuchsia,1,drab brown,4,dotted red,, 
-striped gray,1,posh cyan,, ,, ,, 
-dim violet,2,posh crimson,, ,, ,, 
-shiny turquoise,1,posh crimson,1,posh salmon,4,vibrant bronze,, 
-clear beige,1,posh chartreuse,4,drab cyan,3,light beige,, 
-light brown,3,posh chartreuse,5,mirrored bronze,, ,, 
-muted indigo,5,posh chartreuse,1,mirrored green,3,dark brown,1,dark orange
-dark gray,2,posh chartreuse,2,mirrored tan,, ,, 
-vibrant yellow,4,posh chartreuse,1,vibrant bronze,, ,, 
-light silver,1,posh chartreuse,5,vibrant tan,, ,, 
-dull red,5,posh bronze,3,clear turquoise,1,bright green,1,vibrant white
-clear violet,4,posh bronze,1,pale gold,, ,, 
-plaid chartreuse,1,posh blue,, ,, ,, 
-dull aqua,5,posh aqua,2,clear plum,2,dim maroon,, 
-light fuchsia,5,plaid white,2,mirrored magenta,5,striped turquoise,5,light bronze
-dark tomato,5,plaid white,1,wavy indigo,, ,, 
-striped lavender,5,plaid teal,4,dull crimson,4,posh lavender,, 
-light magenta,3,plaid tan,, ,, ,, 
-muted silver,5,plaid tan,2,dim olive,4,dull cyan,5,posh violet
-light cyan,1,plaid tan,2,muted cyan,3,dim cyan,1,pale gray
-wavy turquoise,2,plaid salmon,, ,, ,, 
-muted bronze,2,plaid salmon,2,muted crimson,4,dotted olive,, 
-mirrored turquoise,2,plaid purple,5,mirrored tomato,2,drab tan,, 
-dim beige,3,plaid magenta,2,light gold,1,shiny blue,5,bright teal
-clear gray,3,plaid lime,1,dull beige,5,light beige,, 
-dotted aqua,2,plaid lavender,, ,, ,, 
-clear white,5,plaid lavender,1,faded turquoise,1,mirrored tomato,5,faded silver
-pale red,3,plaid lavender,4,plaid beige,1,plaid coral,1,shiny chartreuse
-striped tomato,5,plaid lavender,1,posh beige,1,clear lavender,4,muted indigo
-striped beige,2,plaid green,1,bright turquoise,1,drab chartreuse,, 
-drab plum,5,plaid green,5,striped lime,1,dotted teal,, 
-clear silver,4,plaid gray,1,dark black,, ,, 
-pale violet,3,plaid fuchsia,3,light coral,4,dark gold,, 
-wavy white,5,plaid crimson,2,light magenta,, ,, 
-clear lavender,3,plaid bronze,4,faded plum,2,muted coral,1,posh chartreuse
-mirrored aqua,4,plaid bronze,2,light coral,4,faded orange,5,posh tomato
-posh green,4,plaid beige,, ,, ,, 
-muted chartreuse,3,plaid beige,, ,, ,, 
-vibrant tan,4,pale yellow,, ,, ,, 
-plaid cyan,4,pale yellow,1,drab beige,1,bright chartreuse,1,clear coral
-vibrant indigo,3,pale yellow,4,vibrant bronze,4,bright cyan,, 
-vibrant brown,3,pale white,, ,, ,, 
-vibrant silver,4,pale tan,, ,, ,, 
-faded magenta,5,pale silver,, ,, ,, 
-posh coral,2,pale olive,5,clear gold,5,posh turquoise,5,wavy olive
-pale crimson,2,pale maroon,5,clear lime,, ,, 
-light tan,4,pale maroon,4,muted fuchsia,3,mirrored aqua,, 
-muted maroon,4,pale lime,, ,, ,, 
-shiny purple,1,pale gold,1,dull tomato,, ,, 
-posh lime,5,pale cyan,3,clear fuchsia,1,posh white,4,dark turquoise
-posh gold,2,pale cyan,3,clear lavender,2,plaid bronze,, 
-dull coral,1,pale cyan,1,light brown,, ,, 
-wavy lavender,4,pale cyan,4,vibrant yellow,1,vibrant white,, 
-faded gold,1,pale bronze,4,dim gold,1,vibrant aqua,2,bright aqua
-plaid coral,3,pale bronze,5,mirrored green,2,muted tan,2,wavy silver
-plaid beige,4,pale blue,, ,, ,, 
-posh teal,2,pale beige,, ,, ,, 
-drab magenta,5,pale beige,4,dotted indigo,, ,, 
-dark magenta,5,pale aqua,, ,, ,, 
-shiny crimson,5,pale aqua,4,dull salmon,4,dark turquoise,, 
-pale purple,4,muted yellow,2,mirrored chartreuse,5,mirrored purple,2,mirrored red
-striped lime,2,muted orange,, ,, ,, 
-dotted plum,1,muted orange,, ,, ,, 
-wavy chartreuse,4,muted orange,2,clear blue,1,muted tan,2,clear lime
-drab silver,1,muted orange,3,dull green,3,dim aqua,2,striped fuchsia
-light green,3,muted orange,4,muted gray,3,faded silver,3,shiny blue
-shiny lime,3,muted magenta,3,clear cyan,, ,, 
-faded green,5,muted magenta,4,dark fuchsia,, ,, 
-pale beige,4,muted indigo,, ,, ,, 
-shiny orange,2,muted indigo,, ,, ,, 
-pale olive,1,muted indigo,, ,, ,, 
-shiny tomato,3,muted indigo,2,faded indigo,, ,, 
-shiny maroon,3,muted indigo,5,light white,3,posh yellow,4,posh tomato
-light turquoise,4,muted indigo,3,mirrored silver,5,dark tomato,, 
-light crimson,1,muted indigo,2,plaid beige,, ,, 
-dark violet,4,muted green,2,dotted bronze,, ,, 
-vibrant salmon,5,muted green,4,faded bronze,1,vibrant indigo,, 
-dull purple,4,muted gray,, ,, ,, 
-vibrant white,1,muted gray,, ,, ,, 
-faded crimson,4,muted gray,3,dim black,, ,, 
-plaid tan,5,muted gray,5,muted coral,2,wavy green,, 
-shiny brown,3,muted gray,2,muted tomato,, ,, 
-dotted tomato,5,muted fuchsia,3,pale aqua,1,dim aqua,3,dull yellow
-vibrant turquoise,3,muted cyan,3,dull white,, ,, 
-muted turquoise,3,muted cyan,2,light brown,4,light violet,1,posh salmon
-dim lavender,4,muted cyan,1,striped violet,, ,, 
-posh brown,4,muted crimson,, ,, ,, 
-wavy lime,2,muted coral,2,clear teal,3,dull maroon,4,dim lime
-light salmon,5,muted black,5,dull blue,2,light aqua,1,pale tomato
-dark white,3,muted black,1,vibrant yellow,4,dotted chartreuse,3,mirrored white
-drab salmon,2,muted aqua,, ,, ,, 
-vibrant chartreuse,4,mirrored yellow,, ,, ,, 
-vibrant coral,2,mirrored white,1,dull lime,, ,, 
-clear maroon,3,mirrored white,5,faded blue,3,drab yellow,4,light aqua
-bright green,3,mirrored tomato,3,dim bronze,, ,, 
-dark blue,5,mirrored tomato,1,drab coral,3,wavy purple,, 
-dull orange,2,mirrored tomato,4,wavy orange,, ,, 
-bright teal,3,mirrored tan,, ,, ,, 
-dull fuchsia,1,mirrored red,3,posh gray,4,plaid maroon,4,clear gold
-clear teal,1,mirrored olive,5,dim tomato,, ,, 
-plaid yellow,4,mirrored maroon,1,dim silver,3,striped gold,, 
-striped turquoise,5,mirrored magenta,, ,, ,, 
-light gold,5,mirrored magenta,, ,, ,, 
-plaid turquoise,4,mirrored magenta,3,clear lime,5,dark turquoise,4,dotted olive
-wavy fuchsia,3,mirrored magenta,5,drab fuchsia,5,dull green,, 
-dim tomato,5,mirrored green,, ,, ,, 
-bright beige,2,mirrored green,, ,, ,, 
-drab lime,1,mirrored green,5,clear lime,3,posh yellow,5,pale yellow
-dull gold,2,mirrored green,1,shiny coral,4,shiny red,, 
-bright tan,5,mirrored gray,4,posh plum,4,dull brown,, 
-posh orange,1,mirrored cyan,3,shiny cyan,5,bright beige,4,striped lime
-pale maroon,5,mirrored brown,3,vibrant indigo,, ,, 
-pale gray,3,mirrored bronze,3,faded crimson,3,dotted red,2,striped yellow
-plaid green,1,mirrored bronze,3,mirrored purple,5,shiny coral,5,posh yellow
-dim purple,5,mirrored bronze,3,shiny bronze,3,shiny turquoise,4,clear maroon
-dark crimson,5,mirrored blue,4,drab green,5,plaid purple,4,clear beige
-mirrored gold,1,mirrored blue,2,posh fuchsia,5,dark red,, 
-faded gray,3,mirrored aqua,, ,, ,, 
-clear bronze,2,mirrored aqua,4,dark green,5,dotted red,, 
-striped magenta,2,mirrored aqua,1,dotted gold,, ,, 
-drab tomato,1,mirrored aqua,3,drab yellow,2,muted white,, 
-bright lime,2,light yellow,, ,, ,, 
-pale orange,1,light yellow,5,bright olive,2,pale olive,, 
-dim tan,3,light tomato,4,dotted chartreuse,, ,, 
-shiny bronze,5,light tomato,1,dull blue,4,dark black,1,posh chartreuse
-plaid bronze,3,light tomato,2,faded chartreuse,, ,, 
-faded fuchsia,2,light tomato,1,posh yellow,4,faded chartreuse,1,pale blue
-dark teal,4,light teal,3,mirrored aqua,5,faded teal,, 
-dotted turquoise,1,light tan,2,dull tomato,, ,, 
-faded white,1,light silver,3,striped turquoise,3,dark green,3,posh orange
-dull olive,5,light silver,3,wavy olive,3,bright magenta,4,mirrored bronze
-wavy gray,3,light red,, ,, ,, 
-drab red,3,light magenta,1,drab salmon,4,shiny tan,, 
-dull silver,2,light green,, ,, ,, 
-clear green,1,light green,5,dim plum,, ,, 
-bright plum,3,light green,4,wavy gray,3,mirrored red,, 
-drab black,3,light cyan,, ,, ,, 
-striped tan,4,light coral,4,dull violet,3,dim purple,5,dull yellow
-pale gold,1,light coral,5,vibrant aqua,2,wavy plum,5,dim lavender
-posh crimson,2,light brown,, ,, ,, 
-striped yellow,1,light brown,, ,, ,, 
-dotted lime,4,light brown,1,bright white,5,dim lime,, 
-muted coral,5,light brown,2,posh chartreuse,1,vibrant tan,, 
-vibrant olive,2,light brown,1,vibrant red,, ,, 
-light lime,1,light bronze,, ,, ,, 
-dull yellow,5,light bronze,4,faded beige,2,dark orange,2,dull cyan
-muted lime,5,light blue,1,vibrant lavender,, ,, 
-plaid orange,5,light beige,1,dull salmon,, ,, 
-dim red,4,light beige,5,shiny gold,5,posh blue,4,dotted indigo
-dotted tan,4,light aqua,, ,, ,, 
-dotted cyan,3,light aqua,, ,, ,, 
-wavy gold,2,light aqua,3,dull white,, ,, 
-wavy olive,5,light aqua,1,pale lavender,5,pale green,, 
-plaid purple,1,light aqua,5,vibrant tan,4,pale tan,4,wavy bronze
-posh plum,5,faded white,, ,, ,, 
-striped cyan,1,faded violet,3,dotted lavender,4,light lavender,1,drab fuchsia
-shiny salmon,5,faded violet,3,muted fuchsia,, ,, 
-wavy blue,5,faded turquoise,4,clear beige,4,light green,5,dark gray
-dark aqua,3,faded turquoise,3,vibrant indigo,3,dull salmon,1,dotted gray
-muted white,1,faded tomato,, ,, ,, 
-vibrant plum,1,faded teal,5,shiny plum,3,bright fuchsia,1,shiny coral
-shiny white,4,faded tan,2,shiny gold,1,shiny bronze,1,dim coral
-wavy aqua,1,faded silver,, ,, ,, 
-dim gray,1,faded silver,3,muted red,2,wavy orange,1,posh beige
-drab olive,4,faded salmon,4,drab white,, ,, 
-dark red,4,faded plum,, ,, ,, 
-pale coral,1,faded orange,3,dark turquoise,, ,, 
-plaid black,2,faded orange,2,drab aqua,, ,, 
-mirrored blue,5,faded olive,5,light aqua,, ,, 
-dotted white,5,faded lime,, ,, ,, 
-mirrored brown,1,faded lime,5,drab indigo,4,bright white,, 
-dull brown,2,faded lime,5,drab violet,1,mirrored green,, 
-pale chartreuse,1,faded lime,2,light aqua,1,muted coral,, 
-wavy indigo,4,faded lime,4,mirrored green,2,posh tomato,, 
-dotted green,4,faded green,2,striped black,4,dull brown,3,faded aqua
-faded salmon,2,faded gray,, ,, ,, 
-dark plum,2,faded crimson,2,dark salmon,2,shiny gray,, 
-bright brown,5,faded chartreuse,, ,, ,, 
-dim crimson,1,faded chartreuse,, ,, ,, 
-dim magenta,1,faded chartreuse,, ,, ,, 
-clear orange,1,faded chartreuse,, ,, ,, 
-pale aqua,5,faded chartreuse,3,faded crimson,5,dotted orange,3,light brown
-mirrored fuchsia,1,faded chartreuse,3,pale olive,4,pale cyan,2,muted beige
-light plum,2,faded chartreuse,1,plaid lime,1,posh violet,5,faded plum
-clear salmon,3,faded chartreuse,5,posh salmon,5,mirrored red,, 
-drab coral,4,faded chartreuse,1,vibrant bronze,5,shiny bronze,3,vibrant tan
-faded indigo,4,faded chartreuse,2,wavy silver,1,shiny green,, 
-shiny silver,2,faded brown,2,dotted lime,5,faded chartreuse,, 
-shiny violet,1,faded brown,1,dull red,, ,, 
-plaid violet,2,faded blue,, ,, ,, 
-bright olive,2,faded blue,, ,, ,, 
-bright white,2,faded blue,, ,, ,, 
-mirrored tan,1,faded blue,, ,, ,, 
-posh beige,1,faded blue,, ,, ,, 
-drab gold,1,faded blue,, ,, ,, 
-posh bronze,4,faded blue,5,bright orange,3,dark gold,, 
-dark brown,2,faded blue,2,dim aqua,5,posh yellow,5,drab violet
-light aqua,2,faded blue,4,drab violet,5,dim aqua,, 
-striped purple,1,faded blue,3,faded fuchsia,3,pale maroon,, 
-dull salmon,1,faded blue,2,wavy silver,3,posh chartreuse,, 
-faded purple,4,faded black,, ,, ,, 
-dotted coral,1,faded black,, ,, ,, 
-mirrored yellow,3,faded beige,2,shiny cyan,2,wavy silver,2,dull yellow
-wavy cyan,5,faded aqua,1,striped blue,5,posh olive,, 
-muted black,5,dull yellow,4,faded beige,, ,, 
-light teal,3,dull yellow,2,striped fuchsia,, ,, 
-shiny gold,1,dull white,4,dark orange,, ,, 
-mirrored crimson,2,dull silver,, ,, ,, 
-light tomato,5,dull salmon,, ,, ,, 
-striped gold,1,dull salmon,, ,, ,, 
-dark salmon,3,dull salmon,5,drab violet,4,striped indigo,, 
-dim fuchsia,1,dull salmon,1,dull olive,5,shiny yellow,, 
-drab tan,3,dull salmon,3,wavy tomato,2,muted orange,5,clear cyan
-plaid salmon,5,dull purple,4,faded lime,2,striped aqua,, 
-clear tan,2,dull purple,2,plaid purple,, ,, 
-striped black,4,dull plum,3,faded gray,3,faded cyan,, 
-bright violet,5,dull olive,2,striped turquoise,3,vibrant aqua,4,clear maroon
-plaid teal,1,dull lime,3,faded blue,4,drab cyan,3,clear cyan
-dotted lavender,5,dull indigo,, ,, ,, 
-dim maroon,5,dull indigo,3,pale aqua,, ,, 
-drab cyan,3,dull indigo,1,vibrant indigo,, ,, 
-light white,2,dull green,, ,, ,, 
-posh salmon,1,dull green,2,bright cyan,1,mirrored bronze,, 
-dull lime,1,dull green,3,dark orange,4,shiny maroon,, 
-dull magenta,5,dull fuchsia,1,drab green,1,wavy red,1,wavy fuchsia
-vibrant beige,2,dull cyan,, ,, ,, 
-muted gray,5,dull cyan,4,clear olive,, ,, 
-mirrored black,5,dull cyan,3,wavy silver,1,posh fuchsia,, 
-plaid maroon,1,dull coral,, ,, ,, 
-wavy yellow,2,dull chartreuse,5,dull yellow,3,vibrant gold,, 
-mirrored lime,4,dull brown,, ,, ,, 
-dark black,2,dull blue,, ,, ,, 
-shiny red,1,dull blue,2,bright white,, ,, 
-shiny gray,2,dull blue,2,faded chartreuse,, ,, 
-mirrored cyan,4,dull blue,4,striped gold,2,plaid lavender,4,light silver
-mirrored silver,3,dull aqua,5,mirrored purple,, ,, 
-dim silver,5,drab yellow,5,posh purple,3,light tomato,3,wavy blue
-wavy red,4,drab white,1,plaid silver,, ,, 
-striped salmon,5,drab violet,3,dark brown,4,dull white,4,clear lime
-dark turquoise,1,drab violet,5,drab gold,1,mirrored green,, 
-dark lime,3,drab tomato,, ,, ,, 
-faded red,2,drab teal,2,pale coral,5,dotted black,, 
-muted purple,1,drab tan,, ,, ,, 
-clear plum,2,drab silver,, ,, ,, 
-posh lavender,2,drab silver,1,drab cyan,, ,, 
-dotted gray,3,drab silver,4,faded silver,2,light coral,, 
-dim olive,5,drab salmon,, ,, ,, 
-pale silver,1,drab orange,5,clear salmon,2,plaid violet,, 
-dull maroon,2,drab maroon,3,shiny lavender,, ,, 
-muted violet,4,drab lime,, ,, ,, 
-dull tomato,5,drab lime,3,dark olive,4,drab turquoise,, 
-drab brown,3,drab lime,3,dull silver,2,dark gold,3,drab beige
-dotted bronze,5,drab lime,3,striped plum,3,faded blue,5,faded purple
-striped brown,3,drab lavender,5,clear lavender,, ,, 
-wavy tan,3,drab lavender,2,dotted aqua,2,bright white,, 
-pale black,3,drab indigo,, ,, ,, 
-dim black,2,drab indigo,, ,, ,, 
-wavy purple,3,drab green,, ,, ,, 
-plaid lime,3,drab green,, ,, ,, 
-plaid fuchsia,4,drab green,3,mirrored tomato,5,light white,5,muted cyan
-clear fuchsia,4,drab gold,, ,, ,, 
-dark cyan,2,drab fuchsia,1,clear cyan,2,plaid gold,, 
-dull teal,5,drab fuchsia,4,dim black,, ,, 
-striped white,2,drab cyan,, ,, ,, 
-light maroon,1,drab cyan,, ,, ,, 
-dotted beige,2,drab cyan,5,mirrored bronze,4,vibrant bronze,5,shiny blue
-light lavender,4,drab cyan,5,posh maroon,3,dotted red,, 
-dotted olive,1,drab cyan,4,shiny coral,, ,, 
-vibrant fuchsia,5,drab crimson,, ,, ,, 
-vibrant green,4,drab bronze,, ,, ,, 
-bright bronze,2,drab bronze,2,pale beige,, ,, 
-pale plum,4,drab black,4,vibrant purple,1,muted turquoise,, 
-clear coral,2,drab beige,1,drab yellow,1,dotted tan,, 
-pale white,3,drab aqua,3,wavy maroon,4,shiny blue,4,dotted lime
-light chartreuse,1,dotted yellow,4,clear gold,1,bright magenta,5,dark tan
-light black,4,dotted yellow,3,dark turquoise,3,vibrant blue,4,clear maroon
-muted fuchsia,4,dotted violet,1,vibrant silver,1,shiny cyan,1,vibrant yellow
-vibrant lime,1,dotted turquoise,5,dotted magenta,5,light black,, 
-bright gold,4,dotted tomato,, ,, ,, 
-muted green,4,dotted tomato,, ,, ,, 
-faded yellow,2,dotted tomato,3,muted yellow,1,dim bronze,, 
-striped silver,3,dotted tomato,1,plaid cyan,4,clear white,5,mirrored indigo
-dim brown,4,dotted tan,, ,, ,, 
-clear crimson,5,dotted tan,2,wavy crimson,4,dim orange,5,drab turquoise
-muted olive,1,dotted red,1,posh green,, ,, 
-clear indigo,3,dotted purple,, ,, ,, 
-striped orange,2,dotted purple,2,dotted indigo,, ,, 
-drab beige,4,dotted orange,2,dark black,2,bright olive,4,dark gold
-bright aqua,1,dotted olive,1,striped gold,, ,, 
-muted brown,5,dotted maroon,4,shiny yellow,5,dark orange,, 
-striped bronze,1,dotted lime,4,dark chartreuse,3,shiny bronze,, 
-striped aqua,4,dotted lime,4,dotted brown,, ,, 
-pale salmon,2,dotted lime,2,shiny gold,, ,, 
-vibrant orange,3,dotted lavender,1,posh purple,5,dull cyan,, 
-dotted salmon,1,dotted indigo,, ,, ,, 
-wavy orange,2,dotted indigo,1,vibrant indigo,4,dull teal,3,striped gold
-mirrored salmon,1,dotted gray,3,clear gold,5,dark indigo,2,striped gold
-mirrored violet,1,dotted gold,3,striped salmon,3,faded crimson,, 
-drab teal,3,dotted fuchsia,4,drab aqua,3,dim aqua,, 
-faded plum,5,dotted cyan,, ,, ,, 
-plaid tomato,3,dotted crimson,3,shiny tan,, ,, 
-drab bronze,1,dotted brown,5,clear beige,, ,, 
-dim chartreuse,3,dotted brown,5,faded plum,4,wavy tomato,, 
-dim plum,5,dotted bronze,2,drab yellow,5,shiny blue,5,dotted cyan
-muted lavender,3,dotted bronze,2,faded chartreuse,5,drab gold,5,dark white
-bright gray,4,dotted blue,, ,, ,, 
-clear turquoise,3,dotted blue,3,faded cyan,, ,, 
-dotted crimson,1,dotted black,, ,, ,, 
-striped red,1,dotted black,1,mirrored magenta,3,shiny blue,, 
-pale teal,2,dotted beige,, ,, ,, 
-dull black,1,dotted beige,, ,, ,, 
-posh silver,1,dim yellow,1,clear tan,, ,, 
-dark bronze,3,dim white,3,bright cyan,4,clear olive,2,faded crimson
-bright tomato,1,dim white,1,drab yellow,, ,, 
-shiny chartreuse,4,dim turquoise,2,posh fuchsia,3,dark blue,4,shiny aqua
-dotted red,4,dim tomato,1,drab beige,, ,, 
-vibrant cyan,4,dim tomato,1,dull green,5,light silver,2,striped gold
-pale fuchsia,1,dim purple,5,dark gray,2,dim brown,3,wavy tomato
-clear purple,3,dim olive,2,mirrored violet,1,muted tomato,, 
-posh indigo,2,dim maroon,1,dotted gray,4,dark brown,3,wavy indigo
-muted tomato,1,dim maroon,2,dull yellow,3,vibrant bronze,5,dull blue
-bright chartreuse,1,dim lime,, ,, ,, 
-plaid gold,2,dim lime,1,dull bronze,5,faded fuchsia,2,drab yellow
-faded bronze,2,dim lime,4,wavy magenta,, ,, 
-plaid red,1,dim indigo,4,muted blue,, ,, 
-faded tomato,1,dim indigo,5,shiny plum,1,drab yellow,4,drab indigo
-wavy magenta,2,dim cyan,2,dim violet,4,dark salmon,2,vibrant bronze
-muted teal,5,dim crimson,1,dim cyan,, ,, 
-posh red,5,dim chartreuse,1,shiny aqua,1,wavy black,, 
-clear yellow,3,dim brown,4,dotted lavender,, ,, 
-muted crimson,3,dim black,1,vibrant bronze,3,light black,, 
-dim indigo,2,dim black,1,wavy plum,4,dark blue,, 
-dotted chartreuse,4,dim aqua,, ,, ,, 
-mirrored green,4,dim aqua,, ,, ,, 
-mirrored white,4,dim aqua,, ,, ,, 
-dark orange,4,dim aqua,4,drab violet,, ,, 
-vibrant bronze,3,dim aqua,3,light aqua,3,wavy silver,2,posh tomato
-wavy violet,2,dim aqua,5,posh chartreuse,, ,, 
-posh white,4,dim aqua,5,posh chartreuse,4,drab gold,, 
-drab indigo,2,dim aqua,5,vibrant blue,5,dull salmon,5,drab violet
-shiny tan,3,dark turquoise,3,muted aqua,, ,, 
-mirrored coral,1,dark tomato,3,vibrant coral,3,posh lime,3,pale fuchsia
-mirrored teal,1,dark tomato,1,wavy teal,3,vibrant maroon,5,pale red
-dark silver,5,dark tan,4,light silver,, ,, 
-faded maroon,3,dark salmon,3,faded aqua,1,clear olive,2,clear brown
-drab aqua,3,dark red,, ,, ,, 
-dim salmon,3,dark red,5,dark lavender,2,dotted turquoise,2,light magenta
-faded turquoise,5,dark orange,, ,, ,, 
-vibrant violet,3,dark orange,, ,, ,, 
-light olive,4,dark orange,4,clear olive,, ,, 
-pale lime,4,dark orange,5,dim black,1,dull white,, 
-dark beige,1,dark olive,, ,, ,, 
-bright lavender,2,dark lavender,2,mirrored cyan,1,dim yellow,5,vibrant teal
-light orange,2,dark indigo,, ,, ,, 
-dull bronze,4,dark indigo,3,plaid bronze,2,pale yellow,, 
-dotted yellow,2,dark indigo,3,shiny gold,2,muted coral,5,pale maroon
-pale green,3,dark indigo,3,shiny gray,, ,, 
-clear cyan,1,dark gray,4,vibrant indigo,, ,, 
-muted beige,3,dark gold,, ,, ,, 
-dim bronze,4,dark gold,3,bright orange,2,striped indigo,, 
-dull violet,2,dark gold,4,posh maroon,2,vibrant teal,4,drab teal
-mirrored bronze,4,dark gold,4,posh tomato,2,plaid aqua,, 
-faded violet,1,dark crimson,5,pale gray,1,pale olive,, 
-mirrored plum,1,dark crimson,2,striped gray,3,posh white,, 
-vibrant gold,3,dark chartreuse,1,posh purple,1,striped white,2,dotted chartreuse
-dark purple,3,dark brown,, ,, ,, 
-dull green,2,dark brown,4,drab indigo,1,mirrored green,2,drab lime
-dark indigo,4,dark brown,2,dull cyan,4,faded chartreuse,, 
-dull blue,4,dark brown,2,faded blue,4,dim aqua,, 
-posh fuchsia,3,dark brown,5,striped indigo,1,muted indigo,4,mirrored bronze
-dim green,5,dark bronze,3,light crimson,2,bright yellow,, 
-light red,1,dark bronze,3,shiny lavender,, ,, 
-dotted fuchsia,5,dark black,1,clear lime,, ,, 
-clear olive,4,dark black,4,drab indigo,3,clear lime,, 
-muted aqua,3,dark black,4,faded crimson,2,plaid white,3,bright black
-vibrant aqua,2,dark black,2,mirrored green,, ,, 
-plaid white,5,dark aqua,1,muted orange,, ,, 
-muted blue,2,clear white,4,vibrant red,2,faded orange,2,clear plum
-wavy brown,1,clear plum,, ,, ,, 
-mirrored beige,5,clear maroon,2,wavy maroon,2,drab indigo,, 
-vibrant gray,1,clear magenta,, ,, ,, 
-mirrored purple,4,clear lime,, ,, ,, 
-drab chartreuse,2,clear lime,3,dim cyan,3,faded cyan,, 
-striped maroon,4,clear lime,5,striped gold,3,clear plum,3,dull tan
-faded teal,4,clear lavender,, ,, ,, 
-clear tomato,5,clear lavender,4,dull tan,2,dotted turquoise,, 
-mirrored indigo,3,clear lavender,3,muted magenta,3,posh yellow,, 
-drab white,1,clear lavender,3,posh maroon,, ,, 
-dotted indigo,2,clear lavender,4,shiny coral,, ,, 
-shiny black,3,clear gray,4,dim tomato,, ,, 
-dim white,1,clear gold,, ,, ,, 
-faded silver,3,clear gold,4,dotted cyan,1,light white,4,dull green
-wavy black,3,clear fuchsia,2,striped violet,1,vibrant indigo,, 
-shiny lavender,4,clear cyan,, ,, ,, 
-faded brown,1,clear cyan,4,faded purple,, ,, 
-shiny fuchsia,1,clear cyan,1,striped silver,2,bright black,, 
-drab crimson,3,clear coral,5,drab bronze,3,clear black,2,pale maroon
-dim coral,1,clear bronze,2,dark gold,3,drab teal,, 
-vibrant lavender,3,clear bronze,4,dull yellow,, ,, 
-drab turquoise,2,clear blue,2,muted cyan,4,faded turquoise,, 
-posh blue,4,clear black,, ,, ,, 
-posh black,3,clear beige,2,drab gold,3,mirrored indigo,1,dim black
-light coral,3,clear beige,4,shiny maroon,, ,, 
-vibrant black,3,bright white,, ,, ,, 
-vibrant crimson,4,bright white,3,dark brown,4,plaid crimson,, 
-mirrored maroon,2,bright white,4,dotted maroon,5,light coral,5,striped turquoise
-bright maroon,3,bright white,1,dotted orange,, ,, 
-striped violet,5,bright white,5,dull blue,3,light tomato,3,mirrored green
-shiny teal,5,bright white,5,mirrored red,, ,, 
-dim gold,2,bright violet,, ,, ,, 
-dull turquoise,3,bright teal,1,faded blue,5,bright magenta,, 
-dim blue,1,bright silver,4,bright cyan,, ,, 
-pale tomato,2,bright silver,1,dull teal,5,dull lime,5,muted aqua
-striped olive,3,bright plum,5,dotted gray,, ,, 
-mirrored red,2,bright orange,3,dull brown,4,dotted brown,, 
-striped fuchsia,4,bright orange,3,pale maroon,, ,, 
-posh violet,3,bright magenta,, ,, ,, 
-shiny blue,1,bright magenta,, ,, ,, 
-clear gold,1,bright magenta,3,dotted olive,2,posh yellow,2,dull blue
-faded orange,3,bright magenta,4,mirrored brown,, ,, 
-dim teal,3,bright lavender,4,wavy tomato,2,shiny gray,5,bright blue
-faded beige,5,bright indigo,1,pale yellow,2,vibrant yellow,, 
-dull white,5,bright indigo,3,posh tomato,2,clear lime,5,drab lime
-muted orange,1,bright indigo,4,posh yellow,4,bright cyan,, 
-muted red,2,bright green,, ,, ,, 
-faded chartreuse,5,bright cyan,, ,, ,, 
-plaid lavender,4,bright cyan,1,dim aqua,3,muted orange,, 
-plaid aqua,4,bright cyan,2,pale black,3,dull salmon,, 
-drab maroon,1,bright chartreuse,2,dark aqua,3,dim black,5,wavy silver
-dark green,3,bright chartreuse,3,pale green,5,dotted crimson,2,clear plum
-wavy plum,5,bright chartreuse,5,pale maroon,1,clear lime,, 
-striped teal,4,bright chartreuse,3,striped indigo,5,dark lavender,4,posh white
-dotted blue,4,bright brown,5,dotted black,2,faded teal,3,pale yellow
-dotted gold,4,bright black,, ,, ,, 
-plaid silver,3,bright beige,, ,, ,, 
-dotted teal,4,bright beige,3,posh olive,2,dull coral,, 
-muted salmon,3,bright aqua,2,pale maroon,1,light aqua,, 
-pale yellow,, ,, ,, ,, 
-faded lime,, ,, ,, ,, 
-dim aqua,, ,, ,, ,, 
-bright cyan,, ,, ,, ,, 
-pale blue,, ,, ,, ,, 
-vibrant blue,, ,, ,, ,, 
-drab violet,, ,, ,, ,, 
-posh tomato,, ,, ,, ,, 
-wavy silver,, ,, ,, ,, 
-faded blue,, ,, ,, ,, 
+acc +13
+jmp +412
+nop +137
+nop +144
+acc +33
+acc -11
+jmp +445
+nop +327
+acc -10
+jmp +1
+jmp +578
+jmp +1
+jmp +415
+acc +25
+acc +21
+jmp +58
+jmp +180
+jmp +96
+nop +190
+acc +20
+jmp +167
+jmp +194
+acc +24
+acc +9
+acc +14
+jmp +1
+jmp +443
+jmp +1
+acc +18
+jmp +465
+jmp +245
+jmp +219
+nop +280
+acc +13
+acc +23
+jmp +133
+jmp +300
+acc +35
+acc +50
+acc +24
+acc +32
+jmp +458
+acc +36
+acc +14
+jmp +103
+nop +262
+jmp +233
+acc +14
+nop +313
+jmp +30
+acc +7
+jmp +324
+acc +12
+jmp +1
+acc +12
+jmp +326
+acc +14
+nop +151
+acc +2
+jmp -14
+jmp +1
+nop +18
+jmp +288
+acc +24
+acc +7
+acc +0
+jmp +268
+jmp +267
+acc +3
+acc +4
+acc +35
+jmp +25
+jmp -16
+acc +14
+acc +38
+acc +41
+jmp +3
+acc -16
+jmp +546
+acc +42
+acc -6
+acc +38
+acc +18
+jmp +391
+acc +45
+jmp +464
+jmp +144
+acc +33
+acc -18
+acc +36
+jmp +313
+jmp +286
+acc +34
+nop -72
+acc -17
+jmp +430
+acc +35
+acc -18
+acc -1
+jmp +75
+acc +48
+acc -2
+jmp -76
+acc -13
+nop +453
+acc +0
+nop +48
+jmp +40
+acc +40
+acc -5
+acc +14
+acc +1
+jmp +323
+acc +16
+acc +17
+nop +408
+acc +22
+jmp +126
+acc +2
+jmp +404
+acc +22
+nop +373
+acc -15
+jmp +134
+nop +242
+jmp +1
+acc +19
+jmp +372
+acc +18
+acc +33
+acc +31
+acc -12
+jmp +417
+acc +27
+acc -4
+jmp +84
+nop -86
+jmp -87
+jmp +174
+acc -19
+acc +17
+nop +353
+jmp +301
+acc +14
+acc -16
+acc +2
+jmp -109
+acc +24
+jmp +366
+acc -8
+acc -14
+acc +20
+acc +38
+jmp -62
+acc +4
+jmp +1
+nop +423
+jmp +33
+acc -19
+acc +50
+jmp -128
+acc +10
+acc +2
+jmp +371
+acc +31
+acc +12
+acc +12
+jmp +337
+acc +42
+acc -19
+jmp +64
+jmp +1
+nop -52
+jmp -19
+acc +34
+jmp +287
+acc -6
+jmp +130
+acc +22
+acc +22
+acc +46
+acc -18
+jmp +190
+acc +13
+acc -18
+acc +26
+jmp +283
+acc +15
+jmp +193
+jmp -168
+nop +165
+acc -3
+acc +26
+jmp -54
+acc -4
+jmp -174
+jmp +96
+acc +44
+acc -18
+acc +8
+acc +23
+jmp -164
+acc -11
+acc -13
+acc +30
+jmp +114
+acc -9
+jmp +386
+acc -15
+jmp +98
+nop -74
+acc +31
+acc -4
+acc +15
+jmp +113
+acc -3
+acc +36
+jmp +362
+jmp +225
+jmp +131
+acc +14
+acc +48
+acc -16
+nop +302
+jmp +383
+acc -14
+jmp +97
+acc +5
+acc -6
+jmp -4
+acc +27
+jmp +165
+acc +49
+jmp +36
+nop -213
+acc +30
+acc +18
+jmp +1
+jmp +54
+nop +73
+nop +185
+acc -4
+jmp -156
+acc +17
+jmp +1
+acc +30
+jmp +357
+nop +60
+jmp +1
+jmp -186
+acc -17
+acc +26
+acc +45
+jmp +74
+acc +27
+acc +1
+jmp -109
+acc +49
+acc +4
+jmp +298
+acc +12
+jmp -42
+acc -16
+jmp -195
+acc +19
+acc -13
+acc +31
+acc +31
+jmp +201
+jmp +274
+jmp +1
+acc +27
+acc +41
+acc +35
+jmp +9
+nop +32
+jmp -190
+acc +2
+jmp +1
+jmp +172
+acc +10
+acc -13
+jmp -95
+acc -10
+acc -12
+acc -4
+jmp +290
+nop -91
+nop +288
+acc +45
+acc +40
+jmp +322
+acc +9
+jmp +314
+acc -10
+acc +3
+nop -62
+acc +46
+jmp +186
+acc +14
+acc +40
+acc +49
+acc +29
+jmp -175
+acc +37
+acc -8
+jmp +254
+jmp +48
+acc +30
+acc +40
+jmp +1
+jmp -172
+acc -9
+acc +42
+nop -269
+jmp -154
+nop +109
+acc +0
+jmp -68
+acc +40
+jmp +310
+acc +4
+jmp +266
+jmp +80
+acc +15
+acc -14
+jmp -206
+acc +17
+jmp +156
+acc -19
+acc +25
+nop +82
+acc +13
+jmp +243
+jmp +259
+jmp +258
+acc +29
+acc +9
+jmp -76
+acc +5
+acc +41
+acc +49
+acc +17
+jmp +161
+acc +29
+nop +215
+jmp +179
+acc +45
+acc +23
+jmp +208
+acc +3
+acc +30
+jmp +38
+nop +204
+jmp -62
+jmp +1
+acc +10
+jmp +78
+acc +32
+acc +29
+jmp -269
+acc +20
+acc +24
+jmp +1
+jmp -114
+jmp +160
+acc -19
+jmp +137
+nop -312
+acc +8
+acc +3
+jmp -181
+jmp +122
+acc +9
+jmp -166
+jmp -106
+jmp +98
+jmp -152
+acc -7
+acc +19
+jmp +180
+jmp +195
+acc -17
+acc +19
+acc +8
+acc +21
+jmp +193
+jmp +226
+acc +5
+jmp +14
+jmp +228
+acc +44
+nop +112
+acc +0
+acc +12
+jmp +223
+acc +21
+nop +87
+acc +32
+acc +42
+jmp -264
+acc +31
+jmp +49
+acc -3
+acc +16
+nop -277
+acc +45
+jmp +50
+acc +0
+acc +7
+nop -223
+acc +11
+jmp +113
+acc +32
+acc +20
+jmp +108
+acc -7
+acc +30
+jmp +66
+acc -12
+acc +34
+acc -9
+acc +39
+jmp +126
+jmp -351
+jmp -89
+jmp -45
+acc +4
+acc +7
+acc -1
+acc +41
+jmp -229
+acc -9
+acc +29
+jmp -115
+acc +27
+acc -11
+jmp +187
+acc -10
+acc +11
+acc +29
+acc +46
+jmp -115
+nop -116
+acc +31
+jmp -202
+acc +12
+jmp +1
+acc +16
+acc +15
+jmp -25
+acc -7
+jmp -439
+acc +10
+acc +26
+acc +13
+jmp -75
+nop -214
+acc +2
+nop -202
+jmp +105
+jmp -65
+acc -15
+acc +6
+jmp +1
+jmp -182
+acc +13
+acc -19
+jmp +26
+acc +20
+acc -16
+acc +14
+jmp -59
+jmp -204
+acc +27
+acc +44
+nop -33
+acc +36
+jmp -300
+acc +48
+acc +28
+acc +29
+acc +39
+jmp -249
+acc +33
+acc +31
+jmp +1
+acc +33
+jmp -269
+acc +8
+acc +31
+acc +10
+acc +5
+jmp -194
+jmp -477
+nop -196
+acc +50
+acc -13
+jmp -47
+nop +77
+acc +45
+jmp -293
+acc +39
+jmp -19
+nop -391
+acc +28
+acc +50
+acc +16
+jmp -209
+acc -1
+acc +39
+acc -17
+nop -233
+jmp -283
+acc +19
+acc +0
+acc +22
+acc +22
+jmp -488
+acc +39
+nop -286
+acc +33
+jmp -23
+jmp -173
+jmp -274
+acc +5
+acc +45
+acc +0
+acc -14
+jmp -342
+acc +16
+acc +28
+nop -155
+jmp -488
+acc +12
+acc +28
+nop -181
+acc +17
+jmp -447
+acc +40
+acc +40
+acc +13
+jmp -38
+acc -12
+nop -494
+acc +43
+jmp -533
+acc +30
+jmp -518
+acc +39
+acc +4
+nop -179
+jmp -127
+acc +31
+acc +42
+acc +17
+jmp -82
+nop -520
+jmp -521
+jmp -193
+acc -8
+jmp -142
+jmp +1
+acc +39
+jmp -532
+acc +30
+acc +3
+acc +22
+nop -84
+jmp +2
+jmp -402
+jmp -468
+acc +0
+acc -4
+acc -19
+jmp -379
+jmp -357
+acc +0
+jmp -159
+acc +13
+acc +24
+acc -3
+acc +0
+jmp -387
+acc +31
+acc +20
+acc +27
+jmp -308
+jmp -161
+acc -6
+nop -163
+acc -3
+jmp -585
+nop -586
+nop -6
+acc +10
+acc +42
+jmp -590
+acc +0
+acc +34
+acc +16
+acc +9
+jmp -175
+acc +29
+jmp -217
+acc +0
+jmp -234
+jmp -47
+acc +28
+acc +0
+acc +25
+acc -5
+jmp -556
+nop -144
+jmp +1
+acc +27
+jmp -117
+jmp -10
+acc +24
+acc -17
+acc +9
+acc +18
+jmp -310
+jmp -455
+nop -437
+jmp -593
+acc +15
+acc +50
+acc -3
+jmp -50
+acc -13
+acc +14
+acc +34
+acc -16
+jmp +1

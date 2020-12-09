@@ -1,117 +1,110 @@
 use aoc_2020 as aoc;
-use std::collections::HashMap;
-
-use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::visit::EdgeRef;
-use petgraph::Direction;
-use std::collections::{HashSet, LinkedList};
 use std::str::FromStr;
 
 pub fn the_work() {
-    let bags = aoc::read_lines(|l| l.parse::<Bag>().unwrap());
-    let (one, two) = count_containers(&bags);
-    println!("{}\n{}", one, two);
+    let instructions = aoc::read_lines(|l| l.parse::<Ins>().unwrap());
+    println!("{:?}", evaluate(&instructions));
+    println!("{:?}", munge_until_exits(&instructions));
 }
 
-fn count_containers(bags: &[Bag]) -> (usize, usize) {
-    let mut lookup = HashMap::new();
-    let mut graph = DiGraph::<&str, usize>::new();
-    for b in bags {
-        lookup.insert(&b.color[..], graph.add_node(&b.color));
-    }
-    for b in bags {
-        for (sb, n) in &b.contains {
-            graph.add_edge(
-                *lookup.get(&b.color[..]).unwrap(),
-                *lookup.get(&sb[..]).unwrap(),
-                *n,
-            );
-        }
-    }
-    let shiny_gold = lookup.get("shiny gold").unwrap();
-    (
-        count_distinct_containers(&graph, &shiny_gold),
-        compute_downstreams(&graph, &shiny_gold),
-    )
-}
-
-fn count_distinct_containers(graph: &DiGraph<&str, usize>, start: &NodeIndex) -> usize {
-    let mut containers = HashSet::new();
-    let mut queue = LinkedList::new();
-    queue.push_back(*start);
-    loop {
-        match queue.pop_front() {
-            None => break,
-            Some(ni) => {
-                containers.insert(ni);
-                for e in graph.edges_directed(ni, Direction::Incoming) {
-                    queue.push_back(e.source())
-                }
+fn munge_until_exits(instructions: &Vec<Ins>) -> i32 {
+    let mut scratch = Vec::with_capacity(instructions.len());
+    'to_flip: for flip in 0..instructions.len() {
+        scratch.clear();
+        for i in 0..instructions.len() {
+            if flip == i {
+                scratch.push(match instructions[i].code {
+                    Nop => Ins {
+                        code: Jmp,
+                        param: instructions[i].param,
+                    },
+                    Acc => continue 'to_flip,
+                    Jmp => Ins {
+                        code: Nop,
+                        param: instructions[i].param,
+                    },
+                });
+            } else {
+                scratch.push(instructions[i]);
             }
         }
+        match evaluate(&scratch) {
+            Res::Loop(_) => {}
+            Res::Exit(r) => return r,
+        }
     }
-    containers.len() - 1 // the start node doesn't count
+    panic!("didn't find an exiting munge?!")
 }
 
-fn compute_downstreams(graph: &DiGraph<&str, usize>, start: &NodeIndex) -> usize {
-    let mut count = 0;
-    let mut queue = LinkedList::new();
-    queue.push_back((*start, 1));
+#[derive(Eq, PartialEq, Debug)]
+enum Res<T> {
+    Loop(T),
+    Exit(T),
+}
+
+fn evaluate(instructions: &Vec<Ins>) -> Res<i32> {
+    let mut ip = 0;
+    let mut accumulator = 0;
+    let mut map = Vec::with_capacity(instructions.len());
+    for _ in 0..instructions.len() {
+        map.push(false);
+    }
     loop {
-        match queue.pop_front() {
-            None => break,
-            Some((ni, factor)) => {
-                count += factor;
-                for e in graph.edges_directed(ni, Direction::Outgoing) {
-                    queue.push_back((e.target(), factor * e.weight()))
-                }
+        if ip >= instructions.len() {
+            return Res::Exit(accumulator);
+        }
+        if let Some(true) = map.get(ip) {
+            return Res::Loop(accumulator);
+        }
+        map[ip] = true;
+        let ins = &instructions[ip];
+        match ins.code {
+            Nop => ip += 1,
+            Acc => {
+                accumulator += ins.param;
+                ip += 1;
             }
+            Jmp => ip = ((ip as i32) + ins.param) as usize,
         }
     }
-    count - 1 // the start node one doesn't count
 }
 
-#[derive(Debug)]
-struct Bag {
-    color: String,
-    contains: HashMap<String, usize>,
+#[derive(Copy, Clone)]
+enum OpCode {
+    Nop,
+    Acc,
+    Jmp,
 }
+use OpCode::*;
 
-impl Bag {
-    fn new(color: String) -> Bag {
-        Bag {
-            color,
-            contains: HashMap::new(),
+impl FromStr for OpCode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "nop" => Ok(Nop),
+            "acc" => Ok(Acc),
+            "jmp" => Ok(Jmp),
+            _ => Err(format!("Unrecognized '{}' opcode", s)),
         }
     }
-
-    fn add_contains(&mut self, color: String, num: usize) {
-        self.contains.insert(color, num);
-    }
 }
 
-impl FromStr for Bag {
+#[derive(Copy, Clone)]
+struct Ins {
+    code: OpCode,
+    param: i32,
+}
+
+impl FromStr for Ins {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
-        let mut words = s
-            .split(',')
-            .map(|s| s.trim())
-            .filter(|s| s.len() > 0);
-        let mut bag = Bag::new(words.next().unwrap().to_string());
-        loop {
-            let num = match words.next() {
-                None => break,
-                Some(num) => num
-                    .parse::<usize>()
-                    .expect(&format!("failed to parse '{}'", num)),
-            };
-            let clr = words.next().unwrap();
-            bag.add_contains(clr.to_string(), num);
-        }
-
-        Ok(bag)
+        let mut s = s.split(' ');
+        Ok(Ins {
+            code: s.next().unwrap().parse().unwrap(),
+            param: s.next().unwrap().parse().unwrap(),
+        })
     }
 }
 
@@ -120,53 +113,54 @@ mod test {
     use super::*;
 
     const EXAMPLE_INPUT: &str = "
-light red , 1, bright white , 2, muted yellow ,
-dark orange ,  3, bright white ,, 4, muted yellow ,
-bright white ,  1, shiny gold ,
-muted yellow ,  2, shiny gold ,, 9, faded blue ,
-shiny gold ,  1, dark olive , 2, vibrant plum ,
-dark olive ,  3, faded blue ,, 4, dotted black ,
-vibrant plum ,  5, faded blue ,, 6, dotted black ,
-faded blue ,  ,, ,
-dotted black ,  ,, ,";
+nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6";
 
-    const EXAMPLE_INPUT_TWO: &str = "
-shiny gold , 2 ,dark red ,
-dark red , 2 ,dark orange ,
-dark orange , 2 ,dark yellow ,
-dark yellow , 2 ,dark green ,
-dark green , 2 ,dark blue ,
-dark blue , 2 ,dark violet ,
-dark violet ,,";
+    const EXAMPLE_INPUT_WITH_EXIT: &str = "
+nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+nop -4
+acc +6";
 
     #[test]
     fn example_one() {
-        let bags = EXAMPLE_INPUT
+        let instructions = EXAMPLE_INPUT
             .trim()
             .lines()
-            .map(|l| l.parse::<Bag>().unwrap())
-            .collect::<Vec<Bag>>();
-        assert_eq!((4, 32), count_containers(&bags));
+            .map(|l| l.parse().unwrap())
+            .collect::<Vec<Ins>>();
+        assert_eq!(Res::Loop(5), evaluate(&instructions));
+    }
+
+    #[test]
+    fn example_two_exit() {
+        let instructions = EXAMPLE_INPUT_WITH_EXIT
+            .trim()
+            .lines()
+            .map(|l| l.parse().unwrap())
+            .collect::<Vec<Ins>>();
+        assert_eq!(Res::Exit(8), evaluate(&instructions));
     }
 
     #[test]
     fn example_two() {
-        let bags = EXAMPLE_INPUT_TWO
+        let instructions = EXAMPLE_INPUT
             .trim()
             .lines()
-            .map(|l| l.parse::<Bag>().unwrap())
-            .collect::<Vec<Bag>>();
-        // this one's degenerate, shiny is the sole root
-        assert_eq!((0, 126), count_containers(&bags));
-    }
-
-    #[test]
-    fn test_parse() {
-        let mut lines = EXAMPLE_INPUT.trim().lines();
-        let b = lines.next().unwrap().parse::<Bag>().unwrap();
-        assert_eq!("light red", b.color);
-        assert_eq!(&1, b.contains.get("bright white").unwrap());
-        assert_eq!(&2, b.contains.get("muted yellow").unwrap());
-        assert_eq!(2, b.contains.len());
+            .map(|l| l.parse().unwrap())
+            .collect::<Vec<Ins>>();
+        assert_eq!(8, munge_until_exits(&instructions));
     }
 }
