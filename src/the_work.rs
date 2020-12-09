@@ -1,18 +1,19 @@
-// use aoc_2020 as aoc;
+use aoc_2020 as aoc;
+
+use aoc_2020::find_pairs::PairFinder;
 
 pub fn the_work() {
-    // let codes = aoc::read_lines(|l| l.parse::<u64>().unwrap());
+    let codes = aoc::read_lines(|l| l.parse::<i64>().unwrap());
+    println!("{:?}", find_first_error(&codes, 25));
 }
 
-fn find_first_error(codes: &[u64], preamble_len: usize) -> u64 {
-    let mut preamble = Vec::with_capacity(preamble_len);
-    let mut code_iter = codes.iter();
-    for _ in 0..preamble_len {
-        preamble.push(*code_iter.next().unwrap());
+fn find_first_error(codes: &[i64], preamble_len: usize) -> Option<i64> {
+    for i in preamble_len..codes.len() {
+        if let None = codes[(i - preamble_len)..i].find_pair_with_sum(codes[i]) {
+            return Some(codes[i]);
+        }
     }
-
-
-    1
+    None
 }
 
 #[cfg(test)]
@@ -47,8 +48,7 @@ mod test {
             .trim()
             .lines()
             .map(|l| l.parse().unwrap())
-            .collect::<Vec<u64>>();
-        assert_eq!(127, find_first_error(&codes, 5));
+            .collect::<Vec<i64>>();
+        assert_eq!(Some(127), find_first_error(&codes, 5));
     }
-
 }
