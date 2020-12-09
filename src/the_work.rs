@@ -3,10 +3,16 @@ use std::str::FromStr;
 
 pub fn the_work() {
     let instructions = aoc::read_lines(|l| l.parse::<Ins>().unwrap());
-    println!("{}", evaluate(&instructions));
+    println!("{:?}", evaluate(&instructions));
 }
 
-fn evaluate(instructions: &Vec<Ins>) -> i32 {
+#[derive(Eq, PartialEq, Debug)]
+enum Res<T> {
+    Loop(T),
+    Exit(T),
+}
+
+fn evaluate(instructions: &Vec<Ins>) -> Res<i32> {
     let mut ip = 0;
     let mut accumulator = 0;
     let mut map = Vec::with_capacity(instructions.len());
@@ -14,8 +20,11 @@ fn evaluate(instructions: &Vec<Ins>) -> i32 {
         map.push(false);
     }
     loop {
+        if ip >= instructions.len() {
+            return Res::Exit(accumulator);
+        }
         if let Some(true) = map.get(ip) {
-            break;
+            return Res::Loop(accumulator);
         }
         map[ip] = true;
         let ins = &instructions[ip];
@@ -28,7 +37,6 @@ fn evaluate(instructions: &Vec<Ins>) -> i32 {
             Jmp => ip = ((ip as i32) + ins.param) as usize,
         }
     }
-    accumulator
 }
 
 enum OpCode {
@@ -83,14 +91,34 @@ acc +1
 jmp -4
 acc +6";
 
+    const EXAMPLE_INPUT_WITH_EXIT: &str = "
+nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+nop -4
+acc +6";
+
     #[test]
     fn example_one() {
-        let mut instructions = EXAMPLE_INPUT
+        let instructions = EXAMPLE_INPUT
             .trim()
             .lines()
             .map(|l| l.parse().unwrap())
             .collect::<Vec<Ins>>();
-        let accumulator = evaluate(&mut instructions);
-        assert_eq!(5, accumulator);
+        assert_eq!(Res::Loop(5), evaluate(&instructions));
+    }
+
+    #[test]
+    fn example_two_exit() {
+        let instructions = EXAMPLE_INPUT_WITH_EXIT
+            .trim()
+            .lines()
+            .map(|l| l.parse().unwrap())
+            .collect::<Vec<Ins>>();
+        assert_eq!(Res::Exit(8), evaluate(&instructions));
     }
 }
