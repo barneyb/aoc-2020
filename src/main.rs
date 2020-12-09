@@ -1,19 +1,14 @@
-use aoc_2020 as aoc;
+use aoc_2020::find_pairs::find_pair_with_sum;
 
 fn main() {
-    let expenses = aoc::read_lines(|s| s.parse::<i32>().unwrap());
-    'outer: for (i, &a) in expenses.iter().enumerate() {
-        for (j, &b) in expenses.iter().skip(i + 1).enumerate() {
-            let remaining = 2020 - a - b;
-            if remaining <= 0 {
-                continue;
-            }
-            for &c in expenses.iter().skip(j + 1) {
-                if c == remaining {
-                    println!("{} * {} * {} = {}", a, b, c, a * b * c);
-                    break 'outer;
-                }
-            }
+    let expenses = aoc_2020::read_lines(|s| s.parse::<i64>().unwrap());
+    if let Some((a, b)) = find_pair_with_sum(&expenses, 2020) {
+        println!("{} * {} = {}", a, b, a * b);
+    }
+    for (i, &a) in expenses.iter().enumerate() {
+        if let Some((b, c)) = find_pair_with_sum(&expenses[(i + 1)..], 2020 - a) {
+            println!("{} * {} * {} = {}", a, b, c, a * b * c);
+            break;
         }
     }
 }
