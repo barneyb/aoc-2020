@@ -4,11 +4,13 @@ use aoc_2020::find_pairs::PairFinder;
 
 pub fn the_work() {
     let codes = aoc::read_lines(|l| l.parse::<i64>().unwrap());
-    println!("{:?}", find_weakness(&codes, 25));
+    let first_error = find_first_error(&codes, 25).unwrap();
+    println!("{}", first_error);
+    println!("{}", find_weakness(&codes, first_error));
 }
 
-fn find_weakness(codes: &[i64], preamble_len: usize) -> i64 {
-    let range = find_range_of(&codes, find_first_error(&codes, preamble_len).unwrap());
+fn find_weakness(codes: &[i64], first_error: i64) -> i64 {
+    let range = find_range_of(&codes, first_error);
     range.iter().min().unwrap() + range.iter().max().unwrap()
 }
 
@@ -53,6 +55,6 @@ mod test {
     #[test]
     fn example_two() {
         assert_eq!(&[15, 25, 47, 40], find_range_of(&EXAMPLE_CODES, 127));
-        assert_eq!(62, find_weakness(&EXAMPLE_CODES, 5));
+        assert_eq!(62, find_weakness(&EXAMPLE_CODES, 127));
     }
 }
