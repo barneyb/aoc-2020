@@ -1,60 +1,36 @@
-use aoc_2020 as aoc;
-
-use aoc_2020::find_pairs::PairFinder;
+use aoc_2020::histogram::Histogram;
+use aoc_2020::read_lines;
 
 pub fn the_work() {
-    let codes = aoc::read_lines(|l| l.parse::<i64>().unwrap());
-    let first_error = find_first_error(&codes, 25).unwrap();
-    println!("{}", first_error);
-    println!("{}", find_weakness(&codes, first_error));
+    let adapters = read_lines(|l| l.parse::<usize>().unwrap());
+    println!("{}", jolt_distribution(&adapters));
 }
 
-fn find_weakness(codes: &[i64], first_error: i64) -> i64 {
-    let range = find_range_of(&codes, first_error);
-    range.iter().min().unwrap() + range.iter().max().unwrap()
-}
-
-fn find_first_error(codes: &[i64], preamble_len: usize) -> Option<i64> {
-    for i in preamble_len..codes.len() {
-        if let None = codes[(i - preamble_len)..i].find_pair_with_sum(codes[i]) {
-            return Some(codes[i]);
-        }
-    }
-    None
-}
-
-fn find_range_of(codes: &[i64], sum: i64) -> &[i64] {
-    for i in 0..codes.len() {
-        let mut s = codes[i];
-        for j in (i + 1)..codes.len() {
-            s += codes[j];
-            if s == sum {
-                return &codes[i..=j];
-            }
-            if s > sum {
-                break;
-            }
-        }
-    }
-    panic!("No range totaling {} found", sum);
+fn jolt_distribution(adapters: &[usize]) -> usize {
+    let mut scratch = Vec::from(adapters);
+    scratch.sort();
+    scratch.push(scratch[scratch.len() - 1] + 3);
+    let mut hist = Vec::new();
+    scratch.iter().fold(&0, |a, b| {
+        hist.increment_bucket(b - a);
+        b
+    });
+    hist[1] * hist[3]
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const EXAMPLE_CODES: [i64; 20] = [
-        35, 20, 15, 25, 47, 40, 62, 55, 65, 95, 102, 117, 150, 182, 127, 219, 299, 277, 309, 576,
+    const EXAMPLE_ONE: [usize; 11] = [16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
+    const EXAMPLE_TWO: [usize; 31] = [
+        28, 33, 18, 42, 31, 14, 46, 20, 48, 47, 24, 23, 49, 45, 19, 38, 39, 11, 1, 32, 25, 35, 8,
+        17, 7, 9, 4, 2, 34, 10, 3,
     ];
 
     #[test]
-    fn example_one() {
-        assert_eq!(Some(127), find_first_error(&EXAMPLE_CODES, 5));
-    }
-
-    #[test]
-    fn example_two() {
-        assert_eq!(&[15, 25, 47, 40], find_range_of(&EXAMPLE_CODES, 127));
-        assert_eq!(62, find_weakness(&EXAMPLE_CODES, 127));
+    fn test_jolt_distribution() {
+        assert_eq!(35, jolt_distribution(&EXAMPLE_ONE));
+        assert_eq!(220, jolt_distribution(&EXAMPLE_TWO));
     }
 }
