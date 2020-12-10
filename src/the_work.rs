@@ -3,19 +3,50 @@ use aoc_2020::read_lines;
 
 pub fn the_work() {
     let adapters = read_lines(|l| l.parse::<usize>().unwrap());
-    println!("{}", jolt_distribution(&adapters));
+    let diffs = compute_diffs(&adapters);
+    println!("{}", jolt_distribution(&diffs));
+    println!("{}", count_arrangements(&diffs));
 }
 
-fn jolt_distribution(adapters: &[usize]) -> usize {
+fn jolt_distribution(diffs: &[usize]) -> usize {
+    let mut hist = Vec::new();
+    for &d in diffs {
+        hist.increment_bucket(d);
+    }
+    hist[1] * hist[3]
+}
+
+fn compute_diffs(adapters: &[usize]) -> Vec<usize> {
     let mut scratch = Vec::from(adapters);
     scratch.sort();
     scratch.push(scratch[scratch.len() - 1] + 3);
-    let mut hist = Vec::new();
-    scratch.iter().fold(&0, |a, b| {
-        hist.increment_bucket(b - a);
-        b
-    });
-    hist[1] * hist[3]
+    let mut diffs = Vec::new();
+    let mut last = 0;
+    for jolts in scratch {
+        diffs.push(jolts - last);
+        last = jolts;
+    }
+    diffs
+}
+
+fn count_arrangements(diffs: &[usize]) -> usize {
+    let mut product = 1;
+    let mut len = 0;
+    for &d in diffs {
+        if d == 1 {
+            len += 1;
+        } else if len > 0 {
+            product *= match len {
+                1 => 1,
+                2 => 2,
+                3 => 4,
+                4 => 7,
+                _ => panic!("Runs of {} aren't supported", len),
+            };
+            len = 0;
+        }
+    }
+    product
 }
 
 #[cfg(test)]
@@ -30,7 +61,17 @@ mod test {
 
     #[test]
     fn test_jolt_distribution() {
-        assert_eq!(35, jolt_distribution(&EXAMPLE_ONE));
-        assert_eq!(220, jolt_distribution(&EXAMPLE_TWO));
+        let diffs = compute_diffs(&EXAMPLE_ONE);
+        assert_eq!(35, jolt_distribution(&diffs));
+        let diffs = compute_diffs(&EXAMPLE_TWO);
+        assert_eq!(220, jolt_distribution(&diffs));
+    }
+
+    #[test]
+    fn test_arrangements() {
+        let diffs = compute_diffs(&EXAMPLE_ONE);
+        assert_eq!(8, count_arrangements(&diffs));
+        let diffs = compute_diffs(&EXAMPLE_TWO);
+        assert_eq!(19208, count_arrangements(&diffs));
     }
 }
