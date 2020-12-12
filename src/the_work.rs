@@ -380,6 +380,92 @@ LLL####LL#
     }
 
     #[test]
+    fn test_directions() {
+        let m = load_map(
+            "
+...
+.L.
+...",
+        );
+        assert_eq!(0, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+#..
+.L.
+...",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+.#.
+.L.
+...",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+..#
+.L.
+...",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+...
+.L#
+...",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+...
+.L.
+..#",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+...
+.L.
+.#.",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+...
+.L.
+#..",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+        let m = load_map(
+            "
+...
+#L.
+...",
+        );
+        assert_eq!(1, m.occupied_neighbor_count(1 * 3 + 1));
+
+        let m = load_map("L");
+        assert_eq!(0, m.occupied_neighbor_count(0));
+        let m = load_map("L#");
+        assert_eq!(1, m.occupied_neighbor_count(0));
+        let m = load_map("#L");
+        assert_eq!(1, m.occupied_neighbor_count(1));
+        let m = load_map("#\nL");
+        assert_eq!(1, m.occupied_neighbor_count(1));
+        let m = load_map("L\n#");
+        assert_eq!(1, m.occupied_neighbor_count(0));
+        let m = load_map("#.\n.L");
+        assert_eq!(1, m.occupied_neighbor_count(3));
+        let m = load_map(".#\nL.");
+        assert_eq!(1, m.occupied_neighbor_count(2));
+        let m = load_map("L.\n.#");
+        assert_eq!(1, m.occupied_neighbor_count(0));
+        let m = load_map(".L\n#.");
+        assert_eq!(1, m.occupied_neighbor_count(1));
+    }
+
+    #[test]
     fn example_two_2() {
         let m = load_map(
             "
