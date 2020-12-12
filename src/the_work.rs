@@ -52,14 +52,16 @@ impl Point {
 #[derive(Debug)]
 struct Ship {
     pos: Point,
-    facing: Dir,
+    way: Point,
 }
 
 impl Ship {
     fn new() -> Ship {
         Ship {
             pos: Point::origin(),
-            facing: Dir::East,
+            way: Point::origin()
+                .step_by(Dir::East, 10)
+                .step_by(Dir::North, 1),
         }
     }
 
@@ -67,28 +69,37 @@ impl Ship {
         use Action::*;
         match a {
             North(n) => Ship {
-                pos: self.pos.step_by(Dir::North, *n),
-                facing: self.facing,
+                pos: self.pos,
+                way: self.way.step_by(Dir::North, *n),
             },
             South(n) => Ship {
-                pos: self.pos.step_by(Dir::South, *n),
-                facing: self.facing,
+                pos: self.pos,
+                way: self.way.step_by(Dir::South, *n),
             },
             East(n) => Ship {
-                pos: self.pos.step_by(Dir::East, *n),
-                facing: self.facing,
+                pos: self.pos,
+                way: self.way.step_by(Dir::East, *n),
             },
             West(n) => Ship {
-                pos: self.pos.step_by(Dir::West, *n),
-                facing: self.facing,
+                pos: self.pos,
+                way: self.way.step_by(Dir::West, *n),
             },
             Right(n) => Ship {
                 pos: self.pos,
-                facing: (0..(n / 90)).fold(self.facing, |f, _| f.clockwise()),
+                way: match n / 90 {
+                    0 => Point::new(self.way.x, self.way.y),
+                    1 => Point::new(-self.way.y, self.way.x),
+                    2 => Point::new(-self.way.x, -self.way.y),
+                    3 => Point::new(self.way.y, -self.way.x),
+                    _ => panic!("Unrecognized {} turn", n),
+                },
             },
             Forward(n) => Ship {
-                pos: self.pos.step_by(self.facing, *n),
-                facing: self.facing,
+                pos: self
+                    .pos
+                    .step_by(Dir::East, n * self.way.x)
+                    .step_by(Dir::South, n * self.way.y),
+                way: self.way,
             },
         }
     }
@@ -103,6 +114,7 @@ enum Dir {
 }
 
 impl Dir {
+    #[allow(unused)]
     fn clockwise(&self) -> Dir {
         use Dir::*;
         match self {
@@ -169,6 +181,6 @@ F11";
             .lines()
             .map(|l| l.parse::<Action>().unwrap())
             .fold(Ship::new(), |s, a| s.perform(&a));
-        assert_eq!(Point::new(17, 8), s.pos);
+        assert_eq!(Point::new(214, 72), s.pos);
     }
 }
