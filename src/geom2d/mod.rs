@@ -1,3 +1,4 @@
+/// Describes rectilinear directions on a coordinate plane.
 #[derive(Copy, Clone, Debug)]
 pub enum Dir {
     North,
@@ -18,6 +19,22 @@ impl Dir {
     }
 }
 
+/// A location on a coordinate plane, laid out as a graphics editor would, not a mathematician. That
+/// is, the `y` coordinate increases as you move `South`.
+///
+/// # Example
+///
+/// ```
+/// use aoc_2020::geom2d::{Dir, Point};
+///
+/// let p1 = Point::origin();
+/// assert_eq!(0, p1.x);
+/// assert_eq!(0, p1.y);
+/// let p2 = p1.step_by(Dir::East, 2).step_by(Dir::North, 1);
+/// assert_eq!(2, p2.x);
+/// assert_eq!(-1, p2.y);
+/// assert_eq!(3, p1.manhattan_distance(&p2));
+/// ```
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct Point {
     pub x: isize,
