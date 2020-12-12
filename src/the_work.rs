@@ -29,23 +29,11 @@ impl Ship {
     fn perform(&self, a: &Action) -> Ship {
         use Action::*;
         match a {
-            North(n) => Ship {
+            Move(d, n) => Ship {
                 pos: self.pos,
-                way: self.way.step_by(Dir::North, *n),
+                way: self.way.step_by(*d, *n),
             },
-            South(n) => Ship {
-                pos: self.pos,
-                way: self.way.step_by(Dir::South, *n),
-            },
-            East(n) => Ship {
-                pos: self.pos,
-                way: self.way.step_by(Dir::East, *n),
-            },
-            West(n) => Ship {
-                pos: self.pos,
-                way: self.way.step_by(Dir::West, *n),
-            },
-            Right(n) => Ship {
+            Rotate(n) => Ship {
                 pos: self.pos,
                 way: match n / 90 {
                     0 => Point::new(self.way.x, self.way.y),
@@ -67,11 +55,8 @@ impl Ship {
 }
 
 enum Action {
-    North(isize),
-    South(isize),
-    East(isize),
-    West(isize),
-    Right(isize),
+    Move(Dir, isize),
+    Rotate(isize),
     Forward(isize),
 }
 
@@ -82,12 +67,12 @@ impl FromStr for Action {
         use Action::*;
         let n = s[1..].parse::<isize>().unwrap();
         match &s[0..1] {
-            "N" => Ok(North(n)),
-            "S" => Ok(South(n)),
-            "E" => Ok(East(n)),
-            "W" => Ok(West(n)),
-            "L" => Ok(Right(360 - n)),
-            "R" => Ok(Right(n)),
+            "N" => Ok(Move(Dir::North, n)),
+            "S" => Ok(Move(Dir::South, n)),
+            "E" => Ok(Move(Dir::East, n)),
+            "W" => Ok(Move(Dir::West, n)),
+            "L" => Ok(Rotate(360 - n % 360)),
+            "R" => Ok(Rotate(n % 360)),
             "F" => Ok(Forward(n)),
             _ => Err(()),
         }
