@@ -1,3 +1,4 @@
+use aoc_2020::geom2d::{Dir, Point};
 use aoc_2020::read_lines;
 use std::str::FromStr;
 
@@ -7,46 +8,6 @@ pub fn the_work() {
         .fold(Ship::new(), |s, a| s.perform(a));
     println!("{:?}", s);
     println!("{}", s.pos.manhattan_distance(&Point::origin()))
-}
-
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-struct Point {
-    x: isize,
-    y: isize,
-}
-
-impl Point {
-    fn new(x: isize, y: isize) -> Point {
-        Point { x, y }
-    }
-    fn origin() -> Point {
-        Point::new(0, 0)
-    }
-    fn manhattan_distance(&self, p: &Point) -> usize {
-        ((self.x - p.x).abs() + (self.y - p.y).abs()) as usize
-    }
-
-    fn step_by(&self, d: Dir, steps: isize) -> Point {
-        use Dir::*;
-        match d {
-            North => Point {
-                x: self.x,
-                y: self.y - steps,
-            },
-            South => Point {
-                x: self.x,
-                y: self.y + steps,
-            },
-            East => Point {
-                x: self.x + steps,
-                y: self.y,
-            },
-            West => Point {
-                x: self.x - steps,
-                y: self.y,
-            },
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -105,27 +66,6 @@ impl Ship {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
-enum Dir {
-    North,
-    South,
-    East,
-    West,
-}
-
-impl Dir {
-    #[allow(unused)]
-    fn clockwise(&self) -> Dir {
-        use Dir::*;
-        match self {
-            North => East,
-            South => West,
-            East => South,
-            West => North,
-        }
-    }
-}
-
 enum Action {
     North(isize),
     South(isize),
@@ -164,15 +104,6 @@ N3
 F7
 R90
 F11";
-
-    #[test]
-    fn test_manhattan_distance() {
-        let origin = Point::origin();
-        assert_eq!(25, Point::new(17, 8).manhattan_distance(&origin));
-        assert_eq!(25, Point::new(17, -8).manhattan_distance(&origin));
-        assert_eq!(25, Point::new(-17, 8).manhattan_distance(&origin));
-        assert_eq!(25, Point::new(-17, -8).manhattan_distance(&origin));
-    }
 
     #[test]
     fn example_one() {
