@@ -33,3 +33,25 @@ if [ ${#d} = 1 ]; then
 fi
 BRANCH="day$d"
 git checkout -b $BRANCH master
+cat > src/the_work.rs <<EOF
+use aoc_2020::read_input;
+
+pub fn the_work() {
+    let s = read_input();
+    println!("{:?}", s.len());
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const EXAMPLE_ONE: &str = "goat?";
+
+    #[test]
+    fn example_one() {
+        let s = EXAMPLE_ONE.trim();
+        assert_eq!(5, s.len());
+    }
+}
+
+EOF
