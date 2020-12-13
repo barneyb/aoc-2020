@@ -69,38 +69,37 @@ impl Map {
         }
     }
 
-    fn find_seat(&self, from_x: isize, from_y: isize, dx: isize, dy: isize) -> Option<Loc> {
-        let mut x = from_x;
-        let mut y = from_y;
+    fn occupied_neighbor_count(&self, i: usize) -> usize {
+        let from_x = (i % self.width) as isize;
+        let from_y = (i / self.width) as isize;
         let max_x = self.width as isize - 1;
         let max_y = self.height as isize - 1;
-        loop {
-            x += dx;
-            y += dy;
-            if x < 0 || x > max_x || y < 0 || y > max_y {
-                return None;
+        let find_seat = |dx, dy| {
+            let mut x = from_x;
+            let mut y = from_y;
+            loop {
+                x += dx;
+                y += dy;
+                if x < 0 || x > max_x || y < 0 || y > max_y {
+                    return None;
+                }
+                match self.at(x, y) {
+                    Floor => {}
+                    Empty => return Some(Empty),
+                    Occupied => return Some(Occupied),
+                }
             }
-            match self.at(x, y) {
-                Floor => {}
-                Empty => return Some(Empty),
-                Occupied => return Some(Occupied),
-            }
-        }
-    }
-
-    fn occupied_neighbor_count(&self, i: usize) -> usize {
-        let x = (i % self.width) as isize;
-        let y = (i / self.width) as isize;
+        };
         [
-            self.find_seat(x, y, -1, -1),
-            self.find_seat(x, y, -1, 0),
-            self.find_seat(x, y, -1, 1),
-            self.find_seat(x, y, 0, -1),
+            find_seat(-1, -1),
+            find_seat(-1, 0),
+            find_seat(-1, 1),
+            find_seat(0, -1),
             // not "this"
-            self.find_seat(x, y, 0, 1),
-            self.find_seat(x, y, 1, -1),
-            self.find_seat(x, y, 1, 0),
-            self.find_seat(x, y, 1, 1),
+            find_seat(0, 1),
+            find_seat(1, -1),
+            find_seat(1, 0),
+            find_seat(1, 1),
         ]
         .iter()
         .map(|it| match it {
