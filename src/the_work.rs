@@ -69,145 +69,49 @@ impl Map {
         }
     }
 
-    fn occupied_neighbor_count(&self, i: usize) -> usize {
-        let mut count = 0;
-        let mut x = i % self.width;
-        let mut y = i / self.width;
+    fn find_seat(&self, from_x: isize, from_y: isize, dx: isize, dy: isize) -> Option<Loc> {
+        let mut x = from_x;
+        let mut y = from_y;
+        let max_x = self.width as isize - 1;
+        let max_y = self.height as isize - 1;
         loop {
-            if x == 0 || y == 0 {
-                break;
+            x += dx;
+            y += dy;
+            if x < 0 || x > max_x || y < 0 || y > max_y {
+                return None;
             }
-            x -= 1;
-            y -= 1;
             match self.at(x, y) {
                 Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
+                Empty => return Some(Empty),
+                Occupied => return Some(Occupied),
             }
         }
-        let x = i % self.width;
-        let mut y = i / self.width;
-        loop {
-            if y == 0 {
-                break;
-            }
-            y -= 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        let mut x = i % self.width;
-        let mut y = i / self.width;
-        loop {
-            if x == self.width - 1 || y == 0 {
-                break;
-            }
-            x += 1;
-            y -= 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        let mut x = i % self.width;
-        let y = i / self.width;
-        loop {
-            if x == self.width - 1 {
-                break;
-            }
-            x += 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        let mut x = i % self.width;
-        let mut y = i / self.width;
-        loop {
-            if x == self.width - 1 || y == self.height - 1 {
-                break;
-            }
-            x += 1;
-            y += 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        let x = i % self.width;
-        let mut y = i / self.width;
-        loop {
-            if y == self.height - 1 {
-                break;
-            }
-            y += 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        let mut x = i % self.width;
-        let mut y = i / self.width;
-        loop {
-            if x == 0 || y == self.height - 1 {
-                break;
-            }
-            x -= 1;
-            y += 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        let mut x = i % self.width;
-        let y = i / self.width;
-        loop {
-            if x == 0 {
-                break;
-            }
-            x -= 1;
-            match self.at(x, y) {
-                Floor => {}
-                Empty => break,
-                Occupied => {
-                    count += 1;
-                    break;
-                }
-            }
-        }
-        count
     }
 
-    fn at(&self, x: usize, y: usize) -> &Loc {
-        &self.locations[y * self.width + x]
+    fn occupied_neighbor_count(&self, i: usize) -> usize {
+        let x = (i % self.width) as isize;
+        let y = (i / self.width) as isize;
+        [
+            self.find_seat(x, y, -1, -1),
+            self.find_seat(x, y, -1, 0),
+            self.find_seat(x, y, -1, 1),
+            self.find_seat(x, y, 0, -1),
+            // not "this"
+            self.find_seat(x, y, 0, 1),
+            self.find_seat(x, y, 1, -1),
+            self.find_seat(x, y, 1, 0),
+            self.find_seat(x, y, 1, 1),
+        ]
+        .iter()
+        .map(|it| match it {
+            Some(Occupied) => 1,
+            _ => 0,
+        })
+        .sum()
+    }
+
+    fn at(&self, x: isize, y: isize) -> &Loc {
+        &self.locations[y as usize * self.width + x as usize]
     }
 
     fn step(&self) -> Map {
