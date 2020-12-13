@@ -30,23 +30,16 @@ fn compute_diffs(adapters: &[usize]) -> Vec<usize> {
 }
 
 fn count_arrangements(diffs: &[usize]) -> usize {
-    let mut product = 1;
-    let mut len = 0;
-    for &d in diffs {
-        if d == 1 {
-            len += 1;
-        } else if len > 0 {
-            product *= match len {
-                1 => 1,
-                2 => 2,
-                3 => 4,
-                4 => 7,
-                _ => panic!("Runs of {} aren't supported", len),
-            };
-            len = 0;
-        }
-    }
-    product
+    diffs
+        .split(|&n| n == 3)
+        .map(|s| match s.len() {
+            0 | 1 => 1,
+            2 => 2,
+            3 => 4,
+            4 => 7,
+            _ => panic!("Runs of {} aren't supported", s.len()),
+        })
+        .product()
 }
 
 #[cfg(test)]
