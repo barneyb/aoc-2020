@@ -10,6 +10,7 @@ use std::time::{Duration, Instant};
 pub mod ascii;
 pub mod boarding_pass;
 pub mod find_pairs;
+pub mod geom2d;
 pub mod histogram;
 pub mod passport;
 pub mod password;
