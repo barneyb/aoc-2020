@@ -1,102 +1,55 @@
-use aoc_2020::geom2d::{Dir, Point};
-use aoc_2020::read_lines;
-use std::str::FromStr;
+use aoc_2020::read_input;
 
 pub fn the_work() {
-    let s = read_lines(|l| l.parse::<Action>().unwrap())
-        .iter()
-        .fold(Ship::new(), |s, a| s.perform(a));
-    println!("{:?}", s);
-    println!("{}", s.pos.manhattan_distance(&Point::origin()))
+    let (start, busses) = load(&read_input());
+    println!("{} {:?}", start, busses);
+    let (next, bus) = earliest_departure(start, &busses);
+    println!("{} {}", next, bus);
+    println!("{:?}", next * bus);
 }
 
-#[derive(Debug)]
-struct Ship {
-    pos: Point,
-    way: Point,
+fn load(input: &str) -> (usize, Vec<usize>) {
+    let mut lines = input.lines();
+    let start = lines.next().unwrap().parse::<usize>().unwrap();
+    let busses = lines
+        .next()
+        .unwrap()
+        .split(',')
+        .filter(|s| s != &"x")
+        .map(|s| s.parse::<usize>().unwrap())
+        .collect::<Vec<usize>>();
+    (start, busses)
 }
 
-impl Ship {
-    fn new() -> Ship {
-        Ship {
-            pos: Point::origin(),
-            way: Point::origin()
-                .step_by(Dir::East, 10)
-                .step_by(Dir::North, 1),
+fn earliest_departure(start: usize, busses: &[usize]) -> (usize, usize) {
+    let mut soonest = start;
+    let mut bus_num = 0;
+    for &b in busses {
+        let next_time = b - (start % b);
+        if next_time < soonest {
+            soonest = next_time;
+            bus_num = b;
         }
     }
-
-    fn perform(&self, a: &Action) -> Ship {
-        use Action::*;
-        match a {
-            Move(d, n) => Ship {
-                pos: self.pos,
-                way: self.way.step_by(*d, *n),
-            },
-            Rotate(n) => Ship {
-                pos: self.pos,
-                way: match n / 90 {
-                    0 => Point::new(self.way.x, self.way.y),
-                    1 => Point::new(-self.way.y, self.way.x),
-                    2 => Point::new(-self.way.x, -self.way.y),
-                    3 => Point::new(self.way.y, -self.way.x),
-                    _ => panic!("Unrecognized {} turn", n),
-                },
-            },
-            Forward(n) => Ship {
-                pos: self
-                    .pos
-                    .step_by(Dir::East, n * self.way.x)
-                    .step_by(Dir::South, n * self.way.y),
-                way: self.way,
-            },
-        }
-    }
-}
-
-enum Action {
-    Move(Dir, isize),
-    Rotate(isize),
-    Forward(isize),
-}
-
-impl FromStr for Action {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Action::*;
-        let n = s[1..].parse::<isize>().unwrap();
-        match &s[0..1] {
-            "N" => Ok(Move(Dir::North, n)),
-            "S" => Ok(Move(Dir::South, n)),
-            "E" => Ok(Move(Dir::East, n)),
-            "W" => Ok(Move(Dir::West, n)),
-            "L" => Ok(Rotate(360 - n % 360)),
-            "R" => Ok(Rotate(n % 360)),
-            "F" => Ok(Forward(n)),
-            _ => Err(()),
-        }
-    }
+    (soonest, bus_num)
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const EXAMPLE_ONE: &str = "
-F10
-N3
-F7
-R90
-F11";
+    const EXAMPLE_ONE: &str = "939
+7,13,x,x,59,x,31,19";
+
+    #[test]
+    fn test_load() {
+        let (start, busses) = load(EXAMPLE_ONE);
+        assert_eq!(939, start);
+        assert_eq!(vec![7, 13, 59, 31, 19], busses)
+    }
 
     #[test]
     fn example_one() {
-        let s = EXAMPLE_ONE
-            .trim()
-            .lines()
-            .map(|l| l.parse::<Action>().unwrap())
-            .fold(Ship::new(), |s, a| s.perform(&a));
-        assert_eq!(Point::new(214, 72), s.pos);
+        assert_eq!((5, 59), earliest_departure(939, &[7, 13, 59, 31, 19]));
     }
 }
