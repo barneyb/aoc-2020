@@ -45,12 +45,12 @@ pub fn the_work() {
 mod test {
     use super::*;
 
-    const EXAMPLE_ONE: &str = "goat?";
+    const EXAMPLE_ONE: &str = "goat";
 
     #[test]
     fn example_one() {
         let s = EXAMPLE_ONE.trim();
-        assert_eq!(5, s.len());
+        assert_eq!(4, s.len());
     }
 }
 
