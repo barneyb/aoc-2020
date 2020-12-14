@@ -1,18 +1,18 @@
 use aoc_2020::read_input;
 
 pub fn the_work() {
-    let (start, busses) = load(&read_input());
-    println!("{} {:?}", start, busses);
-    let (next, bus) = earliest_departure(start, &busses);
+    let (start, buses) = load(&read_input());
+    println!("{} {:?}", start, buses);
+    let (next, bus) = earliest_departure(start, &buses);
     println!("{} {}", next, bus);
     println!("{:?}", next * bus);
-    println!("{}", win_contest(&busses));
+    println!("{}", win_contest(&buses));
 }
 
 fn load(input: &str) -> (usize, Vec<usize>) {
     let mut lines = input.lines();
     let start = lines.next().unwrap().parse::<usize>().unwrap();
-    let busses = lines
+    let buses = lines
         .next()
         .unwrap()
         .split(',')
@@ -21,12 +21,12 @@ fn load(input: &str) -> (usize, Vec<usize>) {
             _ => s.parse::<usize>().unwrap(),
         })
         .collect::<Vec<usize>>();
-    (start, busses)
+    (start, buses)
 }
 
-fn earliest_departure(start: usize, busses: &[usize]) -> (usize, usize) {
+fn earliest_departure(start: usize, buses: &[usize]) -> (usize, usize) {
     let mut best = (start, 0);
-    for &b in busses {
+    for &b in buses {
         // it's a one-bus
         if b == 1 {
             // to the next bus!
@@ -43,16 +43,16 @@ fn earliest_departure(start: usize, busses: &[usize]) -> (usize, usize) {
     best
 }
 
-fn win_contest(busses: &[usize]) -> usize {
+fn win_contest(buses: &[usize]) -> usize {
     // duplicate it into some space for me!
-    let mut scan = busses.iter().map(|n| *n).collect::<Vec<_>>();
+    let mut scan = buses.iter().map(|n| *n).collect::<Vec<_>>();
     'outer: loop {
         // for each bus except the first
         for i in 1..scan.len() {
             // it's not one more than the prior bus
             if scan[i] <= scan[i - 1] {
                 // it's a one-bus
-                if busses[i] == 1 {
+                if buses[i] == 1 {
                     // just set it to the right value
                     scan[i] = scan[i - 1] + 1;
                     // to the next bus!
@@ -61,12 +61,12 @@ fn win_contest(busses: &[usize]) -> usize {
                     // compute how far behind it is
                     let gap = scan[i - 1] - scan[i];
                     // move it forward by at least that much
-                    scan[i] += (gap / busses[i] + 1) * busses[i];
+                    scan[i] += (gap / buses[i] + 1) * buses[i];
                 }
                 // we overshot
                 if scan[i] != scan[i - 1] + 1 {
-                    // move the first bus forward by the minimum step size for the prior busses
-                    scan[0] += busses[0..i].iter().product::<usize>();
+                    // move the first bus forward by the minimum step size for the prior buses
+                    scan[0] += buses[0..i].iter().product::<usize>();
                     // give up on this cycle
                     continue 'outer;
                 }
@@ -88,48 +88,48 @@ mod test {
 
     #[test]
     fn example_one() {
-        let (start, busses) = load(EXAMPLE_ONE);
+        let (start, buses) = load(EXAMPLE_ONE);
         assert_eq!(939, start);
-        assert_eq!(vec![7, 13, 1, 1, 59, 1, 31, 19], busses);
-        let (next, bus) = earliest_departure(start, &busses);
+        assert_eq!(vec![7, 13, 1, 1, 59, 1, 31, 19], buses);
+        let (next, bus) = earliest_departure(start, &buses);
         assert_eq!((5, 59), (next, bus));
         assert_eq!(295, next * bus)
     }
 
     #[test]
     fn example_two() {
-        let (_, busses) = load(EXAMPLE_ONE);
-        assert_eq!(1068781, win_contest(&busses));
+        let (_, buses) = load(EXAMPLE_ONE);
+        assert_eq!(1068781, win_contest(&buses));
     }
 
     #[test]
     fn example_three() {
-        let (_, busses) = load("0\n17,x,13,19");
-        assert_eq!(3417, win_contest(&busses));
+        let (_, buses) = load("0\n17,x,13,19");
+        assert_eq!(3417, win_contest(&buses));
     }
 
     #[test]
     fn example_four() {
-        let (_, busses) = load("0\n67,7,59,61");
-        assert_eq!(754018, win_contest(&busses));
+        let (_, buses) = load("0\n67,7,59,61");
+        assert_eq!(754018, win_contest(&buses));
     }
 
     #[test]
     fn example_five() {
-        let (_, busses) = load("0\n67,x,7,59,61");
-        assert_eq!(779210, win_contest(&busses));
+        let (_, buses) = load("0\n67,x,7,59,61");
+        assert_eq!(779210, win_contest(&buses));
     }
 
     #[test]
     fn example_six() {
-        let (_, busses) = load("0\n67,7,x,59,61");
-        assert_eq!(1261476, win_contest(&busses));
+        let (_, buses) = load("0\n67,7,x,59,61");
+        assert_eq!(1261476, win_contest(&buses));
     }
 
     #[test]
     fn example_seven() {
-        let (_, busses) = load("0\n1789,37,47,1889");
-        assert_eq!(1202161486, win_contest(&busses));
+        let (_, buses) = load("0\n1789,37,47,1889");
+        assert_eq!(1202161486, win_contest(&buses));
     }
 
     #[test]
