@@ -9,68 +9,72 @@ pub fn the_work() {
     println!("{}", win_contest(&busses));
 }
 
-fn load(input: &str) -> (usize, Vec<(usize, usize)>) {
+fn load(input: &str) -> (usize, Vec<usize>) {
     let mut lines = input.lines();
     let start = lines.next().unwrap().parse::<usize>().unwrap();
     let busses = lines
         .next()
         .unwrap()
         .split(',')
-        .enumerate()
-        .filter(|(_, s)| s != &"x")
-        .map(|(i, s)| (i, s.parse::<usize>().unwrap()))
-        .collect::<Vec<(usize, usize)>>();
+        .map(|s| match s {
+            "x" => 1,
+            _ => s.parse::<usize>().unwrap(),
+        })
+        .collect::<Vec<usize>>();
     (start, busses)
 }
 
-fn earliest_departure(start: usize, busses: &[(usize, usize)]) -> (usize, usize) {
-    let mut soonest = start;
-    let mut bus_num = 0;
-    for &(_, b) in busses {
-        let next_time = b - (start % b);
-        if next_time < soonest {
-            soonest = next_time;
-            bus_num = b;
+fn earliest_departure(start: usize, busses: &[usize]) -> (usize, usize) {
+    let mut best = (start, 0);
+    for &b in busses {
+        // it's a one-bus
+        if b == 1 {
+            // to the next bus!
+            continue;
+        }
+        // how long until it next depart
+        let next_departure = b - (start % b);
+        // it's the best so far
+        if next_departure < best.0 {
+            // write it down
+            best = (next_departure, b);
         }
     }
-    (soonest, bus_num)
+    best
 }
 
-fn win_contest(busses: &[(usize, usize)]) -> usize {
-    let mut with_ones = Vec::with_capacity(busses[busses.len() - 1].0);
-    for &(i, n) in busses {
-        for _ in 0..(i - with_ones.len()) {
-            with_ones.push(1);
-        }
-        with_ones.push(n);
-    }
-    calc(&with_ones)
-}
-
-fn calc(bs: &[usize]) -> usize {
+fn win_contest(busses: &[usize]) -> usize {
     // duplicate it into some space for me!
-    let mut scan = bs.iter().map(|n| *n).collect::<Vec<_>>();
-    // println!("{:?}", scan);
+    let mut scan = busses.iter().map(|n| *n).collect::<Vec<_>>();
     'outer: loop {
+        // for each bus except the first
         for i in 1..scan.len() {
+            // it's not one more than the prior bus
             if scan[i] <= scan[i - 1] {
-                if bs[i] == 1 {
+                // it's a one-bus
+                if busses[i] == 1 {
+                    // just set it to the right value
                     scan[i] = scan[i - 1] + 1;
+                    // to the next bus!
+                    continue;
                 } else {
+                    // compute how far behind it is
                     let gap = scan[i - 1] - scan[i];
-                    scan[i] += (gap / bs[i] + 1) * bs[i];
+                    // move it forward by at least that much
+                    scan[i] += (gap / busses[i] + 1) * busses[i];
                 }
-                // println!("  set {} to {}", i, scan[i]);
+                // we overshot
                 if scan[i] != scan[i - 1] + 1 {
-                    scan[0] += bs[0..i].iter().product::<usize>();
-                    // println!("  cycle!");
+                    // move the first bus forward by the minimum step size for the prior busses
+                    scan[0] += busses[0..i].iter().product::<usize>();
+                    // give up on this cycle
                     continue 'outer;
                 }
             }
         }
+        // all in sequence!
         break;
     }
-    // println!("{:?}", scan);
     scan[0]
 }
 
@@ -86,7 +90,7 @@ mod test {
     fn example_one() {
         let (start, busses) = load(EXAMPLE_ONE);
         assert_eq!(939, start);
-        assert_eq!(vec![(0, 7), (1, 13), (4, 59), (6, 31), (7, 19)], busses);
+        assert_eq!(vec![7, 13, 1, 1, 59, 1, 31, 19], busses);
         let (next, bus) = earliest_departure(start, &busses);
         assert_eq!((5, 59), (next, bus));
         assert_eq!(295, next * bus)
@@ -131,9 +135,9 @@ mod test {
     #[test]
     fn do_calc() {
         benchmark_times(1, || {
-            assert_eq!(3417, calc(&[17, 1, 13, 19]));
-            assert_eq!(754018, calc(&[67, 7, 59, 61]));
-            assert_eq!(1202161486, calc(&[1789, 37, 47, 1889]));
+            assert_eq!(3417, win_contest(&[17, 1, 13, 19]));
+            assert_eq!(754018, win_contest(&[67, 7, 59, 61]));
+            assert_eq!(1202161486, win_contest(&[1789, 37, 47, 1889]));
         });
     }
 
