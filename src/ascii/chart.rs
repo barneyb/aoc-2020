@@ -57,7 +57,8 @@ fn do_render(shape: Shape, tuples: Vec<(&String, f64)>) -> String {
     let mut s = String::new();
     for (lbl, n) in tuples {
         let plot = match shape.plot_style {
-            Bar => "#".repeat((((n - shape.min_val) / shape.range()) * bar_width as f64) as usize),
+            Bar => "#"
+                .repeat((((n - shape.min_val) / shape.range()) * bar_width as f64).ceil() as usize),
             Point => {
                 " ".repeat(
                     (((n - shape.min_val) / shape.range()) * (bar_width - 1) as f64) as usize,
@@ -228,10 +229,10 @@ Iceland |*                                                       |   -30
         let result = hist.render_histogram();
         println!("{}", result);
         assert_eq!(
-            "Barney |####################                                         | 1
-Jackie |####################                                         | 1
+            "Barney |#####################                                        | 1
+Jackie |#####################                                        | 1
 Johann |#############################################################| 3
- Sally |####################                                         | 1
+ Sally |#####################                                        | 1
        |0                                                           3|
 ",
             result
