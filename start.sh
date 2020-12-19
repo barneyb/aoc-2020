@@ -53,5 +53,4 @@ mod test {
         assert_eq!(4, s.len());
     }
 }
-
 EOF
