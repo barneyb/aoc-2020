@@ -1,67 +1,90 @@
-use aoc_2020::read_input;
 use std::collections::HashMap;
 
 pub fn the_work() {
-    let s = read_input();
-    println!("{:?}", do_the_thing(&s));
+    println!("{:?}", get_2020th(&vec![0, 14, 6, 20, 1, 4]));
 }
 
-fn do_the_thing(s: &str) -> usize {
-    let mut mask = [None; 36];
-    let mut memory = HashMap::new();
-    for line in s.trim().lines() {
-        match &line[0..4] {
-            "mask" => {
-                for (i, c) in line[6..].trim().chars().enumerate() {
-                    mask[i] = match c {
-                        'X' => None,
-                        '1' => Some(1),
-                        '0' => Some(0),
-                        _ => panic!("Unrecognized mask digit '{}'", c),
-                    }
-                }
-            }
-            "mem[" => {
-                let icb = line.find(']').expect("no closing bracket");
-                let addr = line[4..icb].parse::<usize>().expect("couldn't parse addr");
-                let val = line[(icb + 3)..]
-                    .trim()
-                    .parse::<usize>()
-                    .expect("couldn't parse value");
-                memory.insert(addr, apply_mask(&mask, val));
-            }
-            _ => panic!("Unrecognized line '{}'", line),
+struct Game {
+    map: HashMap<usize, (usize, usize)>,
+    last: usize,
+    turns: usize,
+}
+
+impl Game {
+    fn new() -> Game {
+        Game {
+            map: HashMap::new(),
+            last: 0,
+            turns: 0,
         }
     }
-    memory.values().sum()
-}
 
-fn apply_mask(mask: &[Option<usize>], val: usize) -> usize {
-    let mut sum: usize = 0;
-    let mut step: usize = 1;
-    for i in (0..36).rev() {
-        if let Some(d) = mask[i] {
-            sum += d * step;
+    fn say(&mut self, n: usize) {
+        self.turns += 1;
+        self.last = n;
+        if let Some(&(a, _)) = self.map.get(&n) {
+            self.map.insert(n, (self.turns, a));
         } else {
-            sum |= val & step;
+            self.map.insert(n, (self.turns, 0));
         }
-        step <<= 1;
     }
-    sum
+
+    fn compute(&mut self) {
+        match self.map.get(&self.last) {
+            Some(&(_, 0)) => self.say(0),
+            Some(&(a, b)) => self.say(a - b),
+            None => panic!("what? {} was said, but hasn't been recorded?!", self.last),
+        }
+    }
+}
+
+fn get_2020th(numbers: &[usize]) -> usize {
+    let mut game = Game::new();
+    for &n in numbers {
+        game.say(n)
+    }
+    while game.turns < 2020 {
+        game.compute();
+    }
+    game.last
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const EXAMPLE_ONE: &str = "
-mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
-mem[8] = 11
-mem[7] = 101
-mem[8] = 0";
+    #[test]
+    fn example_1() {
+        assert_eq!(436, get_2020th(&vec![0, 3, 6]));
+    }
 
     #[test]
-    fn example_one() {
-        assert_eq!(165, do_the_thing(&EXAMPLE_ONE));
+    fn example_2() {
+        assert_eq!(1, get_2020th(&vec![1, 3, 2]));
+    }
+
+    #[test]
+    fn example_3() {
+        assert_eq!(10, get_2020th(&vec![2, 1, 3]));
+    }
+
+    #[test]
+    fn example_4() {
+        assert_eq!(27, get_2020th(&vec![1, 2, 3]));
+    }
+
+    #[test]
+    fn example_5() {
+        assert_eq!(78, get_2020th(&vec![2, 3, 1]));
+    }
+
+    #[test]
+    fn example_6() {
+        assert_eq!(438, get_2020th(&vec![3, 2, 1]));
+    }
+
+    #[test]
+    fn example_7() {
+        assert_eq!(1836, get_2020th(&vec![3, 1, 2]));
     }
 }
