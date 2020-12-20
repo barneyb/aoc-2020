@@ -1,20 +1,23 @@
 use aoc_2020::read_input;
+use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 use std::ops::RangeInclusive;
 
 pub fn the_work() {
     let s = read_input();
     let notes = load_notes(&s);
     println!("{}", part_one(&notes));
+    println!("{}", part_two(&notes)); // 603657501217 is low
 }
-
-enum ParseMode {
-    Fields,
-    MyTicket,
-    NearbyTickets,
-}
-use ParseMode::*;
 
 fn load_notes(input: &str) -> Notes {
+    enum ParseMode {
+        Fields,
+        MyTicket,
+        NearbyTickets,
+    }
+    use ParseMode::*;
+
     let mut fields = Vec::new();
     let mut my_ticket = Vec::new();
     let mut nearby_tickets = Vec::new();
@@ -59,15 +62,71 @@ fn load_notes(input: &str) -> Notes {
 
 fn part_one(notes: &Notes) -> usize {
     let mut sum = 0;
-    'num_loop: for n in notes.nearby_tickets.iter().flatten() {
-        for r in notes.fields.iter().flat_map(|f| f.ranges.iter()) {
-            if r.contains(n) {
-                continue 'num_loop;
-            }
+    for n in notes.nearby_tickets.iter().flatten() {
+        if notes.fields.iter().any(|f| f.is_allowed(n)) {
+            continue;
         }
         sum += n;
     }
     sum
+}
+
+fn part_two(notes: &Notes) -> usize {
+    let fields = find_field_order(&notes);
+    fields
+        .iter()
+        .zip(&notes.my_ticket)
+        .filter(|(&f, _)| f.label.starts_with("departure"))
+        .fold(1, |product, (&f, &n)| {
+            println!("{} => {} * {} = {}", f.label, n, product, product * n);
+            product * n
+        })
+}
+
+fn find_field_order<'a>(notes: &'a Notes) -> Vec<&'a Field<'a>> {
+    let mut field_map = Vec::with_capacity(notes.fields.len());
+    for _ in 0..notes.fields.len() {
+        let mut v = HashSet::with_capacity(notes.fields.len());
+        for f in notes.fields.iter() {
+            v.insert(f);
+        }
+        field_map.push(v);
+    }
+
+    let valid_tickets = notes
+        .nearby_tickets
+        .iter()
+        .filter(|t| {
+            t.iter()
+                .all(|n| notes.fields.iter().any(|f| f.is_allowed(n)))
+        })
+        .collect::<Vec<_>>();
+
+    for t in valid_tickets {
+        for (i, n) in t.iter().enumerate() {
+            field_map[i].retain(|f| f.is_allowed(n));
+        }
+    }
+
+    let mut field_map = field_map.into_iter().enumerate().collect::<Vec<_>>();
+    field_map.sort_by_key(|(_, fs)| fs.len());
+
+    let mut result: Vec<(usize, &Field)> = Vec::with_capacity(notes.fields.len());
+    for (idx, mut fs) in field_map {
+        for &(_, f) in result.iter() {
+            fs.remove(f);
+        }
+        assert_eq!(1, fs.len());
+        result.push((idx, fs.iter().next().unwrap()));
+    }
+
+    println!(
+        "{:?}",
+        result.iter().map(|&(_, f)| f.label).collect::<Vec<_>>()
+    );
+    result.sort_by_key(|&(idx, _)| idx);
+
+    result.iter().map(|(_, f)| *f).collect()
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -89,6 +148,16 @@ impl Field<'_> {
             label,
             ranges: Vec::new(),
         }
+    }
+
+    fn is_allowed(&self, n: &usize) -> bool {
+        self.ranges.iter().any(|r| r.contains(n))
+    }
+}
+
+impl Hash for Field<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.label.hash(state);
     }
 }
 
@@ -149,7 +218,57 @@ nearby tickets:
     fn example_one() {
         let notes = load_example_one();
         assert_eq!(71, part_one(&notes));
-        let notes = load_example_one();
+        let notes = load_notes(&EXAMPLE_ONE);
         assert_eq!(71, part_one(&notes));
+
+        assert_eq!(
+            1 * 14,
+            find_field_order(&notes)
+                .iter()
+                .zip(&notes.my_ticket)
+                .filter(|(&f, _)| f.label.contains('a'))
+                .fold(1, |product, (_, n)| product * n)
+        );
+    }
+
+    const EXAMPLE_TWO: &str = "class: 0-1 or 4-19
+row: 0-5 or 8-19
+seat: 0-13 or 16-19
+
+your ticket:
+13,12,11
+
+nearby tickets:
+18,9,3
+5,1,15
+9,14,5
+";
+
+    #[test]
+    fn example_two() {
+        let notes = load_notes(&EXAMPLE_TWO);
+        let fields = find_field_order(&notes);
+        assert_eq!(
+            vec!["seat", "class", "row"],
+            fields.iter().map(|f| f.label).collect::<Vec<_>>()
+        );
+
+        assert_eq!(
+            12 * 13,
+            fields
+                .iter()
+                .zip(&notes.my_ticket)
+                .filter(|(&f, _)| f.label.contains('a'))
+                .fold(1, |product, (_, n)| product * n)
+        );
+
+        assert_eq!(
+            11,
+            fields
+                .iter()
+                .zip(&notes.my_ticket)
+                .filter(|(&f, _)| f.label.contains('o'))
+                .fold(1, |product, (_, n)| product * n)
+        );
     }
 }
