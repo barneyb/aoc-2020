@@ -55,30 +55,14 @@ impl Game {
                     if self.active.contains(&p) {
                         if active_neighbor_count == 2 || active_neighbor_count == 3 {
                             active.insert(p);
-                            min = Point {
-                                x: min.x.min(p.x),
-                                y: min.y.min(p.y),
-                                z: min.z.min(p.z),
-                            };
-                            max = Point {
-                                x: max.x.max(p.x),
-                                y: max.y.max(p.y),
-                                z: max.z.max(p.z),
-                            };
+                            min = min.rectilinear_min(&p);
+                            max = max.rectilinear_max(&p);
                         }
                     } else {
                         if active_neighbor_count == 3 {
                             active.insert(p);
-                            min = Point {
-                                x: min.x.min(p.x),
-                                y: min.y.min(p.y),
-                                z: min.z.min(p.z),
-                            };
-                            max = Point {
-                                x: max.x.max(p.x),
-                                y: max.y.max(p.y),
-                                z: max.z.max(p.z),
-                            };
+                            min = min.rectilinear_min(&p);
+                            max = max.rectilinear_max(&p);
                         }
                     }
                 }
@@ -136,6 +120,22 @@ impl Point {
 
     pub fn neighbors(&self) -> Neighbors {
         Neighbors { p: self, i: 0 }
+    }
+
+    pub fn rectilinear_min(&self, other: &Point) -> Point {
+        Point {
+            x: self.x.min(other.x),
+            y: self.y.min(other.y),
+            z: self.z.min(other.z),
+        }
+    }
+
+    pub fn rectilinear_max(&self, other: &Point) -> Point {
+        Point {
+            x: self.x.max(other.x),
+            y: self.y.max(other.y),
+            z: self.z.max(other.z),
+        }
     }
 }
 
