@@ -1,47 +1,62 @@
 use aoc_2020::read_input;
-use regex::Regex;
 
 pub fn the_work() {
     let s = read_input();
     println!("{:?}", part_one(&s));
 }
 
-fn part_one(input: &str) -> isize {
+fn part_one(input: &str) -> usize {
     input.lines().map(|l| evaluate(&l)).sum()
 }
 
-lazy_static! {
-    static ref RE_EXPR: Regex = Regex::new("([0-9]+) *([+*]) *([0-9]+)").unwrap();
-    static ref RE_PARENS: Regex = Regex::new("\\(([0-9]+)\\)").unwrap();
+fn do_op(c: char, terms: &mut Vec<usize>) {
+    let b = terms.pop().unwrap();
+    let a = terms.pop().unwrap();
+    terms.push(match c {
+        '+' => a + b,
+        '*' => a * b,
+        _ => panic!("Unrecognized operator '{}'", c),
+    })
 }
 
-fn evaluate(expr: &str) -> isize {
-    let mut expr = String::from(expr);
-    println!("evaluate: {}", expr);
-    loop {
-        if let Some(m) = RE_PARENS.captures(&expr) {
-            let n = m.get(1).unwrap().as_str().to_string();
-            expr.replace_range(m.get(0).unwrap().range(), &n);
-            println!("  parens: {}", expr);
-            continue;
+fn evaluate(expr: &str) -> usize {
+    let mut operators = Vec::new();
+    let mut terms = Vec::new();
+    for c in expr.chars().filter(|c| !c.is_whitespace()) {
+        match c {
+            ' ' => {} // soak up spaces
+            '1'..='9' => {
+                terms.push(c.to_digit(10).unwrap() as usize);
+            }
+            '(' => operators.push(c),
+            ')' => {
+                while let Some(c) = operators.pop() {
+                    if c == '(' {
+                        break;
+                    } else {
+                        do_op(c, &mut terms)
+                    }
+                }
+            }
+            _ => {
+                while let Some(c) = operators.pop() {
+                    if c == '(' {
+                        operators.push(c);
+                        break;
+                    } else {
+                        do_op(c, &mut terms)
+                    }
+                }
+                operators.push(c);
+            }
         }
-        if let Some(m) = RE_EXPR.captures(&expr) {
-            let a = m.get(1).unwrap().as_str().parse::<isize>().unwrap();
-            let op = m.get(2).unwrap().as_str().chars().next().unwrap();
-            let b = m.get(3).unwrap().as_str().parse::<isize>().unwrap();
-            let v = match op {
-                '+' => a + b,
-                '*' => a * b,
-                _ => panic!("Unrecognized '{}' operator", op),
-            };
-            expr.replace_range(m.get(0).unwrap().range(), &v.to_string());
-            println!("    math: {}", expr);
-            continue;
-        }
-        println!("done    : {}", expr);
-        break;
     }
-    expr.parse().unwrap()
+    while let Some(c) = operators.pop() {
+        do_op(c, &mut terms)
+    }
+    println!("{} => {:?}", expr, terms);
+    debug_assert_eq!(1, terms.len());
+    terms[0]
 }
 
 #[cfg(test)]
@@ -73,5 +88,16 @@ mod test {
     fn test_part_one() {
         let s = PART_ONE_EXAMPLES.trim();
         assert_eq!(26 + 437 + 12240 + 13632, part_one(s));
+    }
+
+    #[test]
+    fn test_part_two_examples() {
+        assert_eq!(26, evaluate("2 * 3 + (4 * 5)"));
+        assert_eq!(437, evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)"));
+        assert_eq!(12240, evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"));
+        assert_eq!(
+            13632,
+            evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")
+        );
     }
 }

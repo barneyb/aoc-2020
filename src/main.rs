@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
 use aoc_2020 as aoc;
 
 mod the_work;
