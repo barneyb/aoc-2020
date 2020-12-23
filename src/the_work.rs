@@ -39,12 +39,12 @@ fn evaluate(expr: &str) -> usize {
                 }
             }
             _ => {
-                while let Some(c) = operators.pop() {
-                    if c == '(' {
-                        operators.push(c);
-                        break;
+                while let Some(op) = operators.pop() {
+                    if op == '+' || (c == '*' && op != '(') {
+                        do_op(op, &mut terms)
                     } else {
-                        do_op(c, &mut terms)
+                        operators.push(op);
+                        break;
                     }
                 }
                 operators.push(c);
@@ -72,9 +72,9 @@ mod test {
     fn example_one() {
         assert_eq!(3, evaluate("1 + 2"));
         assert_eq!(9, evaluate("1 + 2 * 3"));
-        assert_eq!(13, evaluate("1 + 2 * 3 + 4"));
-        assert_eq!(65, evaluate("1 + 2 * 3 + 4 * 5"));
-        assert_eq!(71, evaluate("1 + 2 * 3 + 4 * 5 + 6"));
+        assert_eq!(21, evaluate("1 + 2 * 3 + 4"));
+        assert_eq!(105, evaluate("1 + 2 * 3 + 4 * 5"));
+        assert_eq!(231, evaluate("1 + 2 * 3 + 4 * 5 + 6"));
     }
 
     #[test]
@@ -87,16 +87,19 @@ mod test {
     #[test]
     fn test_part_one() {
         let s = PART_ONE_EXAMPLES.trim();
-        assert_eq!(26 + 437 + 12240 + 13632, part_one(s));
+        assert_eq!(46 + 1445 + 669060 + 23340, part_one(s));
     }
 
     #[test]
     fn test_part_two_examples() {
-        assert_eq!(26, evaluate("2 * 3 + (4 * 5)"));
-        assert_eq!(437, evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)"));
-        assert_eq!(12240, evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"));
+        assert_eq!(46, evaluate("2 * 3 + (4 * 5)"));
+        assert_eq!(1445, evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)"));
         assert_eq!(
-            13632,
+            669060,
+            evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))")
+        );
+        assert_eq!(
+            23340,
             evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")
         );
     }
