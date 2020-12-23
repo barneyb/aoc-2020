@@ -43,7 +43,7 @@ impl<'a> Flattener<'a> {
     }
 
     fn flattened(&self) -> String {
-        self.get_rule("0")
+        self.get_rule("0").replace('.', "")
     }
 
     fn get_rule(&self, num: &'a str) -> String {
@@ -58,7 +58,13 @@ impl<'a> Flattener<'a> {
                     for t in s.split(' ') {
                         match t {
                             "|" => result.push_str("|"),
-                            _ => result.push_str(&self.get_rule(t)),
+                            _ => {
+                                match result.chars().last().unwrap() {
+                                    ')' | 'a'..='z' => result.push('.'),
+                                    _ => {}
+                                }
+                                result.push_str(&self.get_rule(t))
+                            }
                         };
                     }
                     result.push(')');
@@ -73,6 +79,43 @@ impl<'a> Flattener<'a> {
             .or_insert(result)
             .to_owned()
     }
+}
+
+fn to_postfix(expr: &str) -> String {
+    let mut operators = Vec::new();
+    let mut postfix = String::new();
+    for c in expr.chars().filter(|c| !c.is_whitespace()) {
+        match c {
+            'a'..='z' => postfix.push(c),
+            '(' => operators.push(c),
+            ')' => {
+                while let Some(c) = operators.pop() {
+                    if c == '(' {
+                        break;
+                    } else {
+                        postfix.push(c);
+                    }
+                }
+            }
+            _ => {
+                while let Some(op) = operators.pop() {
+                    // concat has higher priority than alternation
+                    if op == '.' || (c == '|' && op != '(') {
+                        postfix.push(op);
+                    } else {
+                        operators.push(op);
+                        break;
+                    }
+                }
+                operators.push(c);
+            }
+        }
+    }
+    while let Some(c) = operators.pop() {
+        postfix.push(c);
+    }
+    println!("{} => {:?}", expr, postfix);
+    postfix
 }
 
 #[cfg(test)]
@@ -95,25 +138,38 @@ aaaabbb"#;
     #[test]
     fn example_one() {
         let rules = vec!["0: 1 2", r#"1: "a""#, "2: 1 3 | 3 1", r#"3: "b""#];
-        assert_eq!("(a(ab|ba))", Flattener::new(&rules).flattened());
+        let flattener = Flattener::new(&rules);
+        let re = flattener.get_rule("0");
+        println!("{}", re);
+        assert_eq!("(a.(a.b|b.a))", re);
+        let pf = to_postfix(&re);
+        println!("{}", pf);
+        assert_eq!("aab.ba.|.", pf);
+        let re = flattener.flattened();
+        println!("{}", re);
+        assert_eq!("(a(ab|ba))", re);
     }
 
     #[test]
     fn example_two() {
-        assert_eq!(
-            "(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)",
-            Flattener::new(
-                &r#"0: 4 1 5
+        let rules = &r#"0: 4 1 5
 1: 2 3 | 3 2
 2: 4 4 | 5 5
 3: 4 5 | 5 4
 4: "a"
 5: "b""#
-                    .lines()
-                    .collect::<Vec<_>>()
-            )
-            .flattened()
-        );
+            .lines()
+            .collect::<Vec<_>>();
+        let flattener = Flattener::new(rules);
+        let re = flattener.get_rule("0");
+        println!("{}", re);
+        assert_eq!("(a.((a.a|b.b).(a.b|b.a)|(a.b|b.a).(a.a|b.b)).b)", re);
+        let pf = to_postfix(&re);
+        println!("{}", pf);
+        assert_eq!("aaa.bb.|ab.ba.|.ab.ba.|aa.bb.|.|.b.", pf);
+        let re = flattener.flattened();
+        println!("{}", re);
+        assert_eq!("(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)", re);
         assert_eq!(2, part_one(EXAMPLE_TWO));
     }
 }
