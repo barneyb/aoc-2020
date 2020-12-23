@@ -1,106 +1,127 @@
 use aoc_2020::read_input;
+use std::cell::RefCell;
+use std::collections::HashMap;
 
 pub fn the_work() {
     let s = read_input();
-    println!("{:?}", part_one(&s));
+    println!("{:?}", s.len());
 }
 
 fn part_one(input: &str) -> usize {
-    input.lines().map(|l| evaluate(&l)).sum()
+    let mut lines = input.lines();
+    let rule_list = lines
+        .by_ref()
+        .take_while(|&l| !l.is_empty())
+        .collect::<Vec<_>>();
+    let rule = parse_rule_zero(&rule_list);
+    let messages = lines.collect::<Vec<_>>();
+    println!(
+        "{:?}\n-------\n{:?}\n-------\n{:?}",
+        rule, rule_list, messages
+    );
+    42
 }
 
-fn do_op(c: char, terms: &mut Vec<usize>) {
-    let b = terms.pop().unwrap();
-    let a = terms.pop().unwrap();
-    terms.push(match c {
-        '+' => a + b,
-        '*' => a * b,
-        _ => panic!("Unrecognized operator '{}'", c),
-    })
+struct Flattener<'a> {
+    unparsed: HashMap<&'a str, &'a str>,
+    parsed: RefCell<HashMap<&'a str, String>>,
 }
 
-fn evaluate(expr: &str) -> usize {
-    let mut operators = Vec::new();
-    let mut terms = Vec::new();
-    for c in expr.chars().filter(|c| !c.is_whitespace()) {
-        match c {
-            ' ' => {} // soak up spaces
-            '1'..='9' => {
-                terms.push(c.to_digit(10).unwrap() as usize);
-            }
-            '(' => operators.push(c),
-            ')' => {
-                while let Some(c) = operators.pop() {
-                    if c == '(' {
-                        break;
-                    } else {
-                        do_op(c, &mut terms)
-                    }
-                }
-            }
-            _ => {
-                while let Some(op) = operators.pop() {
-                    if op == '+' || (c == '*' && op != '(') {
-                        do_op(op, &mut terms)
-                    } else {
-                        operators.push(op);
-                        break;
-                    }
-                }
-                operators.push(c);
-            }
+impl<'a> Flattener<'a> {
+    fn new(rules: &[&'a str]) -> Flattener<'a> {
+        let mut unparsed = HashMap::new();
+        for &r in rules {
+            let ci = match r.find(':') {
+                Some(idx) => idx,
+                None => panic!("Rule '{}' has no colon!?", r),
+            };
+            unparsed.insert(&r[0..ci], r[(ci + 1)..].trim());
+        }
+        Flattener {
+            unparsed,
+            parsed: RefCell::new(HashMap::new()),
         }
     }
-    while let Some(c) = operators.pop() {
-        do_op(c, &mut terms)
+
+    fn get_rule(&self, num: &'a str) -> String {
+        // explicitly bound the scope of the borrow
+        {
+            if let Some(s) = self.parsed.borrow().get(num) {
+                return s.to_owned();
+            }
+        }
+        let result = match self.unparsed.get(num) {
+            Some(s) => {
+                let result = match s.chars().next() {
+                    Some('"') => String::from(&s[1..(s.len() - 1)]),
+                    _ => {
+                        let mut result = String::from("(");
+                        for t in s.split(' ') {
+                            match t {
+                                "|" => result.push_str("|"),
+                                _ => result.push_str(&self.get_rule(t)),
+                            };
+                        }
+                        result.push(')');
+                        result
+                    }
+                };
+                println!("rule {:>3}: {} => {}", num, s, result);
+                result
+            }
+            None => panic!("There's no rule '{}'?!", num),
+        };
+        self.parsed
+            .borrow_mut()
+            .entry(num)
+            .or_insert(result)
+            .to_owned()
     }
-    println!("{} => {:?}", expr, terms);
-    debug_assert_eq!(1, terms.len());
-    terms[0]
+}
+
+fn parse_rule_zero(rules: &[&str]) -> String {
+    let flattener = Flattener::new(rules);
+    flattener.get_rule("0")
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const PART_ONE_EXAMPLES: &str = "2 * 3 + (4 * 5)
-5 + (8 * 3 + 9 + 3 * 4 * 3)
-5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))
-((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2";
+    const EXAMPLE_TWO: &str = r#"0: 4 1 5
+1: 2 3 | 3 2
+2: 4 4 | 5 5
+3: 4 5 | 5 4
+4: "a"
+5: "b"
+
+ababbb
+bababa
+abbbab
+aaabbb
+aaaabbb"#;
 
     #[test]
     fn example_one() {
-        assert_eq!(3, evaluate("1 + 2"));
-        assert_eq!(9, evaluate("1 + 2 * 3"));
-        assert_eq!(21, evaluate("1 + 2 * 3 + 4"));
-        assert_eq!(105, evaluate("1 + 2 * 3 + 4 * 5"));
-        assert_eq!(231, evaluate("1 + 2 * 3 + 4 * 5 + 6"));
+        let rules = vec!["0: 1 2", r#"1: "a""#, "2: 1 3 | 3 1", r#"3: "b""#];
+        assert_eq!("(a(ab|ba))", parse_rule_zero(&rules));
     }
 
     #[test]
     fn example_two() {
-        assert_eq!(1, evaluate("1"));
-        assert_eq!(7, evaluate("1 + (2 * 3)"));
-        assert_eq!(51, evaluate("1 + (2 * 3) + (4 * (5 + 6))"));
-    }
-
-    #[test]
-    fn test_part_one() {
-        let s = PART_ONE_EXAMPLES.trim();
-        assert_eq!(46 + 1445 + 669060 + 23340, part_one(s));
-    }
-
-    #[test]
-    fn test_part_two_examples() {
-        assert_eq!(46, evaluate("2 * 3 + (4 * 5)"));
-        assert_eq!(1445, evaluate("5 + (8 * 3 + 9 + 3 * 4 * 3)"));
+        let s = EXAMPLE_TWO.trim();
         assert_eq!(
-            669060,
-            evaluate("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))")
-        );
-        assert_eq!(
-            23340,
-            evaluate("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")
+            "(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)",
+            parse_rule_zero(
+                &r#"0: 4 1 5
+1: 2 3 | 3 2
+2: 4 4 | 5 5
+3: 4 5 | 5 4
+4: "a"
+5: "b""#
+                    .lines()
+                    .collect::<Vec<_>>()
+            )
         );
     }
 }
