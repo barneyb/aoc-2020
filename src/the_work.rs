@@ -1,25 +1,24 @@
 use aoc_2020::read_input;
+use regex::Regex;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
 pub fn the_work() {
     let s = read_input();
-    println!("{:?}", s.len());
+    println!("{:?}", part_one(&s));
 }
 
 fn part_one(input: &str) -> usize {
-    let mut lines = input.lines();
+    let mut lines = input.trim().lines();
     let rule_list = lines
         .by_ref()
         .take_while(|&l| !l.is_empty())
         .collect::<Vec<_>>();
-    let rule = Flattener::new(&rule_list).flattened();
-    let messages = lines.collect::<Vec<_>>();
-    println!(
-        "{:?}\n-------\n{:?}\n-------\n{:?}",
-        rule, rule_list, messages
-    );
-    42
+    let mut rule = Flattener::new(&rule_list).flattened();
+    rule.insert(0, '^');
+    rule.push('$');
+    let re = Regex::new(&rule).unwrap();
+    lines.filter(|l| re.is_match(l)).count()
 }
 
 struct Flattener<'a> {
@@ -101,7 +100,6 @@ aaaabbb"#;
 
     #[test]
     fn example_two() {
-        let s = EXAMPLE_TWO.trim();
         assert_eq!(
             "(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)",
             Flattener::new(
@@ -116,5 +114,6 @@ aaaabbb"#;
             )
             .flattened()
         );
+        assert_eq!(2, part_one(EXAMPLE_TWO));
     }
 }
