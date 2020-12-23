@@ -13,7 +13,7 @@ fn part_one(input: &str) -> usize {
         .by_ref()
         .take_while(|&l| !l.is_empty())
         .collect::<Vec<_>>();
-    let rule = parse_rule_zero(&rule_list);
+    let rule = Flattener::new(&rule_list).flattened();
     let messages = lines.collect::<Vec<_>>();
     println!(
         "{:?}\n-------\n{:?}\n-------\n{:?}",
@@ -43,32 +43,29 @@ impl<'a> Flattener<'a> {
         }
     }
 
+    fn flattened(&self) -> String {
+        self.get_rule("0")
+    }
+
     fn get_rule(&self, num: &'a str) -> String {
-        // explicitly bound the scope of the borrow
-        {
-            if let Some(s) = self.parsed.borrow().get(num) {
-                return s.to_owned();
-            }
+        if let Some(s) = self.parsed.borrow().get(num) {
+            return s.to_owned();
         }
         let result = match self.unparsed.get(num) {
-            Some(s) => {
-                let result = match s.chars().next() {
-                    Some('"') => String::from(&s[1..(s.len() - 1)]),
-                    _ => {
-                        let mut result = String::from("(");
-                        for t in s.split(' ') {
-                            match t {
-                                "|" => result.push_str("|"),
-                                _ => result.push_str(&self.get_rule(t)),
-                            };
-                        }
-                        result.push(')');
-                        result
+            Some(s) => match s.chars().next() {
+                Some('"') => String::from(&s[1..(s.len() - 1)]),
+                _ => {
+                    let mut result = String::from("(");
+                    for t in s.split(' ') {
+                        match t {
+                            "|" => result.push_str("|"),
+                            _ => result.push_str(&self.get_rule(t)),
+                        };
                     }
-                };
-                println!("rule {:>3}: {} => {}", num, s, result);
-                result
-            }
+                    result.push(')');
+                    result
+                }
+            },
             None => panic!("There's no rule '{}'?!", num),
         };
         self.parsed
@@ -77,11 +74,6 @@ impl<'a> Flattener<'a> {
             .or_insert(result)
             .to_owned()
     }
-}
-
-fn parse_rule_zero(rules: &[&str]) -> String {
-    let flattener = Flattener::new(rules);
-    flattener.get_rule("0")
 }
 
 #[cfg(test)]
@@ -104,7 +96,7 @@ aaaabbb"#;
     #[test]
     fn example_one() {
         let rules = vec!["0: 1 2", r#"1: "a""#, "2: 1 3 | 3 1", r#"3: "b""#];
-        assert_eq!("(a(ab|ba))", parse_rule_zero(&rules));
+        assert_eq!("(a(ab|ba))", Flattener::new(&rules).flattened());
     }
 
     #[test]
@@ -112,7 +104,7 @@ aaaabbb"#;
         let s = EXAMPLE_TWO.trim();
         assert_eq!(
             "(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)",
-            parse_rule_zero(
+            Flattener::new(
                 &r#"0: 4 1 5
 1: 2 3 | 3 2
 2: 4 4 | 5 5
@@ -122,6 +114,7 @@ aaaabbb"#;
                     .lines()
                     .collect::<Vec<_>>()
             )
+            .flattened()
         );
     }
 }
