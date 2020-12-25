@@ -1,227 +1,247 @@
 use aoc_2020::read_input;
-use regex::Regex;
-use std::cell::RefCell;
-use std::collections::HashMap;
+use std::fmt::{self, Display, Formatter};
+use std::str::FromStr;
 
 pub fn the_work() {
-    let s = read_input();
-    println!("{:?}", both_parts(&s));
+    let input = read_input();
+    // 1699 3229 1433 2351 ***pq
+    println!("{:?}", part_one(&input));
 }
 
-fn parse(input: &str) -> (Vec<&str>, Vec<&str>) {
-    let mut blocks = input.split("\n\n").map(|b| b.lines().collect::<Vec<_>>());
-    (blocks.next().unwrap(), blocks.next().unwrap())
+struct Tile {
+    num: usize,
+    grid: String,
+    north: String,
+    south: String,
+    east: String,
+    west: String,
+    f_north: String,
+    f_south: String,
+    f_east: String,
+    f_west: String,
 }
 
-fn get_rules(input: &str) -> Vec<&str> {
-    parse(input).0
+impl Tile {
+    fn new(num: usize, grid: String) -> Tile {
+        let north = String::from(&grid[0..10]);
+        let south = String::from(&grid[90..100]);
+        let west: String = grid.chars().step_by(10).collect();
+        let east: String = grid.chars().skip(9).step_by(10).collect();
+        let f_north = north.chars().rev().collect();
+        let f_south = south.chars().rev().collect();
+        let f_west = west.chars().rev().collect();
+        let f_east = east.chars().rev().collect();
+        Tile {
+            num,
+            north,
+            south,
+            west,
+            east,
+            f_north,
+            f_south,
+            f_west,
+            f_east,
+            grid,
+        }
+    }
+
+    fn edges(&self) -> Vec<&str> {
+        vec![
+            &self.north,
+            &self.south,
+            &self.west,
+            &self.east,
+            &self.f_north,
+            &self.f_south,
+            &self.f_west,
+            &self.f_east,
+        ]
+    }
+}
+
+impl FromStr for Tile {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+        let ci = s.find(':').expect("no colon?!");
+        let num = s[5..ci].parse().unwrap();
+        Ok(Tile::new(num, s[(ci + 2)..].replace('\n', "")))
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Tile {}:", self.num)?;
+        for i in 0..10 {
+            write!(f, "\n{}", &self.grid[(i * 10)..((i + 1) * 10)])?;
+        }
+        Ok(())
+    }
+}
+
+fn parse(input: &str) -> Vec<Tile> {
+    input
+        .trim()
+        .split("\n\n")
+        .map(|t| t.parse().unwrap())
+        .collect()
 }
 
 fn part_one(input: &str) -> usize {
-    let (rule_list, strings) = parse(input);
-    let mut rule = Flattener::new(&rule_list).flattened();
-    rule.insert(0, '^');
-    rule.push('$');
-    let re = Regex::new(&rule).unwrap();
-    strings.iter().filter(|l| re.is_match(l)).count()
-}
-
-fn both_parts(input: &str) -> (usize, usize) {
-    let (rule_list, strings) = parse(input);
-    let flattener = Flattener::new(&rule_list);
-    /*
-    0: 8 11
-    8: 42
-    11: 42 31
-
-    0: 42 42 31
-     */
-    let rule_42 = flattener.get_rule("42");
-    let rule_31 = flattener.get_rule("31");
-    let rule_0 = format!("^{}{}{}$", rule_42, rule_42, rule_31);
-    let re = Regex::new(&rule_0).unwrap();
-    let one = strings.iter().filter(|l| re.is_match(l)).count();
-
-    /*
-    0: 8 11
-    8: 42 | 42 8
-    11: 42 31 | 42 11 31
-
-    0: 42+ [42 <nest> 31]+
-    0: 42{m} 31{n} where m > n
-     */
-
-    let re_42 = Regex::new(&format!("^{}", rule_42)).unwrap();
-    let re_31 = Regex::new(&format!("^{}", rule_31)).unwrap();
-    let two = strings
-        .iter()
-        .filter(|&&l| {
-            let mut c42 = 0;
-            let mut c31 = 0;
-            let mut start = 0;
-            while let Some(m) = re_42.find(&l[start..]) {
-                start += m.end();
-                c42 += 1;
-            }
-            if c42 < 2 {
-                // need at least two 42s
-                return false;
-            }
-            while let Some(m) = re_31.find(&l[start..]) {
-                start += m.end();
-                c31 += 1;
-            }
-            if c31 < 1 {
-                // need at least one 31
-                return false;
-            }
-            c42 > c31 && l[start..].len() == 0
-        })
-        .count();
-
-    (one, two)
-}
-
-struct Flattener<'a> {
-    unparsed: HashMap<&'a str, &'a str>,
-    parsed: RefCell<HashMap<&'a str, String>>,
-}
-
-impl<'a> Flattener<'a> {
-    fn new(rules: &[&'a str]) -> Flattener<'a> {
-        let mut unparsed = HashMap::new();
-        for &r in rules {
-            let ci = match r.find(':') {
-                Some(idx) => idx,
-                None => panic!("Rule '{}' has no colon!?", r),
-            };
-            unparsed.insert(&r[0..ci], r[(ci + 1)..].trim());
-        }
-        Flattener {
-            unparsed,
-            parsed: RefCell::new(HashMap::new()),
-        }
-    }
-
-    fn flattened(&self) -> String {
-        self.get_rule("0")
-    }
-
-    fn get_rule(&self, num: &'a str) -> String {
-        if let Some(s) = self.parsed.borrow().get(num) {
-            return s.to_owned();
-        }
-        let result = match self.unparsed.get(num) {
-            Some(s) => match s.chars().next() {
-                Some('"') => String::from(&s[1..(s.len() - 1)]),
-                _ => {
-                    let mut result = String::from("(");
-                    for t in s.split(' ') {
-                        match t {
-                            "|" => result.push_str("|"),
-                            _ => result.push_str(&self.get_rule(t)),
-                        };
-                    }
-                    result.push(')');
-                    result
+    let tiles = &parse(input);
+    for a in tiles.iter() {
+        println!("{}", a.num);
+        for (c, edge_a) in vec![
+            ('^', &a.north),
+            ('<', &a.west),
+            ('>', &a.east),
+            ('v', &a.south),
+        ] {
+            let potential_mates = tiles.iter().filter(|b| {
+                if a.num == b.num {
+                    return false;
                 }
-            },
-            None => panic!("There's no rule '{}'?!", num),
-        };
-        self.parsed
-            .borrow_mut()
-            .entry(num)
-            .or_insert(result)
-            .to_owned()
+                b.edges().iter().any(|e| edge_a == *e)
+            });
+            println!(
+                "  {} {:?}",
+                c,
+                potential_mates.map(|t| t.num).collect::<Vec<_>>()
+            );
+        }
     }
+    0
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const EXAMPLE_TWO: &str = r#"0: 4 1 5
-1: 2 3 | 3 2
-2: 4 4 | 5 5
-3: 4 5 | 5 4
-4: "a"
-5: "b"
+    const EXAMPLE_ONE: &str = "Tile 2311:
+..##.#..#.
+##..#.....
+#...##..#.
+####.#...#
+##.##.###.
+##...#.###
+.#.#.#..##
+..#....#..
+###...#.#.
+..###..###
 
-ababbb
-bababa
-abbbab
-aaabbb
-aaaabbb"#;
+Tile 1951:
+#.##...##.
+#.####...#
+.....#..##
+#...######
+.##.#....#
+.###.#####
+###.##.##.
+.###....#.
+..#.#..#.#
+#...##.#..
 
-    const EXAMPLE_THREE: &str = r#"42: 9 14 | 10 1
-9: 14 27 | 1 26
-10: 23 14 | 28 1
-1: "a"
-11: 42 31
-5: 1 14 | 15 1
-19: 14 1 | 14 14
-12: 24 14 | 19 1
-16: 15 1 | 14 14
-31: 14 17 | 1 13
-6: 14 14 | 1 14
-2: 1 24 | 14 4
-0: 8 11
-13: 14 3 | 1 12
-15: 1 | 14
-17: 14 2 | 1 7
-23: 25 1 | 22 14
-28: 16 1
-4: 1 1
-20: 14 14 | 1 15
-3: 5 14 | 16 1
-27: 1 6 | 14 18
-14: "b"
-21: 14 1 | 1 14
-25: 1 1 | 1 14
-22: 14 14
-8: 42
-26: 14 22 | 1 20
-18: 15 15
-7: 14 5 | 1 21
-24: 14 1
+Tile 1171:
+####...##.
+#..##.#..#
+##.#..#.#.
+.###.####.
+..###.####
+.##....##.
+.#...####.
+#.##.####.
+####..#...
+.....##...
 
-abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
-bbabbbbaabaabba
-babbbbaabbbbbabbbbbbaabaaabaaa
-aaabbbbbbaaaabaababaabababbabaaabbababababaaa
-bbbbbbbaaaabbbbaaabbabaaa
-bbbababbbbaaaaaaaabbababaaababaabab
-ababaaaaaabaaab
-ababaaaaabbbaba
-baabbaaaabbaaaababbaababb
-abbbbabbbbaaaababbbbbbaaaababb
-aaaaabbaabaaaaababaa
-aaaabbaaaabbaaa
-aaaabbaabbaaaaaaabbbabbbaaabbaabaaa
-babaaabbbaaabaababbaabababaaab
-aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba"#;
+Tile 1427:
+###.##.#..
+.#..#.##..
+.#.##.#..#
+#.#.#.##.#
+....#...##
+...##..##.
+...#.#####
+.#.####.#.
+..#..###.#
+..##.#..#.
+
+Tile 1489:
+##.#.#....
+..##...#..
+.##..##...
+..#...#...
+#####...#.
+#..#.#.#.#
+...#.#.#..
+##.#...##.
+..##.##.##
+###.##.#..
+
+Tile 2473:
+#....####.
+#..#.##...
+#.##..#...
+######.#.#
+.#...#.#.#
+.#########
+.###.#..#.
+########.#
+##...##.#.
+..###.#.#.
+
+Tile 2971:
+..#.#....#
+#...###...
+#.#.###...
+##.##..#..
+.#####..##
+.#..####.#
+#..#.#..#.
+..####.###
+..#.#.###.
+...#.#.#.#
+
+Tile 2729:
+...#.#.#.#
+####.#....
+..#.#.....
+....#..#.#
+.##..##.#.
+.#.####...
+####.#.#..
+##.####...
+##..#.##..
+#.##...##.
+
+Tile 3079:
+#.#.#####.
+.#..######
+..#.......
+######....
+####.#..#.
+.#...#.##.
+#.#####.##
+..#.###...
+..#.......
+..#.###...";
+
+    fn tile_2311() -> Tile {
+        EXAMPLE_ONE.split("\n\n").next().unwrap().parse().unwrap()
+    }
+
+    #[test]
+    fn parse() {
+        let t = tile_2311();
+        assert_eq!(2311, t.num);
+        assert_eq!("..##.#..#.", t.north);
+        assert_eq!("..###..###", t.south);
+        assert_eq!("...#.##..#", t.east);
+        assert_eq!(".#####..#.", t.west);
+    }
 
     #[test]
     fn example_one() {
-        let rules = vec!["0: 1 2", r#"1: "a""#, "2: 1 3 | 3 1", r#"3: "b""#];
-        let flattener = Flattener::new(&rules);
-        let re = flattener.flattened();
-        println!("{}", re);
-        assert_eq!("(a(ab|ba))", re);
-    }
-
-    #[test]
-    fn example_two() {
-        let rules = get_rules(EXAMPLE_TWO);
-        let flattener = Flattener::new(&rules);
-        let re = flattener.flattened();
-        println!("{}", re);
-        assert_eq!("(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)", re);
-        assert_eq!(2, part_one(EXAMPLE_TWO));
-    }
-
-    #[test]
-    fn example_three() {
-        assert_eq!((3, 12), both_parts(EXAMPLE_THREE));
+        assert_eq!(20899048083289, part_one(&EXAMPLE_ONE));
     }
 }
