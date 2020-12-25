@@ -90,28 +90,39 @@ fn parse(input: &str) -> Vec<Tile> {
 
 fn part_one(input: &str) -> usize {
     let tiles = &parse(input);
-    for a in tiles.iter() {
-        println!("{}", a.num);
-        for (c, edge_a) in vec![
-            ('^', &a.north),
-            ('<', &a.west),
-            ('>', &a.east),
-            ('v', &a.south),
-        ] {
-            let potential_mates = tiles.iter().filter(|b| {
-                if a.num == b.num {
-                    return false;
-                }
-                b.edges().iter().any(|e| edge_a == *e)
-            });
-            println!(
-                "  {} {:?}",
-                c,
-                potential_mates.map(|t| t.num).collect::<Vec<_>>()
-            );
-        }
-    }
-    0
+    tiles
+        .iter()
+        .filter(|a| {
+            println!("{}", a.num);
+            vec![
+                ('^', &a.north),
+                ('<', &a.west),
+                ('>', &a.east),
+                ('v', &a.south),
+            ]
+            .iter()
+            .filter(|(c, edge_a)| {
+                let potential_mates = tiles
+                    .iter()
+                    .filter(|b| {
+                        if a.num == b.num {
+                            return false;
+                        }
+                        b.edges().iter().any(|e| edge_a == e)
+                    })
+                    .collect::<Vec<_>>();
+                println!(
+                    "  {} {:?}",
+                    c,
+                    potential_mates.iter().map(|t| t.num).collect::<Vec<_>>()
+                );
+                potential_mates.len() > 0
+            })
+            .count()
+                == 2
+        })
+        .map(|c| c.num)
+        .product()
 }
 
 #[cfg(test)]
