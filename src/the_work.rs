@@ -1,6 +1,5 @@
 use aoc_2020::geom2d::Dir;
 use aoc_2020::read_input;
-use std::collections::HashMap;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::str::FromStr;
 
@@ -16,10 +15,32 @@ struct Tile {
     num: usize,
     pixels: String,
     dim: usize,
-    north_edge: Option<String>,
-    south_edge: Option<String>,
-    east_edge: Option<String>,
-    west_edge: Option<String>,
+    edges: [usize; 4],
+}
+
+fn bitter(bits: usize, c: char) -> usize {
+    let mut n = bits << 1;
+    if c == '#' {
+        n += 1;
+    }
+    n
+}
+
+fn str2bits(s: &str) -> usize {
+    s.chars().fold(0, bitter)
+}
+
+fn get_edges(pixels: &String, dim: usize) -> [usize; 4] {
+    [
+        str2bits(&pixels[0..dim]),
+        str2bits(&pixels[(pixels.len() - dim)..]),
+        pixels
+            .chars()
+            .skip(dim - 1)
+            .step_by(dim)
+            .fold(0, bitter),
+        pixels.chars().step_by(dim).fold(0, bitter),
+    ]
 }
 
 impl Tile {
@@ -28,94 +49,65 @@ impl Tile {
         debug_assert_eq!(dim * dim, pixels.len()); // no floating point error!
         Tile {
             num,
-            pixels,
             dim,
+            edges: get_edges(&pixels, dim),
+            pixels,
             ..Default::default()
         }
+    }
+
+    fn transform<F>(&mut self, trans: F)
+    where F: Fn(usize, usize, usize) -> (usize, usize)
+    {
+        let mut next = String::with_capacity(self.pixels.len());
+        let bytes = self.pixels.bytes().collect::<Vec<_>>();
+        for y in 0..self.dim {
+            for x in 0..self.dim {
+                let (a, b) = trans(x, y, self.dim);
+                next.push(bytes[a * self.dim + b] as char)
+            }
+        }
+        self.pixels = next;
+        self.edges = get_edges(&self.pixels, self.dim);
     }
 
     /// I flip the tile along a vertical axis as if it were sitting on a table and you were to grab
     /// the bottom edge, pick it up, roll your wrist over, and set it back down.
     fn flip(&mut self) {
-        let mut next = String::with_capacity(self.pixels.len());
-        let bytes = self.pixels.bytes().collect::<Vec<_>>();
-        for y in 0..self.dim {
-            for x in 0..self.dim {
-                next.push(bytes[y * self.dim + (self.dim - x - 1)] as char)
-            }
-        }
-        self.pixels = next;
-        self.north_edge = None;
-        self.south_edge = None;
-        self.east_edge = None;
-        self.west_edge = None;
+        self.transform(|x, y, dim| (y, dim - x - 1));
     }
 
     // I rotate the tile 90 degrees clockwise without picking it up.
     fn rotate(&mut self) {
-        let mut next = String::with_capacity(self.pixels.len());
-        let bytes = self.pixels.bytes().collect::<Vec<_>>();
-        for y in 0..self.dim {
-            for x in 0..self.dim {
-                next.push(bytes[(self.dim - x - 1) * self.dim + y] as char)
-            }
-        }
-        self.pixels = next;
-        // don't need to recompute these; take() will clear the RHS
-        self.east_edge = self.north_edge.take();
-        self.west_edge = self.south_edge.take();
+        self.transform(|x, y, dim| ((dim - x - 1), y));
     }
 
-    fn get_edge(&mut self, d: Dir) -> &str {
-        match d {
-            Dir::North => {
-                if let None = &self.north_edge {
-                    self.north_edge = Some(String::from(&self.pixels[0..self.dim]));
-                }
-                if let Some(s) = &self.north_edge {
-                    return s
-                }
-            }
-            Dir::South => {
-                if let None = &self.south_edge {
-                    self.south_edge = Some(String::from(&self.pixels[(self.pixels.len() - self.dim)..]));
-                }
-                if let Some(s) = &self.south_edge {
-                    return s
-                }
-            }
-            Dir::East => {
-                if let None = &self.east_edge {
-                    self.east_edge = Some(self.pixels.chars().skip(self.dim - 1).step_by(self.dim).collect());
-                }
-                if let Some(s) = &self.east_edge {
-                    return s
-                }
-            }
-            Dir::West => {
-                if let None = &self.west_edge {
-                    self.west_edge = Some(self.pixels.chars().step_by(self.dim).collect());
-                }
-                if let Some(s) = &self.west_edge {
-                    return s
-                }
-            }
-        }
-        panic!() // i cannot figure out how to satisfy the borrow checker...
+    fn get_edge(&self, d: Dir) -> usize {
+        self.edges[match d {
+            Dir::North => 0,
+            Dir::South => 1,
+            Dir::East => 2,
+            Dir::West => 3,
+        }]
     }
 
-    // fn edges(&self) -> Vec<&str> { // todo: remove
-    //     vec![
-    //         &self.north,
-    //         &self.south,
-    //         &self.west,
-    //         &self.east,
-    //         &self.f_north,
-    //         &self.f_south,
-    //         &self.f_west,
-    //         &self.f_east,
-    //     ]
-    // }
+    fn all_edges(&self) -> Vec<usize> { // todo: remove
+        let mut es = Vec::with_capacity(8);
+        fn reverse(mut it: usize, dim: usize) -> usize {
+            let mut n = 0;
+            for _ in 0..dim {
+                n <<= 1;
+                n += it & 1;
+                it >>= 1;
+            }
+            n
+        }
+        for &e in self.edges.iter() {
+            es.push(e);
+            es.push(reverse(e, self.dim));
+        }
+        es
+    }
 }
 
 impl FromStr for Tile {
@@ -161,40 +153,39 @@ fn parse(input: &str) -> Vec<Tile> {
 
 fn part_one(tiles: &Vec<Tile>) -> usize {
     // todo: use layout...
-    // tiles
-    //     .iter()
-    //     .filter(|a| {
-    //         println!("{}", a.num);
-    //         vec![
-    //             ('^', &a.north),
-    //             ('<', &a.west),
-    //             ('>', &a.east),
-    //             ('v', &a.south),
-    //         ]
-    //         .iter()
-    //         .filter(|(c, edge_a)| {
-    //             let potential_mates = tiles
-    //                 .iter()
-    //                 .filter(|b| {
-    //                     if a.num == b.num {
-    //                         return false;
-    //                     }
-    //                     b.edges().iter().any(|e| edge_a == e)
-    //                 })
-    //                 .collect::<Vec<_>>();
-    //             println!(
-    //                 "  {} {:?}",
-    //                 c,
-    //                 potential_mates.iter().map(|t| t.num).collect::<Vec<_>>()
-    //             );
-    //             potential_mates.len() > 0
-    //         })
-    //         .count()
-    //             == 2
-    //     })
-    //     .map(|c| c.num)
-    //     .product()
-    4
+    tiles
+        .iter()
+        .filter(|a| {
+            println!("{}", a.num);
+            vec![
+                ('^', &a.get_edge(Dir::North)),
+                ('<', &a.get_edge(Dir::West)),
+                ('>', &a.get_edge(Dir::East)),
+                ('v', &a.get_edge(Dir::South)),
+            ]
+            .iter()
+            .filter(|(c, &edge_a)| {
+                let potential_mates = tiles
+                    .iter()
+                    .filter(|b| {
+                        if a.num == b.num {
+                            return false;
+                        }
+                        b.all_edges().iter().any(|&e| edge_a == e)
+                    })
+                    .collect::<Vec<_>>();
+                println!(
+                    "  {} {:?}",
+                    c,
+                    potential_mates.iter().map(|t| t.num).collect::<Vec<_>>()
+                );
+                potential_mates.len() > 0
+            })
+            .count()
+                == 2
+        })
+        .map(|c| c.num)
+        .product()
 }
 
 #[cfg(test)]
@@ -315,32 +306,32 @@ Tile 3079:
 
     #[test]
     fn test_parse() {
-        let mut t = tile_2311();
+        let t = tile_2311();
         assert_eq!(2311, t.num);
-        assert_eq!("..##.#..#.", t.get_edge(Dir::North));
-        assert_eq!("..###..###", t.get_edge(Dir::South));
-        assert_eq!("...#.##..#", t.get_edge(Dir::East));
-        assert_eq!(".#####..#.", t.get_edge(Dir::West));
+        assert_eq!(str2bits("..##.#..#."), t.get_edge(Dir::North));
+        assert_eq!(str2bits("..###..###"), t.get_edge(Dir::South));
+        assert_eq!(str2bits("...#.##..#"), t.get_edge(Dir::East));
+        assert_eq!(str2bits(".#####..#."), t.get_edge(Dir::West));
     }
 
     #[test]
     fn test_flip() {
         let mut t = tile_2311();
         t.flip();
-        assert_eq!(".#..#.##..", t.get_edge(Dir::North));
-        assert_eq!("###..###..", t.get_edge(Dir::South));
-        assert_eq!(".#####..#.", t.get_edge(Dir::East));
-        assert_eq!("...#.##..#", t.get_edge(Dir::West));
+        assert_eq!(str2bits(".#..#.##.."), t.get_edge(Dir::North));
+        assert_eq!(str2bits("###..###.."), t.get_edge(Dir::South));
+        assert_eq!(str2bits(".#####..#."), t.get_edge(Dir::East));
+        assert_eq!(str2bits("...#.##..#"), t.get_edge(Dir::West));
     }
 
     #[test]
     fn test_rotate_cw() {
         let mut t = tile_2311();
         t.rotate();
-        assert_eq!(".#..#####.", t.get_edge(Dir::North));
-        assert_eq!("#..##.#...", t.get_edge(Dir::South));
-        assert_eq!("..##.#..#.", t.get_edge(Dir::East));
-        assert_eq!("..###..###", t.get_edge(Dir::West));
+        assert_eq!(str2bits(".#..#####."), t.get_edge(Dir::North));
+        assert_eq!(str2bits("#..##.#..."), t.get_edge(Dir::South));
+        assert_eq!(str2bits("..##.#..#."), t.get_edge(Dir::East));
+        assert_eq!(str2bits("..###..###"), t.get_edge(Dir::West));
     }
 
     #[test]
