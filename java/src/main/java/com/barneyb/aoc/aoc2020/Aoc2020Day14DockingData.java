@@ -1,3 +1,5 @@
+package com.barneyb.aoc.aoc2020;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
