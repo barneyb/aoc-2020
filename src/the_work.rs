@@ -2,6 +2,8 @@ use aoc_2020::geom2d::Dir;
 use aoc_2020::read_input;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::str::FromStr;
+use std::rc::Rc;
+use std::collections::HashMap;
 
 pub fn the_work() {
     let input = read_input();
@@ -16,7 +18,13 @@ struct Tile {
     pixels: String,
     dim: usize,
     edges: [usize; 4],
+    neighbors: [Option<Rc<Tile>>; 4],
 }
+
+const UP: usize = 0;
+const DOWN: usize = 1;
+const RIGHT: usize = 2;
+const LEFT: usize = 3;
 
 fn bitter(bits: usize, c: char) -> usize {
     let mut n = bits << 1;
@@ -43,10 +51,15 @@ fn get_edges(pixels: &String, dim: usize) -> [usize; 4] {
     ]
 }
 
+fn usize_sqrt(n: usize) -> usize {
+    let r: usize = (n as f64).sqrt() as usize;
+    debug_assert_eq!(r * r, n); // no floating point error!
+    r
+}
+
 impl Tile {
     fn new(num: usize, pixels: String) -> Tile {
-        let dim: usize = (pixels.len() as f64).sqrt() as usize;
-        debug_assert_eq!(dim * dim, pixels.len()); // no floating point error!
+        let dim = usize_sqrt(pixels.len());
         Tile {
             num,
             dim,
@@ -145,47 +158,57 @@ fn parse(input: &str) -> Vec<Tile> {
         .collect()
 }
 
-// fn lay_out_tiles(tiles: &Vec<Tile>) -> Vec<&Tile> {
-//     let by_num = tiles.iter().map(|t| (t.num, t)).collect::<HashMap<_, _>>();
-//
-//     vec![]
-// }
+fn lay_out_tiles(tiles: &Vec<Tile>) -> Vec<&Tile> {
+    let by_num = tiles.iter().map(|t| (t.num, t)).collect::<HashMap<_, _>>();
+    let curr = tiles.get(0).unwrap();
+    if let Some(up) = tiles.iter().find(|&t| t.num != curr.num && t.edges.contains(&curr.edges[UP])) {
+
+    } else if let Some(down) = tiles.iter().find(|&t| t.num != curr.num && t.edges.contains(&curr.edges[DOWN])) {
+
+    } else {
+        // todo: flip it and try again
+    }
+
+    vec![]
+}
 
 fn part_one(tiles: &Vec<Tile>) -> usize {
-    // todo: use layout...
-    tiles
-        .iter()
-        .filter(|a| {
-            println!("{}", a.num);
-            vec![
-                ('^', &a.get_edge(Dir::North)),
-                ('<', &a.get_edge(Dir::West)),
-                ('>', &a.get_edge(Dir::East)),
-                ('v', &a.get_edge(Dir::South)),
-            ]
-            .iter()
-            .filter(|(c, &edge_a)| {
-                let potential_mates = tiles
-                    .iter()
-                    .filter(|b| {
-                        if a.num == b.num {
-                            return false;
-                        }
-                        b.all_edges().iter().any(|&e| edge_a == e)
-                    })
-                    .collect::<Vec<_>>();
-                println!(
-                    "  {} {:?}",
-                    c,
-                    potential_mates.iter().map(|t| t.num).collect::<Vec<_>>()
-                );
-                potential_mates.len() > 0
-            })
-            .count()
-                == 2
-        })
-        .map(|c| c.num)
-        .product()
+    let laid_out = lay_out_tiles(tiles);
+    let dim = usize_sqrt(laid_out.len());
+    laid_out[0].num * laid_out[dim - 1].num * laid_out[dim * 2].num * laid_out[laid_out.len() - 1].num
+    // tiles
+    //     .iter()
+    //     .filter(|a| {
+    //         println!("{}", a.num);
+    //         vec![
+    //             ('^', &a.get_edge(Dir::North)),
+    //             ('<', &a.get_edge(Dir::West)),
+    //             ('>', &a.get_edge(Dir::East)),
+    //             ('v', &a.get_edge(Dir::South)),
+    //         ]
+    //         .iter()
+    //         .filter(|(c, &edge_a)| {
+    //             let potential_mates = tiles
+    //                 .iter()
+    //                 .filter(|b| {
+    //                     if a.num == b.num {
+    //                         return false;
+    //                     }
+    //                     b.all_edges().iter().any(|&e| edge_a == e)
+    //                 })
+    //                 .collect::<Vec<_>>();
+    //             println!(
+    //                 "  {} {:?}",
+    //                 c,
+    //                 potential_mates.iter().map(|t| t.num).collect::<Vec<_>>()
+    //             );
+    //             potential_mates.len() > 0
+    //         })
+    //         .count()
+    //             == 2
+    //     })
+    //     .map(|c| c.num)
+    //     .product()
 }
 
 #[cfg(test)]
