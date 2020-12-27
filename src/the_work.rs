@@ -10,8 +10,10 @@ use std::str::FromStr;
 
 pub fn the_work() {
     let tiles = parse(&read_input());
+    let graph = build_graph(&tiles);
     // 1699 3229 1433 2351 ***pq
-    println!("{:?}", part_one(&tiles));
+    println!("{:?}", part_one(&graph));
+    println!("{:?}", part_two(&graph));
 }
 
 const NORTH: usize = 0;
@@ -154,23 +156,21 @@ fn parse(input: &str) -> Vec<Tile> {
         .collect()
 }
 
-fn part_one(tiles: &[Tile]) -> usize {
-    let graph = build_graph(tiles);
+fn part_one(graph: Puzzle) -> usize {
     find_corners(&graph)
         .iter()
         .map(|&ni| graph.node_weight(ni).unwrap().num)
         .product()
 }
 
-fn part_two(tiles: &[Tile]) -> usize {
-    let graph = build_graph(tiles);
+fn part_two(graph: Puzzle) -> usize {
     let grid = assemble_grid(&graph);
 
     println!("{:?}", grid.iter().map(|t| t.num).collect::<Vec<_>>());
-    tiles.len()
+    graph.node_count()
 }
 
-fn assemble_grid(graph: &DiGraph<&Tile, (usize, &String)>) -> Vec<Tile> {
+fn assemble_grid(graph: Puzzle) -> Vec<Tile> {
     let dim = sqrtusize(graph.node_count());
     let mut grid: Vec<Rc<_>> = Vec::with_capacity(graph.node_count());
 
@@ -184,18 +184,11 @@ fn assemble_grid(graph: &DiGraph<&Tile, (usize, &String)>) -> Vec<Tile> {
             // first tile.
             Rc::new(get_neighbor(graph, &grid[(y - 1) * dim], SOUTH))
         };
-        println!(
-            "{:2})\n  {:2}) #{}",
-            grid.len() / dim,
-            grid.len() % dim,
-            curr.1.num
-        );
         grid.push(Rc::clone(&curr));
         // for each subsequent slot in the row...
         for _ in 1..dim {
             curr = Rc::new(get_neighbor(graph, &curr, EAST));
             // write it down!
-            println!("  {:2}) #{}", grid.len() % dim, curr.1.num);
             grid.push(curr.clone());
         }
     }
@@ -204,12 +197,7 @@ fn assemble_grid(graph: &DiGraph<&Tile, (usize, &String)>) -> Vec<Tile> {
         .collect::<Vec<_>>()
 }
 
-fn get_neighbor(
-    graph: &DiGraph<&Tile, (usize, &String)>,
-    curr: &Rc<(NodeIndex, Tile)>,
-    dir: usize,
-) -> (NodeIndex<u32>, Tile) {
-    println!("get_neighbor({}, {})", curr.1.num, dir);
+fn get_neighbor(graph: Puzzle, curr: &Rc<(NodeIndex, Tile)>, dir: usize) -> (NodeIndex<u32>, Tile) {
     // For each edge leaving curr (the node to the left), check and see if it's
     // the edge for curr's EAST border (flipped or not), and get the node at
     // the other end. That'll be the next node in the row. We can't use the
@@ -245,7 +233,7 @@ fn get_neighbor(
     (ni, tile)
 }
 
-fn top_left_corner(graph: &DiGraph<&Tile, (usize, &String)>) -> (NodeIndex, Tile) {
+fn top_left_corner(graph: Puzzle) -> (NodeIndex, Tile) {
     let ni = find_corners(&graph)[0];
     let mut tile = mungible_tile(graph, ni);
     // flip/rotate it so that it's truly top-left
@@ -273,17 +261,19 @@ fn top_left_corner(graph: &DiGraph<&Tile, (usize, &String)>) -> (NodeIndex, Tile
     (ni, tile)
 }
 
-fn mungible_tile(graph: &DiGraph<&Tile, (usize, &String)>, ni: NodeIndex) -> Tile {
+fn mungible_tile(graph: Puzzle, ni: NodeIndex) -> Tile {
     let &gt = graph.node_weight(ni).unwrap();
     Tile::new(gt.num, &gt.pixels)
 }
 
-fn find_corners(graph: &DiGraph<&Tile, (usize, &String)>) -> Vec<NodeIndex> {
+fn find_corners(graph: Puzzle) -> Vec<NodeIndex> {
     graph
         .node_indices()
         .filter(|ni| graph.edges(*ni).count() == 2)
         .collect()
 }
+
+type Puzzle<'a> = &'a DiGraph<&'a Tile, (usize, &'a String)>;
 
 fn build_graph(tiles: &[Tile]) -> DiGraph<&Tile, (usize, &String)> {
     let mut node_by_edge = HashMap::new();
@@ -464,8 +454,8 @@ Tile 3079:
     #[test]
     fn example_one() {
         let tiles = parse(&EXAMPLE_ONE);
-        assert_eq!(20899048083289, part_one(&tiles));
         let graph = build_graph(&tiles);
+        assert_eq!(20899048083289, part_one(&graph));
         assert_eq!(
             vec![1951, 2311, 3079, 2729, 1427, 2473, 2971, 1489, 1171],
             assemble_grid(&graph)
@@ -473,6 +463,6 @@ Tile 3079:
                 .map(|t| t.num)
                 .collect::<Vec<_>>()
         );
-        assert_eq!(273, part_two(&tiles));
+        assert_eq!(273, part_two(&graph));
     }
 }
