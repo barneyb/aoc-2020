@@ -117,8 +117,8 @@ impl Tile {
         &self.borders
     }
 
-    fn which_border(&self, border: &String) -> usize {
-        self.borders.iter().position(|e| e == border).unwrap()
+    fn which_border(&self, border: &String) -> Option<usize> {
+        self.borders.iter().position(|e| e == border)
     }
 }
 
@@ -177,22 +177,25 @@ fn assemble_grid(graph: &DiGraph<&Tile, (usize, &String)>) -> Vec<Tile> {
     // for each slot in the top row...
     for _ in 1..dim {
         // For each edge leaving curr (the node to the left), check and see if it's
-        // the edge for curr's EAST border (or the flip of it), and get the node at
+        // the edge for curr's EAST border (flipped or not), and get the node at
         // the other end. That'll be the next node in the row. We can't use the
         // border directions in the graph edge directly, as the curr node's tile may
         // have been flipped or rotated since the edges were wired up.
         let ni = graph
             .edges_directed(curr.0, Direction::Outgoing)
             .find(|er| {
-                er.weight().1 == curr.1.get_border(EAST)
-                    || er.weight().1 == curr.1.get_flipped_border(EAST)
+                if let Some(b) = curr.1.which_border(er.weight().1) {
+                    b % 4 == EAST
+                } else {
+                    false
+                }
             })
             .unwrap()
             .target();
         // create a mungible Tile to throw in the grid
         let mut tile = mungible_tile(&graph, ni);
         // find which border will butt up against curr's EAST border (which is mirrored)
-        let mut border = tile.which_border(curr.1.get_flipped_border(EAST));
+        let mut border = tile.which_border(curr.1.get_flipped_border(EAST)).unwrap();
         if border >= 4 {
             // if the border is flipped, we need to flip the tile over.
             tile.flip();
