@@ -89,6 +89,9 @@ impl Tile {
 
     // I rotate the tile 90 degrees clockwise without picking it up.
     fn rotate(&mut self, times: usize) {
+        if times == 0 {
+            return;
+        }
         let dim = self.dim;
         for _ in 0..times {
             // This is stupid and inefficient. But not wrong!
@@ -169,57 +172,77 @@ fn part_two(tiles: &[Tile]) -> usize {
 
 fn assemble_grid(graph: &DiGraph<&Tile, (usize, &String)>) -> Vec<Tile> {
     let dim = sqrtusize(graph.node_count());
-    // first, find the top-left corner as an index:tile pair
-    let mut curr = Rc::new(top_left_corner(&graph));
-    let mut grid = Vec::with_capacity(graph.node_count());
-    grid.push(curr.clone());
+    let mut grid: Vec<Rc<_>> = Vec::with_capacity(graph.node_count());
 
-    // for each slot in the top row...
-    for _ in 1..dim {
-        // For each edge leaving curr (the node to the left), check and see if it's
-        // the edge for curr's EAST border (flipped or not), and get the node at
-        // the other end. That'll be the next node in the row. We can't use the
-        // border directions in the graph edge directly, as the curr node's tile may
-        // have been flipped or rotated since the edges were wired up.
-        let ni = graph
-            .edges_directed(curr.0, Direction::Outgoing)
-            .find(|er| {
-                if let Some(b) = curr.1.which_border(er.weight().1) {
-                    b % 4 == EAST
-                } else {
-                    false
-                }
-            })
-            .unwrap()
-            .target();
-        // create a mungible Tile to throw in the grid
-        let mut tile = mungible_tile(&graph, ni);
-        // find which border will butt up against curr's EAST border (which is mirrored)
-        let mut border = tile.which_border(curr.1.get_flipped_border(EAST)).unwrap();
-        if border >= 4 {
-            // if the border is flipped, we need to flip the tile over.
-            tile.flip();
-            // and exchange EAST/WEST
-            if border % 2 == 1 {
-                border += 2;
-            }
+    // for each row...
+    for y in 0..dim {
+        let mut curr = if y == 0 {
+            // on the first row, we need to find the top-left corner (an arbitrary choice).
+            Rc::new(top_left_corner(&graph))
+        } else {
+            // on subsequent rows, we need to find the tile which is below the prior row's
+            // first tile.
+            Rc::new(get_neighbor(graph, &grid[(y - 1) * dim], SOUTH))
+        };
+        println!(
+            "{:2})\n  {:2}) #{}",
+            grid.len() / dim,
+            grid.len() % dim,
+            curr.1.num
+        );
+        grid.push(Rc::clone(&curr));
+        // for each subsequent slot in the row...
+        for _ in 1..dim {
+            curr = Rc::new(get_neighbor(graph, &curr, EAST));
+            // write it down!
+            println!("  {:2}) #{}", grid.len() % dim, curr.1.num);
+            grid.push(curr.clone());
         }
-        // rotate it so the target border is facing WEST
-        match border % 4 {
-            0 => tile.rotate(3),
-            1 => tile.rotate(2),
-            2 => tile.rotate(1),
-            3 => {}
-            _ => panic!("{} can't be which border?!", border),
-        }
-        // write it down!
-        curr = Rc::new((ni, tile));
-        grid.push(curr.clone());
     }
-    drop(curr);
     grid.into_iter()
         .map(|rc| Rc::try_unwrap(rc).unwrap().1)
         .collect::<Vec<_>>()
+}
+
+fn get_neighbor(
+    graph: &DiGraph<&Tile, (usize, &String)>,
+    curr: &Rc<(NodeIndex, Tile)>,
+    dir: usize,
+) -> (NodeIndex<u32>, Tile) {
+    println!("get_neighbor({}, {})", curr.1.num, dir);
+    // For each edge leaving curr (the node to the left), check and see if it's
+    // the edge for curr's EAST border (flipped or not), and get the node at
+    // the other end. That'll be the next node in the row. We can't use the
+    // border directions in the graph edge directly, as the curr node's tile may
+    // have been flipped or rotated since the edges were wired up.
+    let ni = graph
+        .edges_directed(curr.0, Direction::Outgoing)
+        .find(|er| {
+            if let Some(b) = curr.1.which_border(er.weight().1) {
+                b % 4 == dir
+            } else {
+                false
+            }
+        })
+        .unwrap()
+        .target();
+    // create a mungible Tile to throw in the grid
+    let mut tile = mungible_tile(&graph, ni);
+    // find which border will butt up against curr's EAST border (which is mirrored)
+    let mut border = tile.which_border(curr.1.get_flipped_border(dir)).unwrap();
+    if border >= 4 {
+        // if the border is flipped, we need to flip the tile over.
+        tile.flip();
+        // and exchange EAST/WEST
+        if border % 2 == 1 {
+            border += 2;
+        }
+    }
+    // Rotate it so the target border is facing curr. We might be rotating
+    // backwards on a flipped border, so add a couple extra spins to avoid
+    // overflow (they'll get mod-ed away).
+    tile.rotate((8 + (dir + 2) - border) % 4);
+    (ni, tile)
 }
 
 fn top_left_corner(graph: &DiGraph<&Tile, (usize, &String)>) -> (NodeIndex, Tile) {
@@ -442,6 +465,14 @@ Tile 3079:
     fn example_one() {
         let tiles = parse(&EXAMPLE_ONE);
         assert_eq!(20899048083289, part_one(&tiles));
+        let graph = build_graph(&tiles);
+        assert_eq!(
+            vec![1951, 2311, 3079, 2729, 1427, 2473, 2971, 1489, 1171],
+            assemble_grid(&graph)
+                .iter()
+                .map(|t| t.num)
+                .collect::<Vec<_>>()
+        );
         assert_eq!(273, part_two(&tiles));
     }
 }
