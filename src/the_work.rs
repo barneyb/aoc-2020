@@ -165,9 +165,31 @@ fn part_one(graph: Puzzle) -> usize {
 
 fn part_two(graph: Puzzle) -> usize {
     let grid = assemble_grid(&graph);
-
     println!("{:?}", grid.iter().map(|t| t.num).collect::<Vec<_>>());
+
+    let t = stitch_grid(&grid);
+    println!("{}", t);
+
     graph.node_count()
+}
+
+/// I strip the borders from every tile and create a single huge tile from all of their pixels.
+fn stitch_grid(grid: &Vec<Tile>) -> Tile {
+    let t_dim = grid[0].dim;
+    let mut s = String::with_capacity(grid.len() * (t_dim - 2) * (t_dim - 2));
+    let g_dim = sqrtusize(grid.len());
+    for gy in 0..g_dim {
+        for ty in 1..(t_dim - 1) { // skip top and bottom row
+            let start = ty * t_dim + 1; // skip left column
+            let end = ty * t_dim + t_dim - 1; // skip right column
+            for gx in 0..g_dim {
+                let ps = &grid[gy * g_dim + gx].pixels[start..end];
+                s.push_str(ps)
+            }
+        }
+    }
+    debug_assert_eq!(s.capacity(), s.len());
+    Tile::new(0, &s)
 }
 
 fn assemble_grid(graph: Puzzle) -> Vec<Tile> {
@@ -480,6 +502,21 @@ Tile 3079:
         t.rotate(3);
         t.rotate(5);
         assert_eq!("abcdefghijklmnop", t.pixels);
+    }
+
+    #[test]
+    fn test_stitch_grid() {
+        let grid = vec![
+            Tile::new(1, "abcdefghi"),
+            Tile::new(2, "jklmnopqr"),
+            Tile::new(3, "stuvwxyz0"),
+            Tile::new(4, "123456789"),
+        ];
+        let t = stitch_grid(&grid);
+        assert_eq!(0, t.num);
+        assert_eq!(2, t.dim);
+        assert_eq!("enw5", t.pixels);
+        assert_eq!("Tile 0:\nen\nw5", t.to_string());
     }
 
     #[test]
