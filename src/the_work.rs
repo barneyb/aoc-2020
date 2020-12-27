@@ -91,11 +91,11 @@ impl Tile {
 
     // I rotate the tile 90 degrees clockwise without picking it up.
     fn rotate(&mut self, times: usize) {
-        if times == 0 {
+        if times % 4 == 0 {
             return;
         }
         let dim = self.dim;
-        for _ in 0..times {
+        for _ in 0..(times % 4) {
             // This is stupid and inefficient. But not wrong!
             self.transform(|x, y| (dim - x - 1, y));
         }
@@ -449,6 +449,37 @@ Tile 3079:
         assert_eq!("..##.#..#.", t.get_border(EAST));
         assert_eq!("...#.##..#", t.get_border(SOUTH));
         assert_eq!("###..###..", t.get_border(WEST));
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(1);
+        assert_eq!("mieanjfbokgcplhd", t.pixels);
+        t.rotate(1);
+        assert_eq!("ponmlkjihgfedcba", t.pixels);
+        t.rotate(1);
+        assert_eq!("dhlpcgkobfjnaeim", t.pixels);
+        t.rotate(1);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(2);
+        assert_eq!("ponmlkjihgfedcba", t.pixels);
+        t.rotate(2);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(3);
+        assert_eq!("dhlpcgkobfjnaeim", t.pixels);
+        t.rotate(3);
+        assert_eq!("ponmlkjihgfedcba", t.pixels);
+        t.rotate(3);
+        assert_eq!("mieanjfbokgcplhd", t.pixels);
+        t.rotate(3);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(3);
+        t.rotate(5);
+        assert_eq!("abcdefghijklmnop", t.pixels);
     }
 
     #[test]
