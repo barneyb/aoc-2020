@@ -1,4 +1,6 @@
 use aoc_2020::read_input;
+use petgraph::graph::Graph;
+use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 
@@ -10,51 +12,58 @@ pub fn the_work() {
 
 struct Tile {
     num: usize,
-    grid: String,
+    pixels: String,
     north: String,
-    south: String,
     east: String,
+    south: String,
     west: String,
     f_north: String,
-    f_south: String,
     f_east: String,
+    f_south: String,
     f_west: String,
 }
 
+fn usize_sqrt(n: usize) -> usize {
+    let r: usize = (n as f64).sqrt() as usize;
+    debug_assert_eq!(r * r, n); // no floating point error!
+    r
+}
+
 impl Tile {
-    fn new(num: usize, grid: String) -> Tile {
-        let north = String::from(&grid[0..10]);
-        let south = String::from(&grid[90..100]);
-        let west: String = grid.chars().step_by(10).collect();
-        let east: String = grid.chars().skip(9).step_by(10).collect();
+    fn new(num: usize, pixels: String) -> Tile {
+        let dim = usize_sqrt(pixels.len());
+        let north = String::from(&pixels[0..dim]);
+        let east: String = pixels.chars().skip(dim - 1).step_by(dim).collect();
+        let f_south = String::from(&pixels[(pixels.len() - dim)..]);
+        let f_west: String = pixels.chars().step_by(dim).collect();
         let f_north = north.chars().rev().collect();
-        let f_south = south.chars().rev().collect();
-        let f_west = west.chars().rev().collect();
         let f_east = east.chars().rev().collect();
+        let south = f_south.chars().rev().collect();
+        let west = f_west.chars().rev().collect();
         Tile {
             num,
+            pixels,
             north,
+            east,
             south,
             west,
-            east,
             f_north,
+            f_east,
             f_south,
             f_west,
-            f_east,
-            grid,
         }
     }
 
     fn edges(&self) -> Vec<&str> {
         vec![
             &self.north,
+            &self.east,
             &self.south,
             &self.west,
-            &self.east,
             &self.f_north,
+            &self.f_east,
             &self.f_south,
             &self.f_west,
-            &self.f_east,
         ]
     }
 }
@@ -74,7 +83,7 @@ impl Display for Tile {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Tile {}:", self.num)?;
         for i in 0..10 {
-            write!(f, "\n{}", &self.grid[(i * 10)..((i + 1) * 10)])?;
+            write!(f, "\n{}", &self.pixels[(i * 10)..((i + 1) * 10)])?;
         }
         Ok(())
     }
@@ -90,28 +99,26 @@ fn parse(input: &str) -> Vec<Tile> {
 
 fn part_one(input: &str) -> usize {
     let tiles = &parse(input);
-    for a in tiles.iter() {
-        println!("{}", a.num);
-        for (c, edge_a) in vec![
-            ('^', &a.north),
-            ('<', &a.west),
-            ('>', &a.east),
-            ('v', &a.south),
-        ] {
-            let potential_mates = tiles.iter().filter(|b| {
-                if a.num == b.num {
-                    return false;
-                }
-                b.edges().iter().any(|e| edge_a == *e)
-            });
-            println!(
-                "  {} {:?}",
-                c,
-                potential_mates.map(|t| t.num).collect::<Vec<_>>()
-            );
+    let mut node_by_num = HashMap::new();
+    let mut node_by_edge = HashMap::new();
+    let mut graph = Graph::new();
+    for t in tiles {
+        let node = graph.add_node(&t.num);
+        if let Some(_) = node_by_num.insert(t.num, node) {
+            panic!("duplicate tile '{}'?!", t.num)
+        }
+        for e in t.edges() {
+            if let Some(n) = node_by_edge.insert(e, node) {
+                graph.update_edge(n, node, e);
+                graph.update_edge(node, n, e);
+            }
         }
     }
-    0
+    node_by_num
+        .iter()
+        .filter(|&(_, &ni)| graph.edges(ni).count() == 2)
+        .map(|(num, _)| num)
+        .product()
 }
 
 #[cfg(test)]
@@ -235,9 +242,9 @@ Tile 3079:
         let t = tile_2311();
         assert_eq!(2311, t.num);
         assert_eq!("..##.#..#.", t.north);
-        assert_eq!("..###..###", t.south);
         assert_eq!("...#.##..#", t.east);
-        assert_eq!(".#####..#.", t.west);
+        assert_eq!("..###..###", t.f_south);
+        assert_eq!(".#####..#.", t.f_west);
     }
 
     #[test]
