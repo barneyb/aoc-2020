@@ -141,8 +141,8 @@ impl FromStr for Tile {
 impl Display for Tile {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Tile {}:", self.num)?;
-        for i in 0..10 {
-            write!(f, "\n{}", &self.pixels[(i * 10)..((i + 1) * 10)])?;
+        for i in 0..self.dim {
+            write!(f, "\n{}", &self.pixels[(i * self.dim)..((i + 1) * self.dim)])?;
         }
         Ok(())
     }
