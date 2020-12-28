@@ -12,6 +12,7 @@ pub mod boarding_pass;
 pub mod find_pairs;
 pub mod geom2d;
 pub mod histogram;
+pub mod indexer;
 pub mod passport;
 pub mod password;
 
