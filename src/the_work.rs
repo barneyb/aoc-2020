@@ -3,6 +3,7 @@ use petgraph::graph::DiGraph;
 use petgraph::prelude::NodeIndex;
 use petgraph::visit::EdgeRef;
 use petgraph::Direction;
+use regex::Regex;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::rc::Rc;
@@ -13,7 +14,7 @@ pub fn the_work() {
     let graph = build_graph(&tiles);
     // 1699 3229 1433 2351 ***pq
     println!("{:?}", part_one(&graph));
-    println!("{:?}", part_two(&graph));
+    println!("{:?}", part_two(&graph)); // 2133 is too high
 }
 
 const NORTH: usize = 0;
@@ -29,10 +30,37 @@ struct Tile {
     borders: Vec<String>,
 }
 
+#[inline]
 fn sqrtusize(n: usize) -> usize {
     let r = (n as f64).sqrt() as usize;
     debug_assert_eq!(r * r, n); // no floating point error!
     r
+}
+
+fn transform_grid_string<F>(slice: &str, dim: usize, src: F) -> String
+where
+    F: Fn(usize, usize) -> (usize, usize),
+{
+    let mut next = String::with_capacity(slice.len());
+    let bytes = slice.bytes().collect::<Vec<_>>();
+    for y in 0..dim {
+        for x in 0..dim {
+            let (a, b) = src(x, y);
+            next.push(bytes[a * dim + b] as char)
+        }
+    }
+    next
+}
+
+// I rotate the grid string's content 90 degrees clockwise without picking it up.
+fn rotate_grid_string(slice: &str, dim: usize) -> String {
+    transform_grid_string(slice, dim, |x, y| (dim - x - 1, y))
+}
+
+/// I flip the grid string' content along a vertical axis as if it were sitting on a table and you
+/// were to grab the bottom edge, pick it up, roll your wrist over, and set it back down.
+fn flip_grid_string(slice: &str, dim: usize) -> String {
+    transform_grid_string(slice, dim, |x, y| (y, dim - x - 1))
 }
 
 impl Tile {
@@ -66,38 +94,18 @@ impl Tile {
         ]
     }
 
-    fn transform<F>(&mut self, src: F)
-    where
-        F: Fn(usize, usize) -> (usize, usize),
-    {
-        let mut next = String::with_capacity(self.pixels.len());
-        let bytes = self.pixels.bytes().collect::<Vec<_>>();
-        for y in 0..self.dim {
-            for x in 0..self.dim {
-                let (a, b) = src(x, y);
-                next.push(bytes[a * self.dim + b] as char)
-            }
-        }
-        self.pixels = next;
-    }
-
-    /// I flip the tile along a vertical axis as if it were sitting on a table and you were to grab
-    /// the bottom edge, pick it up, roll your wrist over, and set it back down.
     fn flip(&mut self) {
-        let dim = self.dim;
-        self.transform(|x, y| (y, dim - x - 1));
+        self.pixels = flip_grid_string(&self.pixels, self.dim);
         self.borders = Tile::extract_borders(&self.pixels, self.dim);
     }
 
-    // I rotate the tile 90 degrees clockwise without picking it up.
     fn rotate(&mut self, times: usize) {
         if times % 4 == 0 {
             return;
         }
-        let dim = self.dim;
         for _ in 0..(times % 4) {
             // This is stupid and inefficient. But not wrong!
-            self.transform(|x, y| (dim - x - 1, y));
+            self.pixels = rotate_grid_string(&self.pixels, self.dim);
         }
         self.borders = Tile::extract_borders(&self.pixels, self.dim);
     }
@@ -142,7 +150,11 @@ impl Display for Tile {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Tile {}:", self.num)?;
         for i in 0..self.dim {
-            write!(f, "\n{}", &self.pixels[(i * self.dim)..((i + 1) * self.dim)])?;
+            write!(
+                f,
+                "\n{}",
+                &self.pixels[(i * self.dim)..((i + 1) * self.dim)]
+            )?;
         }
         Ok(())
     }
@@ -165,21 +177,54 @@ fn part_one(graph: Puzzle) -> usize {
 
 fn part_two(graph: Puzzle) -> usize {
     let grid = assemble_grid(&graph);
-    println!("{:?}", grid.iter().map(|t| t.num).collect::<Vec<_>>());
-
-    let t = stitch_grid(&grid);
-    println!("{}", t);
-
-    graph.node_count()
+    let s = stitch_grid(&grid);
+    water_roughness(s)
 }
 
-/// I strip the borders from every tile and create a single huge tile from all of their pixels.
-fn stitch_grid(grid: &Vec<Tile>) -> Tile {
+fn water_roughness(mut s: String) -> usize {
+    let dim = sqrtusize(s.len());
+    let monster_parts = vec![
+        "                  # ",
+        "#    ##    ##    ###",
+        " #  #  #  #  #  #   ",
+    ];
+    let monster_re_str = monster_parts
+        .join(&" ".repeat(dim - monster_parts[0].len()))
+        .replace(' ', ".");
+    let monster_re = Regex::new(&monster_re_str).unwrap();
+
+    fn octothorpe_count(s: &str) -> usize {
+        s.chars().filter(|&c| c == '#').count()
+    }
+
+    let roughness = |s: &str| {
+        octothorpe_count(&s) - monster_re.find_iter(&s).count() * octothorpe_count(&monster_re_str)
+    };
+
+    for _ in 0..2 {
+        if monster_re.is_match(&s) {
+            return roughness(&s);
+        }
+        for _ in 0..3 {
+            s = rotate_grid_string(&s, dim);
+            if monster_re.is_match(&s) {
+                return roughness(&s);
+            }
+        }
+        s = flip_grid_string(&s, dim);
+    }
+    panic!("what?!")
+}
+
+/// I strip the borders from every tile and create a single huge grid string of them
+/// stitched together.
+fn stitch_grid(grid: &Vec<Tile>) -> String {
     let t_dim = grid[0].dim;
     let mut s = String::with_capacity(grid.len() * (t_dim - 2) * (t_dim - 2));
     let g_dim = sqrtusize(grid.len());
     for gy in 0..g_dim {
-        for ty in 1..(t_dim - 1) { // skip top and bottom row
+        for ty in 1..(t_dim - 1) {
+            // skip top and bottom row
             let start = ty * t_dim + 1; // skip left column
             let end = ty * t_dim + t_dim - 1; // skip right column
             for gx in 0..g_dim {
@@ -189,7 +234,7 @@ fn stitch_grid(grid: &Vec<Tile>) -> Tile {
         }
     }
     debug_assert_eq!(s.capacity(), s.len());
-    Tile::new(0, &s)
+    s
 }
 
 fn assemble_grid(graph: Puzzle) -> Vec<Tile> {
@@ -512,11 +557,39 @@ Tile 3079:
             Tile::new(3, "stuvwxyz0"),
             Tile::new(4, "123456789"),
         ];
-        let t = stitch_grid(&grid);
-        assert_eq!(0, t.num);
-        assert_eq!(2, t.dim);
-        assert_eq!("enw5", t.pixels);
-        assert_eq!("Tile 0:\nen\nw5", t.to_string());
+        let s = stitch_grid(&grid);
+        assert_eq!("enw5", s);
+    }
+
+    #[test]
+    fn test_water_roughness() {
+        let s = "
+.#.#..#.##...#.##..#####
+###....#.#....#..#......
+##.##.###.#.#..######...
+###.#####...#.#####.#..#
+##.#....#.##.####...#.##
+...########.#....#####.#
+....#..#...##..#.#.###..
+.####...#..#.....#......
+#..#.##..#..###.#.##....
+#.####..#.####.#.#.###..
+###.#.#...#.######.#..##
+#.####....##..########.#
+##..##.#...#...#.#.#.#..
+...#..#..#.#.##..###.###
+.#.#....#.##.#...###.##.
+###.#...#..#.##.######..
+.#.#.###.##.##.#..#.##..
+.####.###.#...###.#..#.#
+..#.#..#..#.#.#.####.###
+#..####...#.#.#.###.###.
+#####..#####...###....##
+#.##..#..#...#..####...#
+.#.###..##..##..####.##.
+...###...##...#...#..###
+";
+        assert_eq!(273, water_roughness(s.replace('\n', "")));
     }
 
     #[test]
