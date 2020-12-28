@@ -52,7 +52,7 @@ pub fn unwrap_paragraphs(input: &str) -> Vec<String> {
 
 pub fn with_duration<T, F>(f: F) -> (T, Duration)
 where
-    F: Fn() -> T,
+    F: FnOnce() -> T,
 {
     let start = Instant::now();
     let r = f();
@@ -62,7 +62,7 @@ where
 
 pub fn print_duration<T, F>(f: F) -> T
 where
-    F: Fn() -> T,
+    F: FnOnce() -> T,
 {
     let (r, elapsed) = with_duration(f);
     println!("{:?}", elapsed);
@@ -72,7 +72,7 @@ where
 pub fn time_block<L, T, F>(label: L, f: F) -> T
 where
     L: Display,
-    F: Fn() -> T,
+    F: FnOnce() -> T,
 {
     let green = console::Style::new().green();
     println!("\n{:>12} ...", green.apply_to(label));
