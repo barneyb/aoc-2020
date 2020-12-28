@@ -13,3 +13,11 @@ and one for modularization. I'm learning too!
 If you want to solve _your_ input, after checking out the right commit, replace
 the `input.txt` file in the root with your input and do `cargo run` again. But
 don't do that; the point of AoC isn't the stars, it's the pleasure of discovery.
+
+## Java Playground
+
+There are also a couple Java tidbits in there, where I needed to think through
+some stuff. Having to fight the borrow checker and mutability (and to a lesser
+extend, lifetimes) interfered with my ability to think through the "business"
+problem, since they're still pretty unfamiliar. Yes, I use Java as a scripting
+language for exploration. Shush.
