@@ -4,6 +4,7 @@ extern crate lazy_static;
 extern crate num_traits;
 
 use std::fmt;
+use std::fmt::Display;
 use std::fs;
 use std::time::{Duration, Instant};
 
@@ -65,6 +66,20 @@ where
     let (r, elapsed) = with_duration(f);
     println!("{:?}", elapsed);
     r
+}
+
+pub fn time_block<L, T, F>(label: L, f: F) -> T
+where
+    L: Display,
+    F: Fn() -> T,
+{
+    let green = console::Style::new().green();
+    println!("\n{:>12} ...", green.apply_to(label));
+    let start = Instant::now();
+    let result = f();
+    let elapsed = start.elapsed();
+    println!("{:>12} {:?}", green.bold().apply_to("..."), elapsed);
+    result
 }
 
 pub struct Benchmark {
