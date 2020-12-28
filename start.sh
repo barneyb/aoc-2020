@@ -16,14 +16,13 @@ if [ "$BRANCH" = "master" ]; then
   echo
   exit 0
 fi
-REMOTE_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d / -f 2-`
+git push --set-upstream origin $BRANCH
 git tag -f before-start-day
 git checkout master
 git pull
 git merge --no-ff -m "Merge branch '$BRANCH'" $BRANCH
 git push
 git branch -D $BRANCH
-git push origin :$REMOTE_BRANCH
 
 d=`echo $BRANCH | sed -e 's/^[^1-9]*0*\([1-9][0-9]*\).*$/\1/'`
 let "d = $d + 1"
@@ -34,11 +33,13 @@ fi
 BRANCH="day$d"
 git checkout -b $BRANCH master
 cat > src/the_work.rs <<EOF
-use aoc_2020::read_input;
-
 pub fn the_work() {
-    let s = read_input();
-    println!("{:?}", s.len());
+    let input = aoc_2020::read_input();
+    println!("{:?}", part_one(&input));
+}
+
+fn part_one(input: &str) -> usize {
+    input.len()
 }
 
 #[cfg(test)]
@@ -49,8 +50,7 @@ mod test {
 
     #[test]
     fn example_one() {
-        let s = EXAMPLE_ONE.trim();
-        assert_eq!(4, s.len());
+        assert_eq!(4, part_one(&EXAMPLE_ONE));
     }
 }
 EOF

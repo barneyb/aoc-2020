@@ -1,227 +1,628 @@
 use aoc_2020::read_input;
+use petgraph::graph::DiGraph;
+use petgraph::prelude::NodeIndex;
+use petgraph::visit::EdgeRef;
+use petgraph::Direction;
 use regex::Regex;
-use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::{self, Display, Formatter};
+use std::rc::Rc;
+use std::str::FromStr;
 
 pub fn the_work() {
-    let s = read_input();
-    println!("{:?}", both_parts(&s));
+    let tiles = parse(&read_input());
+    let graph = build_graph(&tiles);
+    // 1699 3229 1433 2351 ***pq
+    println!("{:?}", part_one(&graph));
+    println!("{:?}", part_two(&graph)); // 2133 is too high
 }
 
-fn parse(input: &str) -> (Vec<&str>, Vec<&str>) {
-    let mut blocks = input.split("\n\n").map(|b| b.lines().collect::<Vec<_>>());
-    (blocks.next().unwrap(), blocks.next().unwrap())
+const NORTH: usize = 0;
+const EAST: usize = 1;
+const SOUTH: usize = 2;
+const WEST: usize = 3;
+
+const MONSTER_PARTS: [&str; 3] = [
+    /* * * * * * * */ "#.",
+    "#....##....##....###",
+    ".#..#..#..#..#..#",
+];
+
+type Borders = [usize; 8];
+
+#[derive(Debug, Clone)]
+struct Tile {
+    num: usize,
+    pixels: String,
+    dim: usize,
+    borders: Borders,
 }
 
-fn get_rules(input: &str) -> Vec<&str> {
-    parse(input).0
+#[inline]
+fn sqrtusize(n: usize) -> usize {
+    let r = (n as f64).sqrt() as usize;
+    debug_assert_eq!(r * r, n); // no floating point error!
+    r
 }
 
-fn part_one(input: &str) -> usize {
-    let (rule_list, strings) = parse(input);
-    let mut rule = Flattener::new(&rule_list).flattened();
-    rule.insert(0, '^');
-    rule.push('$');
-    let re = Regex::new(&rule).unwrap();
-    strings.iter().filter(|l| re.is_match(l)).count()
+fn transform_grid_string<F>(slice: &str, dim: usize, src: F) -> String
+where
+    F: Fn(usize, usize) -> (usize, usize),
+{
+    let mut next = String::with_capacity(slice.len());
+    let bytes = slice.bytes().collect::<Vec<_>>();
+    for y in 0..dim {
+        for x in 0..dim {
+            let (a, b) = src(x, y);
+            next.push(bytes[a * dim + b] as char)
+        }
+    }
+    next
 }
 
-fn both_parts(input: &str) -> (usize, usize) {
-    let (rule_list, strings) = parse(input);
-    let flattener = Flattener::new(&rule_list);
-    /*
-    0: 8 11
-    8: 42
-    11: 42 31
+/// I rotate the grid string's content 90 degrees clockwise without picking it up.
+fn rotate_grid_string(slice: &str, dim: usize) -> String {
+    transform_grid_string(slice, dim, |x, y| (dim - x - 1, y))
+}
 
-    0: 42 42 31
-     */
-    let rule_42 = flattener.get_rule("42");
-    let rule_31 = flattener.get_rule("31");
-    let rule_0 = format!("^{}{}{}$", rule_42, rule_42, rule_31);
-    let re = Regex::new(&rule_0).unwrap();
-    let one = strings.iter().filter(|l| re.is_match(l)).count();
+/// I flip the grid string' content along a vertical axis as if it were sitting on a table and you
+/// were to grab the bottom edge, pick it up, roll your wrist over, and set it back down.
+fn flip_grid_string(slice: &str, dim: usize) -> String {
+    transform_grid_string(slice, dim, |x, y| (y, dim - x - 1))
+}
 
-    /*
-    0: 8 11
-    8: 42 | 42 8
-    11: 42 31 | 42 11 31
+fn fold_char_into_bits(bits: usize, c: char) -> usize {
+    let mut n = bits << 1;
+    if c == '#' {
+        n += 1;
+    }
+    n
+}
 
-    0: 42+ [42 <nest> 31]+
-    0: 42{m} 31{n} where m > n
-     */
+fn str_to_bits(s: &str) -> usize {
+    s.chars().fold(0, fold_char_into_bits)
+}
 
-    let re_42 = Regex::new(&format!("^{}", rule_42)).unwrap();
-    let re_31 = Regex::new(&format!("^{}", rule_31)).unwrap();
-    let two = strings
+impl Tile {
+    fn new(num: usize, pixels: &str) -> Tile {
+        let pixels = String::from(pixels);
+        let dim = sqrtusize(pixels.len());
+        Tile {
+            num,
+            dim,
+            borders: Tile::extract_borders(&pixels, dim),
+            pixels,
+        }
+    }
+
+    fn extract_borders(pixels: &String, dim: usize) -> Borders {
+        let north = &pixels[0..dim];
+        let east: String = pixels.chars().skip(dim - 1).step_by(dim).collect();
+        let f_south = &pixels[(pixels.len() - dim)..];
+        let f_west: String = pixels.chars().step_by(dim).collect();
+        [
+            str_to_bits(north),
+            str_to_bits(&east),
+            f_south.chars().rev().fold(0, fold_char_into_bits),
+            f_west.chars().rev().fold(0, fold_char_into_bits),
+            north.chars().rev().fold(0, fold_char_into_bits),
+            east.chars().rev().fold(0, fold_char_into_bits),
+            str_to_bits(f_south),
+            str_to_bits(&f_west),
+        ]
+    }
+
+    fn flip(&mut self) {
+        self.pixels = flip_grid_string(&self.pixels, self.dim);
+        self.borders = Tile::extract_borders(&self.pixels, self.dim);
+    }
+
+    fn rotate(&mut self, times: usize) {
+        if times % 4 == 0 {
+            return;
+        }
+        for _ in 0..(times % 4) {
+            // This is stupid and inefficient. But not wrong!
+            self.pixels = rotate_grid_string(&self.pixels, self.dim);
+        }
+        self.borders = Tile::extract_borders(&self.pixels, self.dim);
+    }
+
+    fn get_border(&self, dir: usize) -> usize {
+        self.borders[dir]
+    }
+
+    fn get_flipped_border(&self, dir: usize) -> usize {
+        self.borders[dir + 4]
+    }
+
+    // fn face_up_borders(&self) -> &[String] {
+    //     &self.borders[..4]
+    // }
+    //
+    // fn face_down_borders(&self) -> &[String] {
+    //     &self.borders[4..]
+    // }
+
+    fn all_borders(&self) -> &[usize] {
+        &self.borders
+    }
+
+    fn which_border(&self, border: usize) -> Option<usize> {
+        self.borders.iter().position(|&e| e == border)
+    }
+}
+
+impl FromStr for Tile {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+        let ci = s.find(':').expect("no colon?!");
+        let num = s[5..ci].parse().unwrap();
+        Ok(Tile::new(num, &s[(ci + 2)..].replace('\n', "")))
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Tile {}:", self.num)?;
+        for i in 0..self.dim {
+            write!(
+                f,
+                "\n{}",
+                &self.pixels[(i * self.dim)..((i + 1) * self.dim)]
+            )?;
+        }
+        Ok(())
+    }
+}
+
+fn parse(input: &str) -> Vec<Tile> {
+    input
+        .trim()
+        .split("\n\n")
+        .map(|t| t.parse().unwrap())
+        .collect()
+}
+
+fn part_one(graph: Puzzle) -> usize {
+    find_corners(&graph)
         .iter()
-        .filter(|&&l| {
-            let mut c42 = 0;
-            let mut c31 = 0;
-            let mut start = 0;
-            while let Some(m) = re_42.find(&l[start..]) {
-                start += m.end();
-                c42 += 1;
-            }
-            if c42 < 2 {
-                // need at least two 42s
-                return false;
-            }
-            while let Some(m) = re_31.find(&l[start..]) {
-                start += m.end();
-                c31 += 1;
-            }
-            if c31 < 1 {
-                // need at least one 31
-                return false;
-            }
-            c42 > c31 && l[start..].len() == 0
-        })
-        .count();
-
-    (one, two)
+        .map(|&ni| graph.node_weight(ni).unwrap().num)
+        .product()
 }
 
-struct Flattener<'a> {
-    unparsed: HashMap<&'a str, &'a str>,
-    parsed: RefCell<HashMap<&'a str, String>>,
+fn part_two(graph: Puzzle) -> usize {
+    let grid = assemble_grid(&graph);
+    let s = stitch_grid(&grid);
+    water_roughness(s)
 }
 
-impl<'a> Flattener<'a> {
-    fn new(rules: &[&'a str]) -> Flattener<'a> {
-        let mut unparsed = HashMap::new();
-        for &r in rules {
-            let ci = match r.find(':') {
-                Some(idx) => idx,
-                None => panic!("Rule '{}' has no colon!?", r),
-            };
-            unparsed.insert(&r[0..ci], r[(ci + 1)..].trim());
-        }
-        Flattener {
-            unparsed,
-            parsed: RefCell::new(HashMap::new()),
-        }
+fn water_roughness(mut s: String) -> usize {
+    let dim = sqrtusize(s.len());
+    let monster_re_str = MONSTER_PARTS.join(&".".repeat(dim - MONSTER_PARTS[1].len()));
+    let monster_re = Regex::new(&monster_re_str).unwrap();
+
+    fn octothorpe_count(s: &str) -> usize {
+        s.chars().filter(|&c| c == '#').count()
     }
 
-    fn flattened(&self) -> String {
-        self.get_rule("0")
-    }
-
-    fn get_rule(&self, num: &'a str) -> String {
-        if let Some(s) = self.parsed.borrow().get(num) {
-            return s.to_owned();
+    let roughness = |s: &str| {
+        let total_octs = octothorpe_count(&s);
+        let octs_per_monster = octothorpe_count(&monster_re_str);
+        let mut monster_count = 0;
+        let mut start = 0;
+        while let Some(m) = monster_re.find_at(&s, start) {
+            monster_count += 1;
+            start = m.start() + 1;
         }
-        let result = match self.unparsed.get(num) {
-            Some(s) => match s.chars().next() {
-                Some('"') => String::from(&s[1..(s.len() - 1)]),
-                _ => {
-                    let mut result = String::from("(");
-                    for t in s.split(' ') {
-                        match t {
-                            "|" => result.push_str("|"),
-                            _ => result.push_str(&self.get_rule(t)),
-                        };
-                    }
-                    result.push(')');
-                    result
-                }
-            },
-            None => panic!("There's no rule '{}'?!", num),
+        total_octs - monster_count * octs_per_monster
+    };
+
+    for _ in 0..2 {
+        if monster_re.is_match(&s) {
+            return roughness(&s);
+        }
+        for _ in 0..3 {
+            s = rotate_grid_string(&s, dim);
+            if monster_re.is_match(&s) {
+                return roughness(&s);
+            }
+        }
+        s = flip_grid_string(&s, dim);
+    }
+    panic!("what?!")
+}
+
+/// I strip the borders from every tile and create a single huge grid string of them
+/// stitched together.
+fn stitch_grid(grid: &Vec<Tile>) -> String {
+    let t_dim = grid[0].dim;
+    let mut s = String::with_capacity(grid.len() * (t_dim - 2) * (t_dim - 2));
+    let g_dim = sqrtusize(grid.len());
+    for gy in 0..g_dim {
+        for ty in 1..(t_dim - 1) {
+            // skip top and bottom row
+            let start = ty * t_dim + 1; // skip left column
+            let end = ty * t_dim + t_dim - 1; // skip right column
+            for gx in 0..g_dim {
+                let ps = &grid[gy * g_dim + gx].pixels[start..end];
+                s.push_str(ps)
+            }
+        }
+    }
+    debug_assert_eq!(s.capacity(), s.len());
+    s
+}
+
+fn assemble_grid(graph: Puzzle) -> Vec<Tile> {
+    let dim = sqrtusize(graph.node_count());
+    let mut grid: Vec<Rc<_>> = Vec::with_capacity(graph.node_count());
+
+    // for each row...
+    for y in 0..dim {
+        let mut curr = if y == 0 {
+            // on the first row, we need to find the top-left corner (an arbitrary choice).
+            Rc::new(top_left_corner(&graph))
+        } else {
+            // on subsequent rows, we need to find the tile which is below the prior row's
+            // first tile.
+            Rc::new(get_neighbor(graph, &grid[(y - 1) * dim], SOUTH))
         };
-        self.parsed
-            .borrow_mut()
-            .entry(num)
-            .or_insert(result)
-            .to_owned()
+        grid.push(Rc::clone(&curr));
+        // for each subsequent slot in the row...
+        for _ in 1..dim {
+            curr = Rc::new(get_neighbor(graph, &curr, EAST));
+            // write it down!
+            grid.push(curr.clone());
+        }
     }
+    grid.into_iter()
+        .map(|rc| Rc::try_unwrap(rc).unwrap().1)
+        .collect::<Vec<_>>()
+}
+
+fn get_neighbor(graph: Puzzle, curr: &Rc<(NodeIndex, Tile)>, dir: usize) -> (NodeIndex<u32>, Tile) {
+    // For each edge leaving curr (the node to the left), check and see if it's
+    // the edge for curr's EAST border (flipped or not), and get the node at
+    // the other end. That'll be the next node in the row. We can't use the
+    // border directions in the graph edge directly, as the curr node's tile may
+    // have been flipped or rotated since the edges were wired up.
+    let ni = graph
+        .edges_directed(curr.0, Direction::Outgoing)
+        .find(|er| {
+            if let Some(b) = curr.1.which_border(er.weight().1) {
+                b % 4 == dir
+            } else {
+                false
+            }
+        })
+        .unwrap()
+        .target();
+    // create a mungible Tile to throw in the grid
+    let mut tile = mungible_tile(&graph, ni);
+    // find which border will butt up against curr's EAST border (which is mirrored)
+    let mut border = tile.which_border(curr.1.get_flipped_border(dir)).unwrap();
+    if border >= 4 {
+        // if the border is flipped, we need to flip the tile over.
+        tile.flip();
+        // and exchange EAST/WEST
+        if border % 2 == 1 {
+            border += 2;
+        }
+    }
+    // Rotate it so the target border is facing curr. We might be rotating
+    // backwards on a flipped border, so add a couple extra spins to avoid
+    // overflow (they'll get mod-ed away).
+    tile.rotate((8 + (dir + 2) - border) % 4);
+    (ni, tile)
+}
+
+fn top_left_corner(graph: Puzzle) -> (NodeIndex, Tile) {
+    let ni = find_corners(&graph)[0];
+    let mut tile = mungible_tile(graph, ni);
+    // flip/rotate it so that it's truly top-left
+    let directions = graph.edges(ni).map(|e| e.weight().0).collect::<Vec<_>>();
+    let mut min = directions[0] % 4;
+    let mut max = directions[1] % 4;
+    if max < min {
+        let t = min;
+        min = max;
+        max = t;
+    }
+    match min {
+        0 if max == 1 => tile.rotate(1),
+        0 if max == 3 => tile.rotate(2),
+        1 => {} // south east
+        2 => tile.rotate(3),
+        _ => panic!("{} can't be the min direction?!", min),
+    }
+
+    // allows visual sanity checking of the demo
+    tile.flip();
+    tile.rotate(3);
+    // println!("{}", tile);
+
+    (ni, tile)
+}
+
+fn mungible_tile(graph: Puzzle, ni: NodeIndex) -> Tile {
+    let &gt = graph.node_weight(ni).unwrap();
+    Tile::new(gt.num, &gt.pixels)
+}
+
+fn find_corners(graph: Puzzle) -> Vec<NodeIndex> {
+    graph
+        .node_indices()
+        .filter(|ni| graph.edges(*ni).count() == 2)
+        .collect()
+}
+
+type Puzzle<'a> = &'a DiGraph<&'a Tile, (usize, usize)>;
+
+fn build_graph(tiles: &[Tile]) -> DiGraph<&Tile, (usize, usize)> {
+    let mut node_by_edge = HashMap::new();
+    let mut graph = DiGraph::new();
+    for t in tiles {
+        let node = graph.add_node(t);
+        for (i, &e) in t.all_borders().iter().enumerate() {
+            if let Some(existing) = node_by_edge.insert(e, node) {
+                if i >= 4 {
+                    // it's a flipped edge, which we needed to insert into the map,
+                    // but don't want in the graph.
+                    continue;
+                }
+                graph.add_edge(node, existing, (i, e));
+                let et = *graph.node_weight(existing).unwrap();
+                let ei = et.all_borders().iter().position(|&oe| e == oe).unwrap();
+                graph.add_edge(existing, node, (ei, e));
+            }
+        }
+    }
+    if cfg!(debug_assertions) {
+        let dim = sqrtusize(tiles.len());
+        debug_assert_eq!(tiles.len(), graph.node_count());
+        // The puzzle has dim-1 rows of dim overlapping vertical borders, and
+        // dim-1 columns of overlapping horizontal borders, each represented
+        // as two directed edges in the graph.
+        debug_assert_eq!(2 * 2 * dim * (dim - 1), graph.edge_count());
+    }
+    graph
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const EXAMPLE_TWO: &str = r#"0: 4 1 5
-1: 2 3 | 3 2
-2: 4 4 | 5 5
-3: 4 5 | 5 4
-4: "a"
-5: "b"
+    const EXAMPLE_ONE: &str = "Tile 2311:
+..##.#..#.
+##..#.....
+#...##..#.
+####.#...#
+##.##.###.
+##...#.###
+.#.#.#..##
+..#....#..
+###...#.#.
+..###..###
 
-ababbb
-bababa
-abbbab
-aaabbb
-aaaabbb"#;
+Tile 1951:
+#.##...##.
+#.####...#
+.....#..##
+#...######
+.##.#....#
+.###.#####
+###.##.##.
+.###....#.
+..#.#..#.#
+#...##.#..
 
-    const EXAMPLE_THREE: &str = r#"42: 9 14 | 10 1
-9: 14 27 | 1 26
-10: 23 14 | 28 1
-1: "a"
-11: 42 31
-5: 1 14 | 15 1
-19: 14 1 | 14 14
-12: 24 14 | 19 1
-16: 15 1 | 14 14
-31: 14 17 | 1 13
-6: 14 14 | 1 14
-2: 1 24 | 14 4
-0: 8 11
-13: 14 3 | 1 12
-15: 1 | 14
-17: 14 2 | 1 7
-23: 25 1 | 22 14
-28: 16 1
-4: 1 1
-20: 14 14 | 1 15
-3: 5 14 | 16 1
-27: 1 6 | 14 18
-14: "b"
-21: 14 1 | 1 14
-25: 1 1 | 1 14
-22: 14 14
-8: 42
-26: 14 22 | 1 20
-18: 15 15
-7: 14 5 | 1 21
-24: 14 1
+Tile 1171:
+####...##.
+#..##.#..#
+##.#..#.#.
+.###.####.
+..###.####
+.##....##.
+.#...####.
+#.##.####.
+####..#...
+.....##...
 
-abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
-bbabbbbaabaabba
-babbbbaabbbbbabbbbbbaabaaabaaa
-aaabbbbbbaaaabaababaabababbabaaabbababababaaa
-bbbbbbbaaaabbbbaaabbabaaa
-bbbababbbbaaaaaaaabbababaaababaabab
-ababaaaaaabaaab
-ababaaaaabbbaba
-baabbaaaabbaaaababbaababb
-abbbbabbbbaaaababbbbbbaaaababb
-aaaaabbaabaaaaababaa
-aaaabbaaaabbaaa
-aaaabbaabbaaaaaaabbbabbbaaabbaabaaa
-babaaabbbaaabaababbaabababaaab
-aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba"#;
+Tile 1427:
+###.##.#..
+.#..#.##..
+.#.##.#..#
+#.#.#.##.#
+....#...##
+...##..##.
+...#.#####
+.#.####.#.
+..#..###.#
+..##.#..#.
+
+Tile 1489:
+##.#.#....
+..##...#..
+.##..##...
+..#...#...
+#####...#.
+#..#.#.#.#
+...#.#.#..
+##.#...##.
+..##.##.##
+###.##.#..
+
+Tile 2473:
+#....####.
+#..#.##...
+#.##..#...
+######.#.#
+.#...#.#.#
+.#########
+.###.#..#.
+########.#
+##...##.#.
+..###.#.#.
+
+Tile 2971:
+..#.#....#
+#...###...
+#.#.###...
+##.##..#..
+.#####..##
+.#..####.#
+#..#.#..#.
+..####.###
+..#.#.###.
+...#.#.#.#
+
+Tile 2729:
+...#.#.#.#
+####.#....
+..#.#.....
+....#..#.#
+.##..##.#.
+.#.####...
+####.#.#..
+##.####...
+##..#.##..
+#.##...##.
+
+Tile 3079:
+#.#.#####.
+.#..######
+..#.......
+######....
+####.#..#.
+.#...#.##.
+#.#####.##
+..#.###...
+..#.......
+..#.###...";
+
+    fn tile_2311() -> Tile {
+        EXAMPLE_ONE.split("\n\n").next().unwrap().parse().unwrap()
+    }
+
+    #[test]
+    fn test_parse() {
+        let t = tile_2311();
+        assert_eq!(2311, t.num);
+        assert_eq!(str_to_bits("..##.#..#."), t.get_border(NORTH));
+        assert_eq!(str_to_bits("...#.##..#"), t.get_border(EAST));
+        assert_eq!(str_to_bits("###..###.."), t.get_border(SOUTH));
+        assert_eq!(str_to_bits(".#..#####."), t.get_border(WEST));
+    }
+
+    #[test]
+    fn test_flip() {
+        let mut t = tile_2311();
+        t.flip();
+        assert_eq!(str_to_bits(".#..#.##.."), t.get_border(NORTH));
+        assert_eq!(str_to_bits(".#####..#."), t.get_border(EAST));
+        assert_eq!(str_to_bits("..###..###"), t.get_border(SOUTH));
+        assert_eq!(str_to_bits("#..##.#..."), t.get_border(WEST));
+    }
+
+    #[test]
+    fn test_rotate_cw() {
+        let mut t = tile_2311();
+        t.rotate(1);
+        assert_eq!(str_to_bits(".#..#####."), t.get_border(NORTH));
+        assert_eq!(str_to_bits("..##.#..#."), t.get_border(EAST));
+        assert_eq!(str_to_bits("...#.##..#"), t.get_border(SOUTH));
+        assert_eq!(str_to_bits("###..###.."), t.get_border(WEST));
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(1);
+        assert_eq!("mieanjfbokgcplhd", t.pixels);
+        t.rotate(1);
+        assert_eq!("ponmlkjihgfedcba", t.pixels);
+        t.rotate(1);
+        assert_eq!("dhlpcgkobfjnaeim", t.pixels);
+        t.rotate(1);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(2);
+        assert_eq!("ponmlkjihgfedcba", t.pixels);
+        t.rotate(2);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(3);
+        assert_eq!("dhlpcgkobfjnaeim", t.pixels);
+        t.rotate(3);
+        assert_eq!("ponmlkjihgfedcba", t.pixels);
+        t.rotate(3);
+        assert_eq!("mieanjfbokgcplhd", t.pixels);
+        t.rotate(3);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+
+        t = Tile::new(42, "abcdefghijklmnop");
+        t.rotate(3);
+        t.rotate(5);
+        assert_eq!("abcdefghijklmnop", t.pixels);
+    }
+
+    #[test]
+    fn test_stitch_grid() {
+        let grid = vec![
+            Tile::new(1, "abcdefghi"),
+            Tile::new(2, "jklmnopqr"),
+            Tile::new(3, "stuvwxyz0"),
+            Tile::new(4, "123456789"),
+        ];
+        let s = stitch_grid(&grid);
+        assert_eq!("enw5", s);
+    }
+
+    #[test]
+    fn test_water_roughness() {
+        let s = "
+.#.#..#.##...#.##..#####
+###....#.#....#..#......
+##.##.###.#.#..######...
+###.#####...#.#####.#..#
+##.#....#.##.####...#.##
+...########.#....#####.#
+....#..#...##..#.#.###..
+.####...#..#.....#......
+#..#.##..#..###.#.##....
+#.####..#.####.#.#.###..
+###.#.#...#.######.#..##
+#.####....##..########.#
+##..##.#...#...#.#.#.#..
+...#..#..#.#.##..###.###
+.#.#....#.##.#...###.##.
+###.#...#..#.##.######..
+.#.#.###.##.##.#..#.##..
+.####.###.#...###.#..#.#
+..#.#..#..#.#.#.####.###
+#..####...#.#.#.###.###.
+#####..#####...###....##
+#.##..#..#...#..####...#
+.#.###..##..##..####.##.
+...###...##...#...#..###
+";
+        assert_eq!(273, water_roughness(s.replace('\n', "")));
+    }
 
     #[test]
     fn example_one() {
-        let rules = vec!["0: 1 2", r#"1: "a""#, "2: 1 3 | 3 1", r#"3: "b""#];
-        let flattener = Flattener::new(&rules);
-        let re = flattener.flattened();
-        println!("{}", re);
-        assert_eq!("(a(ab|ba))", re);
-    }
-
-    #[test]
-    fn example_two() {
-        let rules = get_rules(EXAMPLE_TWO);
-        let flattener = Flattener::new(&rules);
-        let re = flattener.flattened();
-        println!("{}", re);
-        assert_eq!("(a((aa|bb)(ab|ba)|(ab|ba)(aa|bb))b)", re);
-        assert_eq!(2, part_one(EXAMPLE_TWO));
-    }
-
-    #[test]
-    fn example_three() {
-        assert_eq!((3, 12), both_parts(EXAMPLE_THREE));
+        let tiles = parse(&EXAMPLE_ONE);
+        let graph = build_graph(&tiles);
+        assert_eq!(20899048083289, part_one(&graph));
+        assert_eq!(
+            vec![1951, 2311, 3079, 2729, 1427, 2473, 2971, 1489, 1171],
+            assemble_grid(&graph)
+                .iter()
+                .map(|t| t.num)
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(273, part_two(&graph));
     }
 }
