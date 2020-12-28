@@ -184,13 +184,11 @@ fn part_two(graph: Puzzle) -> usize {
 fn water_roughness(mut s: String) -> usize {
     let dim = sqrtusize(s.len());
     let monster_parts = vec![
-        "                  # ",
-        "#    ##    ##    ###",
-        " #  #  #  #  #  #   ",
+        /* *********** */ "#.",
+        "#....##....##....###",
+        ".#..#..#..#..#..#",
     ];
-    let monster_re_str = monster_parts
-        .join(&" ".repeat(dim - monster_parts[0].len()))
-        .replace(' ', ".");
+    let monster_re_str = monster_parts.join(&".".repeat(dim - monster_parts[1].len()));
     let monster_re = Regex::new(&monster_re_str).unwrap();
 
     fn octothorpe_count(s: &str) -> usize {
@@ -198,7 +196,15 @@ fn water_roughness(mut s: String) -> usize {
     }
 
     let roughness = |s: &str| {
-        octothorpe_count(&s) - monster_re.find_iter(&s).count() * octothorpe_count(&monster_re_str)
+        let total_octs = octothorpe_count(&s);
+        let octs_per_monster = octothorpe_count(&monster_re_str);
+        let mut monster_count = 0;
+        let mut start = 0;
+        while let Some(m) = monster_re.find_at(&s, start) {
+            monster_count += 1;
+            start = m.start() + 1;
+        }
+        total_octs - monster_count * octs_per_monster
     };
 
     for _ in 0..2 {
