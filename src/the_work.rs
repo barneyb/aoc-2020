@@ -22,12 +22,20 @@ const EAST: usize = 1;
 const SOUTH: usize = 2;
 const WEST: usize = 3;
 
+const MONSTER_PARTS: [&str; 3] = [
+    /* * * * * * * */ "#.",
+    "#....##....##....###",
+    ".#..#..#..#..#..#",
+];
+
+type Borders = [usize; 8];
+
 #[derive(Debug, Clone)]
 struct Tile {
     num: usize,
     pixels: String,
     dim: usize,
-    borders: Vec<String>,
+    borders: Borders,
 }
 
 #[inline]
@@ -52,7 +60,7 @@ where
     next
 }
 
-// I rotate the grid string's content 90 degrees clockwise without picking it up.
+/// I rotate the grid string's content 90 degrees clockwise without picking it up.
 fn rotate_grid_string(slice: &str, dim: usize) -> String {
     transform_grid_string(slice, dim, |x, y| (dim - x - 1, y))
 }
@@ -61,6 +69,18 @@ fn rotate_grid_string(slice: &str, dim: usize) -> String {
 /// were to grab the bottom edge, pick it up, roll your wrist over, and set it back down.
 fn flip_grid_string(slice: &str, dim: usize) -> String {
     transform_grid_string(slice, dim, |x, y| (y, dim - x - 1))
+}
+
+fn fold_char_into_bits(bits: usize, c: char) -> usize {
+    let mut n = bits << 1;
+    if c == '#' {
+        n += 1;
+    }
+    n
+}
+
+fn str_to_bits(s: &str) -> usize {
+    s.chars().fold(0, fold_char_into_bits)
 }
 
 impl Tile {
@@ -75,22 +95,20 @@ impl Tile {
         }
     }
 
-    fn extract_borders(pixels: &String, dim: usize) -> Vec<String> {
-        let north = String::from(&pixels[0..dim]);
+    fn extract_borders(pixels: &String, dim: usize) -> Borders {
+        let north = &pixels[0..dim];
         let east: String = pixels.chars().skip(dim - 1).step_by(dim).collect();
-        let f_south = String::from(&pixels[(pixels.len() - dim)..]);
+        let f_south = &pixels[(pixels.len() - dim)..];
         let f_west: String = pixels.chars().step_by(dim).collect();
-        let f_north = north.chars().rev().collect();
-        let f_east = east.chars().rev().collect();
-        vec![
-            north,
-            east,
-            f_south.chars().rev().collect(),
-            f_west.chars().rev().collect(),
-            f_north,
-            f_east,
-            f_south,
-            f_west,
+        [
+            str_to_bits(north),
+            str_to_bits(&east),
+            f_south.chars().rev().fold(0, fold_char_into_bits),
+            f_west.chars().rev().fold(0, fold_char_into_bits),
+            north.chars().rev().fold(0, fold_char_into_bits),
+            east.chars().rev().fold(0, fold_char_into_bits),
+            str_to_bits(f_south),
+            str_to_bits(&f_west),
         ]
     }
 
@@ -110,12 +128,12 @@ impl Tile {
         self.borders = Tile::extract_borders(&self.pixels, self.dim);
     }
 
-    fn get_border(&self, dir: usize) -> &String {
-        &self.borders[dir]
+    fn get_border(&self, dir: usize) -> usize {
+        self.borders[dir]
     }
 
-    fn get_flipped_border(&self, dir: usize) -> &String {
-        &self.borders[dir + 4]
+    fn get_flipped_border(&self, dir: usize) -> usize {
+        self.borders[dir + 4]
     }
 
     // fn face_up_borders(&self) -> &[String] {
@@ -126,12 +144,12 @@ impl Tile {
     //     &self.borders[4..]
     // }
 
-    fn all_borders(&self) -> &[String] {
+    fn all_borders(&self) -> &[usize] {
         &self.borders
     }
 
-    fn which_border(&self, border: &String) -> Option<usize> {
-        self.borders.iter().position(|e| e == border)
+    fn which_border(&self, border: usize) -> Option<usize> {
+        self.borders.iter().position(|&e| e == border)
     }
 }
 
@@ -183,12 +201,7 @@ fn part_two(graph: Puzzle) -> usize {
 
 fn water_roughness(mut s: String) -> usize {
     let dim = sqrtusize(s.len());
-    let monster_parts = vec![
-        /* *********** */ "#.",
-        "#....##....##....###",
-        ".#..#..#..#..#..#",
-    ];
-    let monster_re_str = monster_parts.join(&".".repeat(dim - monster_parts[1].len()));
+    let monster_re_str = MONSTER_PARTS.join(&".".repeat(dim - MONSTER_PARTS[1].len()));
     let monster_re = Regex::new(&monster_re_str).unwrap();
 
     fn octothorpe_count(s: &str) -> usize {
@@ -346,14 +359,14 @@ fn find_corners(graph: Puzzle) -> Vec<NodeIndex> {
         .collect()
 }
 
-type Puzzle<'a> = &'a DiGraph<&'a Tile, (usize, &'a String)>;
+type Puzzle<'a> = &'a DiGraph<&'a Tile, (usize, usize)>;
 
-fn build_graph(tiles: &[Tile]) -> DiGraph<&Tile, (usize, &String)> {
+fn build_graph(tiles: &[Tile]) -> DiGraph<&Tile, (usize, usize)> {
     let mut node_by_edge = HashMap::new();
     let mut graph = DiGraph::new();
     for t in tiles {
         let node = graph.add_node(t);
-        for (i, e) in t.all_borders().into_iter().enumerate() {
+        for (i, &e) in t.all_borders().iter().enumerate() {
             if let Some(existing) = node_by_edge.insert(e, node) {
                 if i >= 4 {
                     // it's a flipped edge, which we needed to insert into the map,
@@ -362,7 +375,7 @@ fn build_graph(tiles: &[Tile]) -> DiGraph<&Tile, (usize, &String)> {
                 }
                 graph.add_edge(node, existing, (i, e));
                 let et = *graph.node_weight(existing).unwrap();
-                let ei = et.all_borders().iter().position(|oe| e == oe).unwrap();
+                let ei = et.all_borders().iter().position(|&oe| e == oe).unwrap();
                 graph.add_edge(existing, node, (ei, e));
             }
         }
@@ -498,30 +511,30 @@ Tile 3079:
     fn test_parse() {
         let t = tile_2311();
         assert_eq!(2311, t.num);
-        assert_eq!("..##.#..#.", t.get_border(NORTH));
-        assert_eq!("...#.##..#", t.get_border(EAST));
-        assert_eq!("###..###..", t.get_border(SOUTH));
-        assert_eq!(".#..#####.", t.get_border(WEST));
+        assert_eq!(str_to_bits("..##.#..#."), t.get_border(NORTH));
+        assert_eq!(str_to_bits("...#.##..#"), t.get_border(EAST));
+        assert_eq!(str_to_bits("###..###.."), t.get_border(SOUTH));
+        assert_eq!(str_to_bits(".#..#####."), t.get_border(WEST));
     }
 
     #[test]
     fn test_flip() {
         let mut t = tile_2311();
         t.flip();
-        assert_eq!(".#..#.##..", t.get_border(NORTH));
-        assert_eq!(".#####..#.", t.get_border(EAST));
-        assert_eq!("..###..###", t.get_border(SOUTH));
-        assert_eq!("#..##.#...", t.get_border(WEST));
+        assert_eq!(str_to_bits(".#..#.##.."), t.get_border(NORTH));
+        assert_eq!(str_to_bits(".#####..#."), t.get_border(EAST));
+        assert_eq!(str_to_bits("..###..###"), t.get_border(SOUTH));
+        assert_eq!(str_to_bits("#..##.#..."), t.get_border(WEST));
     }
 
     #[test]
     fn test_rotate_cw() {
         let mut t = tile_2311();
         t.rotate(1);
-        assert_eq!(".#..#####.", t.get_border(NORTH));
-        assert_eq!("..##.#..#.", t.get_border(EAST));
-        assert_eq!("...#.##..#", t.get_border(SOUTH));
-        assert_eq!("###..###..", t.get_border(WEST));
+        assert_eq!(str_to_bits(".#..#####."), t.get_border(NORTH));
+        assert_eq!(str_to_bits("..##.#..#."), t.get_border(EAST));
+        assert_eq!(str_to_bits("...#.##..#"), t.get_border(SOUTH));
+        assert_eq!(str_to_bits("###..###.."), t.get_border(WEST));
 
         t = Tile::new(42, "abcdefghijklmnop");
         t.rotate(1);
