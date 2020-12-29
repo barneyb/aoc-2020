@@ -11,6 +11,8 @@ use std::time::{Duration, Instant};
 pub mod ascii;
 pub mod boarding_pass;
 pub mod find_pairs;
+#[macro_use]
+pub mod geom;
 pub mod geom2d;
 pub mod histogram;
 pub mod indexer;
