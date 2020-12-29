@@ -1,36 +1,40 @@
-use std::fmt::Debug;
-
 #[macro_export]
 macro_rules! vector_type {
-    ( $n:ident, $t:ty, $( $d:ident ),* ) => {
+    ( $n:ident, $t:ty, $f:ident $( ,$d:ident )* ) => {
         #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
         struct $n {
-            $( $d: $t, )*
+            $f: $t
+            $( , $d: $t )*
         }
 
         #[allow(unused)]
         impl $n {
-            const fn new($( $d: $t, )*) -> $n {
-                $n { $( $d, )* }
+            fn new($f: $t $( , $d: $t )*) -> $n {
+                $n { $f $( , $d )* }
             }
 
-            const fn origin() -> $n {
-                $n { $( $d: 0, )* }
+            fn origin() -> $n {
+                $n { $f: 0 $( , $d: 0 )* }
             }
 
             fn rectilinear_min(&self, other: &$n) -> $n {
-                $n { $( $d: self.$d.min(other.$d), )* }
+                $n { $f: self.$f.min(other.$f)
+                $( , $d: self.$d.min(other.$d) )*
+                }
             }
 
             fn rectilinear_max(&self, other: &$n) -> $n {
-                $n { $( $d: self.$d.max(other.$d), )* }
+                $n { $f: self.$f.max(other.$f)
+                $( , $d: self.$d.max(other.$d) )*
+                }
             }
 
             fn manhattan_distance(&self, p: &$n) -> usize {
-                let mut d: usize = 0;
+                let mut d = (self.$f - p.$f).abs() as usize;
                 $( d += (self.$d - p.$d).abs() as usize; )*
                 d
             }
+
         }
 
         #[allow(unused)]
@@ -38,62 +42,39 @@ macro_rules! vector_type {
             type Output = $n;
 
             fn add(self, rhs: Self) -> Self::Output {
-                $n { $( $d: self.$d + rhs.$d, )* }
+                $n { $f: self.$f + rhs.$f
+                $( , $d: self.$d + rhs.$d )*
+                }
             }
         }
 
         impl std::fmt::Display for $n {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "(")?;
-                // I cannot figure out how to lose the final trailing comma...
-                $( write!(f, "{},", self.$d)?; )*
+                write!(f, "({}", self.$f)?;
+                $( write!(f, ",{}", self.$d)?; )*
                 write!(f, ")")
             }
         }
     };
 }
 
-vector_type!(Vec2, i32, x, y);
-vector_type!(Vec3, i32, x, y, z);
-
-impl From<&[i32]> for Vec3 {
-    fn from(values: &[i32]) -> Self {
-        assert_eq!(3, values.len());
-        Vec3::new(values[0], values[1], values[2])
-    }
-}
-
-impl From<&Vec<i32>> for Vec3 {
-    fn from(values: &Vec<i32>) -> Self {
-        Vec3::from(&values[..])
-    }
-}
-
-// pub struct Neighbors<'a, T>
-// {
-//     p: &'a Vec3<T>,
-//     i: usize,
-// }
-//
-// impl<T> Iterator for Neighbors<'_, T>
-// where
-//     T: Add<Output = T>,
-// {
-//     type Item = Vec3<T>;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         if self.i >= NEIGHBOR_OFFSETS.len() {
-//             return None;
-//         }
-//         let d = NEIGHBOR_OFFSETS[self.i];
-//         self.i += 1;
-//         Some(*self.p + d)
-//     }
-// }
-
 #[cfg(test)]
 mod test {
-    use super::*;
+    vector_type!(Vec2, i32, x, y);
+    vector_type!(Vec3, i32, x, y, z);
+
+    impl From<&[i32]> for Vec3 {
+        fn from(values: &[i32]) -> Self {
+            assert_eq!(3, values.len());
+            Vec3::new(values[0], values[1], values[2])
+        }
+    }
+
+    impl From<&Vec<i32>> for Vec3 {
+        fn from(values: &Vec<i32>) -> Self {
+            Vec3::from(&values[..])
+        }
+    }
 
     #[test]
     fn test_basics() {
@@ -101,7 +82,7 @@ mod test {
         let v = Vec3::from(&dims);
         assert_eq!(2, v.y);
         assert_eq!(Vec3::new(1, 2, 3), v);
-        assert_eq!("(1,2,3,)", format!("{}", v));
+        assert_eq!("(1,2,3)", format!("{}", v));
     }
 
     #[test]
