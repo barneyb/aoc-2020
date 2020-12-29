@@ -1,18 +1,24 @@
 use aoc_2020::{read_input, time_block};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 pub fn the_work() {
     let game = time_block("Deal", || deal(&read_input()));
     println!("{:?}", time_block("Part One", || part_one(game)));
+    let game = time_block("Deal Again", || deal(&read_input()));
+    println!("{:?}", time_block("Part Two", || part_two(game)));
 }
 
 type Card = usize;
 type Deck = VecDeque<Card>;
 type Game = [Deck; 2];
+enum Player {
+    PlayerOne,
+    PlayerTwo,
+}
+use Player::*;
 
 fn part_one([mut one, mut two]: Game) -> usize {
-    // while both players have cards...
-    while !one.is_empty() && !two.is_empty() {
+    loop {
         // each flips their top card
         let a = one.pop_front().unwrap();
         let b = two.pop_front().unwrap();
@@ -20,13 +26,70 @@ fn part_one([mut one, mut two]: Game) -> usize {
         if a > b {
             one.push_back(a);
             one.push_back(b);
+            if two.is_empty() {
+                // return the winner's score
+                return compute_score(&one);
+            }
         } else {
             two.push_back(b);
             two.push_back(a);
+            if one.is_empty() {
+                // return the winner's score
+                return compute_score(&two);
+            }
         }
     }
-    // return the winner's score
-    compute_score(&if one.is_empty() { two } else { one })
+}
+
+fn part_two(mut game: Game) -> usize {
+    let winner = play_recursive(&mut game);
+    compute_score(&game[winner as usize])
+}
+
+fn play_recursive([one, two]: &mut Game) -> Player {
+    let mut seen_states = HashSet::new();
+    loop {
+        // if it's a repeated state player one wins the game
+        if !seen_states.insert((
+            one.iter().cloned().collect::<Vec<_>>(),
+            two.iter().cloned().collect::<Vec<_>>(),
+        )) {
+            return PlayerOne;
+        }
+        // each flips their top card
+        let a = one.pop_front().unwrap();
+        let b = two.pop_front().unwrap();
+        let round_winner = if one.len() >= a && two.len() >= b {
+            // make new decks of first n cards of each deck
+            // play a recursive game; winner wins the round
+            let mut subgame = [
+                one.iter().take(a).cloned().collect::<Deck>(),
+                two.iter().take(b).cloned().collect::<Deck>(),
+            ];
+            play_recursive(&mut subgame)
+        } else if a > b {
+            PlayerOne
+        } else {
+            PlayerTwo
+        };
+        // the round's winner gets both cards (theirs first)
+        match round_winner {
+            PlayerOne => {
+                one.push_back(a);
+                one.push_back(b);
+                if two.is_empty() {
+                    return PlayerOne;
+                }
+            }
+            PlayerTwo => {
+                two.push_back(b);
+                two.push_back(a);
+                if one.is_empty() {
+                    return PlayerTwo;
+                }
+            }
+        }
+    }
 }
 
 fn compute_score(deck: &Deck) -> usize {
@@ -84,8 +147,31 @@ Player 2:
     }
 
     #[test]
-    fn example_one() {
+    fn example_one_part_one() {
         let game = deal(&EXAMPLE_ONE);
         assert_eq!(306, part_one(game));
+    }
+
+    const EXAMPLE_TWO: &str = "\
+Player 1:
+43
+19
+
+Player 2:
+2
+29
+14";
+
+    #[test]
+    fn example_two() {
+        let game = deal(&EXAMPLE_TWO);
+        let score = compute_score(&game[PlayerOne as usize]);
+        assert_eq!(score, part_two(game));
+    }
+
+    #[test]
+    fn example_one_part_two() {
+        let game = deal(&EXAMPLE_ONE);
+        assert_eq!(291, part_two(game));
     }
 }
