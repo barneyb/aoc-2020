@@ -1,5 +1,5 @@
-use aoc_2020::geom2d::{Dir, Point};
-use aoc_2020::read_lines;
+use aoc_2020::geom2d::Dir;
+use aoc_2020::{read_lines, vector_type};
 use std::str::FromStr;
 
 pub fn the_work() {
@@ -8,6 +8,32 @@ pub fn the_work() {
         .fold(Ship::new(), |s, a| s.perform(a));
     println!("{:?}", s);
     println!("{}", s.pos.manhattan_distance(&Point::origin()))
+}
+
+vector_type!(Point, isize, x, y);
+
+impl Point {
+    pub fn step_by(&self, d: Dir, steps: isize) -> Point {
+        use Dir::*;
+        match d {
+            North => Point {
+                x: self.x,
+                y: self.y - steps,
+            },
+            South => Point {
+                x: self.x,
+                y: self.y + steps,
+            },
+            East => Point {
+                x: self.x + steps,
+                y: self.y,
+            },
+            West => Point {
+                x: self.x - steps,
+                y: self.y,
+            },
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -98,5 +124,14 @@ F11";
             .map(|l| l.parse::<Action>().unwrap())
             .fold(Ship::new(), |s, a| s.perform(&a));
         assert_eq!(Point::new(214, 72), s.pos);
+    }
+
+    #[test]
+    fn test_step_by() {
+        let origin = Point::origin();
+        assert_eq!(Point::new(0, -1), origin.step_by(Dir::North, 1));
+        assert_eq!(Point::new(0, 1), origin.step_by(Dir::South, 1));
+        assert_eq!(Point::new(1, 0), origin.step_by(Dir::East, 1));
+        assert_eq!(Point::new(-1, 0), origin.step_by(Dir::West, 1));
     }
 }
