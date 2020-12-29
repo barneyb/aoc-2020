@@ -1,6 +1,7 @@
 use aoc_2020::{read_input, vector_type};
 use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter, Write};
+use std::ops::Add;
 
 pub fn the_work() {
     let s = read_input();
@@ -106,6 +107,7 @@ impl Display for Game {
 }
 
 vector_type![Point, isize, x, y, z, w];
+type Offset = [isize; 4];
 
 impl Point {
     pub fn neighbors(&self) -> Neighbors {
@@ -113,88 +115,101 @@ impl Point {
     }
 }
 
-const NEIGHBOR_OFFSETS: [Point; 80] = [
-    Point::new(-1, -1, -1, -1),
-    Point::new(-1, -1, 0, -1),
-    Point::new(-1, -1, 1, -1),
-    Point::new(-1, 0, -1, -1),
-    Point::new(-1, 0, 0, -1),
-    Point::new(-1, 0, 1, -1),
-    Point::new(-1, 1, -1, -1),
-    Point::new(-1, 1, 0, -1),
-    Point::new(-1, 1, 1, -1),
-    Point::new(0, -1, -1, -1),
-    Point::new(0, -1, 0, -1),
-    Point::new(0, -1, 1, -1),
-    Point::new(0, 0, -1, -1),
-    Point::new(0, 0, 0, -1),
-    Point::new(0, 0, 1, -1),
-    Point::new(0, 1, -1, -1),
-    Point::new(0, 1, 0, -1),
-    Point::new(0, 1, 1, -1),
-    Point::new(1, -1, -1, -1),
-    Point::new(1, -1, 0, -1),
-    Point::new(1, -1, 1, -1),
-    Point::new(1, 0, -1, -1),
-    Point::new(1, 0, 0, -1),
-    Point::new(1, 0, 1, -1),
-    Point::new(1, 1, -1, -1),
-    Point::new(1, 1, 0, -1),
-    Point::new(1, 1, 1, -1),
-    Point::new(-1, -1, -1, 0),
-    Point::new(-1, -1, 0, 0),
-    Point::new(-1, -1, 1, 0),
-    Point::new(-1, 0, -1, 0),
-    Point::new(-1, 0, 0, 0),
-    Point::new(-1, 0, 1, 0),
-    Point::new(-1, 1, -1, 0),
-    Point::new(-1, 1, 0, 0),
-    Point::new(-1, 1, 1, 0),
-    Point::new(0, -1, -1, 0),
-    Point::new(0, -1, 0, 0),
-    Point::new(0, -1, 1, 0),
-    Point::new(0, 0, -1, 0),
-    // Point::new(0, 0, 0, 0),
-    Point::new(0, 0, 1, 0),
-    Point::new(0, 1, -1, 0),
-    Point::new(0, 1, 0, 0),
-    Point::new(0, 1, 1, 0),
-    Point::new(1, -1, -1, 0),
-    Point::new(1, -1, 0, 0),
-    Point::new(1, -1, 1, 0),
-    Point::new(1, 0, -1, 0),
-    Point::new(1, 0, 0, 0),
-    Point::new(1, 0, 1, 0),
-    Point::new(1, 1, -1, 0),
-    Point::new(1, 1, 0, 0),
-    Point::new(1, 1, 1, 0),
-    Point::new(-1, -1, -1, 1),
-    Point::new(-1, -1, 0, 1),
-    Point::new(-1, -1, 1, 1),
-    Point::new(-1, 0, -1, 1),
-    Point::new(-1, 0, 0, 1),
-    Point::new(-1, 0, 1, 1),
-    Point::new(-1, 1, -1, 1),
-    Point::new(-1, 1, 0, 1),
-    Point::new(-1, 1, 1, 1),
-    Point::new(0, -1, -1, 1),
-    Point::new(0, -1, 0, 1),
-    Point::new(0, -1, 1, 1),
-    Point::new(0, 0, -1, 1),
-    Point::new(0, 0, 0, 1),
-    Point::new(0, 0, 1, 1),
-    Point::new(0, 1, -1, 1),
-    Point::new(0, 1, 0, 1),
-    Point::new(0, 1, 1, 1),
-    Point::new(1, -1, -1, 1),
-    Point::new(1, -1, 0, 1),
-    Point::new(1, -1, 1, 1),
-    Point::new(1, 0, -1, 1),
-    Point::new(1, 0, 0, 1),
-    Point::new(1, 0, 1, 1),
-    Point::new(1, 1, -1, 1),
-    Point::new(1, 1, 0, 1),
-    Point::new(1, 1, 1, 1),
+impl Add<&Offset> for &Point {
+    type Output = Point;
+
+    fn add(self, rhs: &Offset) -> Self::Output {
+        Point::new(
+            self.x + rhs[0],
+            self.y + rhs[1],
+            self.z + rhs[2],
+            self.w + rhs[3],
+        )
+    }
+}
+
+const NEIGHBOR_OFFSETS: [Offset; 80] = [
+    [-1, -1, -1, -1],
+    [-1, -1, 0, -1],
+    [-1, -1, 1, -1],
+    [-1, 0, -1, -1],
+    [-1, 0, 0, -1],
+    [-1, 0, 1, -1],
+    [-1, 1, -1, -1],
+    [-1, 1, 0, -1],
+    [-1, 1, 1, -1],
+    [0, -1, -1, -1],
+    [0, -1, 0, -1],
+    [0, -1, 1, -1],
+    [0, 0, -1, -1],
+    [0, 0, 0, -1],
+    [0, 0, 1, -1],
+    [0, 1, -1, -1],
+    [0, 1, 0, -1],
+    [0, 1, 1, -1],
+    [1, -1, -1, -1],
+    [1, -1, 0, -1],
+    [1, -1, 1, -1],
+    [1, 0, -1, -1],
+    [1, 0, 0, -1],
+    [1, 0, 1, -1],
+    [1, 1, -1, -1],
+    [1, 1, 0, -1],
+    [1, 1, 1, -1],
+    [-1, -1, -1, 0],
+    [-1, -1, 0, 0],
+    [-1, -1, 1, 0],
+    [-1, 0, -1, 0],
+    [-1, 0, 0, 0],
+    [-1, 0, 1, 0],
+    [-1, 1, -1, 0],
+    [-1, 1, 0, 0],
+    [-1, 1, 1, 0],
+    [0, -1, -1, 0],
+    [0, -1, 0, 0],
+    [0, -1, 1, 0],
+    [0, 0, -1, 0],
+    // [0, 0, 0, 0],
+    [0, 0, 1, 0],
+    [0, 1, -1, 0],
+    [0, 1, 0, 0],
+    [0, 1, 1, 0],
+    [1, -1, -1, 0],
+    [1, -1, 0, 0],
+    [1, -1, 1, 0],
+    [1, 0, -1, 0],
+    [1, 0, 0, 0],
+    [1, 0, 1, 0],
+    [1, 1, -1, 0],
+    [1, 1, 0, 0],
+    [1, 1, 1, 0],
+    [-1, -1, -1, 1],
+    [-1, -1, 0, 1],
+    [-1, -1, 1, 1],
+    [-1, 0, -1, 1],
+    [-1, 0, 0, 1],
+    [-1, 0, 1, 1],
+    [-1, 1, -1, 1],
+    [-1, 1, 0, 1],
+    [-1, 1, 1, 1],
+    [0, -1, -1, 1],
+    [0, -1, 0, 1],
+    [0, -1, 1, 1],
+    [0, 0, -1, 1],
+    [0, 0, 0, 1],
+    [0, 0, 1, 1],
+    [0, 1, -1, 1],
+    [0, 1, 0, 1],
+    [0, 1, 1, 1],
+    [1, -1, -1, 1],
+    [1, -1, 0, 1],
+    [1, -1, 1, 1],
+    [1, 0, -1, 1],
+    [1, 0, 0, 1],
+    [1, 0, 1, 1],
+    [1, 1, -1, 1],
+    [1, 1, 0, 1],
+    [1, 1, 1, 1],
 ];
 
 struct Neighbors<'a> {
@@ -209,9 +224,9 @@ impl Iterator for Neighbors<'_> {
         if self.i >= NEIGHBOR_OFFSETS.len() {
             return None;
         }
-        let d = NEIGHBOR_OFFSETS[self.i];
+        let offset = &NEIGHBOR_OFFSETS[self.i];
         self.i += 1;
-        Some(*self.p + d)
+        Some(self.p + offset)
     }
 }
 
