@@ -1,7 +1,6 @@
-use aoc_2020::read_input;
+use aoc_2020::{read_input, vector_type};
 use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter, Write};
-use std::ops::Add;
 
 pub fn the_work() {
     let s = read_input();
@@ -106,63 +105,11 @@ impl Display for Game {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
-pub struct Point {
-    pub x: isize,
-    pub y: isize,
-    pub z: isize,
-    pub w: isize,
-}
+vector_type![Point, isize, x, y, z, w];
 
 impl Point {
-    pub const fn new(x: isize, y: isize, z: isize, w: isize) -> Point {
-        Point { x, y, z, w }
-    }
-
-    #[allow(dead_code)]
-    pub const fn origin() -> Point {
-        Point::new(0, 0, 0, 0)
-    }
-
     pub fn neighbors(&self) -> Neighbors {
         Neighbors { p: self, i: 0 }
-    }
-
-    pub fn rectilinear_min(&self, other: &Point) -> Point {
-        Point {
-            x: self.x.min(other.x),
-            y: self.y.min(other.y),
-            z: self.z.min(other.z),
-            w: self.w.min(other.w),
-        }
-    }
-
-    pub fn rectilinear_max(&self, other: &Point) -> Point {
-        Point {
-            x: self.x.max(other.x),
-            y: self.y.max(other.y),
-            z: self.z.max(other.z),
-            w: self.w.max(other.w),
-        }
-    }
-}
-
-impl Add for Point {
-    type Output = Point;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Point {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
-    }
-}
-
-impl Display for Point {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "({},{},{},{})", self.x, self.y, self.z, self.w)
     }
 }
 
@@ -250,7 +197,7 @@ const NEIGHBOR_OFFSETS: [Point; 80] = [
     Point::new(1, 1, 1, 1),
 ];
 
-pub struct Neighbors<'a> {
+struct Neighbors<'a> {
     p: &'a Point,
     i: usize,
 }
