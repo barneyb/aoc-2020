@@ -33,9 +33,11 @@ fi
 BRANCH="day$d"
 git checkout -b $BRANCH master
 cat > src/the_work.rs <<EOF
+use aoc_2020::{read_input, time_block};
+
 pub fn the_work() {
-    let input = aoc_2020::read_input();
-    println!("{:?}", part_one(&input));
+    let input = time_block("Parsing", || read_input());
+    println!("{:?}", time_block("Part One", || part_one(&input)));
 }
 
 fn part_one(input: &str) -> usize {
