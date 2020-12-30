@@ -1,12 +1,16 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run aoc-2020" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="channel" value="DEFAULT" />
     <option name="command" value="run --package aoc-2020 --bin aoc-2020" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <option name="channel" value="DEFAULT" />
     <option name="allFeatures" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="SHORT" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-    <envs />
+    <envs>
+      <env name="CLICOLOR_FORCE" value="1" />
+    </envs>
+    <option name="isRedirectInput" value="false" />
+    <option name="redirectInputPath" value="" />
     <method v="2">
       <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_cargo test" />
       <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_cargo fmt" />
