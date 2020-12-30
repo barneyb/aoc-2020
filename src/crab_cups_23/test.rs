@@ -40,6 +40,6 @@ fn test_single_moves() {
 
 #[test]
 fn example_one() {
-    let ring = Cups::from(EXAMPLE_ONE);
-    assert_eq!("67384529", part_one(&ring));
+    let mut cups = Cups::from(EXAMPLE_ONE);
+    assert_eq!("67384529", part_one(&mut cups));
 }
