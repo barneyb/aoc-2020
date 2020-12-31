@@ -1,24 +1,63 @@
+use crate::histogram::Histogram;
 use crate::timed_block;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::fmt::{self, Display, Formatter};
+use Dir::*;
 
 #[cfg(test)]
 mod test;
 
 pub fn solve(input: &str) {
-    println!("{}", timed_block("Part One", || part_one(input)));
+    let layout = timed_block("Part One", || initial_layout(input));
+    println!("{}", layout.len());
+    println!("{}", timed_block("Part Two", || part_two(&layout)));
 }
 
-fn part_one(input: &str) -> usize {
+type Layout = HashSet<Tile>;
+
+fn initial_layout(input: &str) -> Layout {
     let mut black_tiles = HashSet::new();
-    for path in input.lines() {
-        let t = Tile::origin().walk(&parse_path(&path));
+    for path in input.lines().map(&parse_path) {
+        let t = Tile::origin().walk(&path);
         if black_tiles.contains(&t) {
             black_tiles.remove(&t);
         } else {
             black_tiles.insert(t);
         }
     }
-    black_tiles.len()
+    black_tiles
+}
+
+fn part_two(layout: &Layout) -> usize {
+    let mut lo = do_step(layout);
+    for _ in 1..100 {
+        lo = do_step(&lo);
+    }
+    lo.len()
+}
+
+fn do_step(layout: &Layout) -> Layout {
+    let mut next = HashSet::new();
+    let mut black_neighbor_hist = HashMap::new();
+    for tile in layout {
+        let mut count = 0;
+        for neighbor in tile.neighbors() {
+            if layout.contains(&neighbor) {
+                count += 1;
+            }
+            black_neighbor_hist.increment_bucket(neighbor);
+        }
+        if count == 1 || count == 2 {
+            next.insert(tile.clone());
+        }
+    }
+    for (t, _) in black_neighbor_hist
+        .iter()
+        .filter(|(t, &nc)| nc == 2 && !layout.contains(t))
+    {
+        next.insert(t.clone());
+    }
+    next
 }
 
 fn parse_path(s: &str) -> Vec<Dir> {
@@ -57,9 +96,8 @@ enum Dir {
     SouthWest,
     West,
 }
-use Dir::*;
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Ord, PartialOrd)]
 struct Tile {
     x: i32,
     y: i32,
@@ -86,11 +124,50 @@ impl Tile {
     fn step_by(&self, d: Dir, n: i32) -> Self {
         match d {
             NorthWest => Tile::new(self.x + n, self.y - n, self.z),
-            NorthEast => Tile::new(self.x + 1, self.y, self.z - 1),
-            East => Tile::new(self.x, self.y + 1, self.z - 1),
+            NorthEast => Tile::new(self.x + n, self.y, self.z - n),
+            East => Tile::new(self.x, self.y + n, self.z - n),
             SouthEast => Tile::new(self.x - n, self.y + n, self.z),
             SouthWest => Tile::new(self.x - n, self.y, self.z + n),
             West => Tile::new(self.x, self.y - n, self.z + n),
+        }
+    }
+
+    fn neighbors(&self) -> Neighbors {
+        Neighbors {
+            tile: self,
+            next: Some(NorthWest),
+        }
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "({},{},{})", self.x, self.y, self.z)
+    }
+}
+
+struct Neighbors<'a> {
+    tile: &'a Tile,
+    next: Option<Dir>,
+}
+
+impl Iterator for Neighbors<'_> {
+    type Item = Tile;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(d) = self.next {
+            let t = self.tile.step(d);
+            self.next = match d {
+                NorthWest => Some(NorthEast),
+                NorthEast => Some(East),
+                East => Some(SouthEast),
+                SouthEast => Some(SouthWest),
+                SouthWest => Some(West),
+                West => None,
+            };
+            Some(t)
+        } else {
+            None
         }
     }
 }

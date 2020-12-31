@@ -32,6 +32,20 @@ fn test_parse_single() {
     assert_eq!(vec![West], parse_path("w"));
 }
 
+#[test]
+fn test_neighbors() {
+    let t = Tile::origin();
+    let ns = vec![
+        t.step(NorthWest),
+        t.step(NorthEast),
+        t.step(East),
+        t.step(SouthEast),
+        t.step(SouthWest),
+        t.step(West),
+    ];
+    assert_eq!(ns, t.neighbors().collect::<Vec<_>>())
+}
+
 const EXAMPLE_ONE: &str = "esenee"; // move one tile east, one tile southeast, one tile northeast, and one tile east
 
 #[test]
@@ -81,6 +95,49 @@ neswnwewnwnwseenwseesewsenwsweewe
 wseweeenwnesenwwwswnew";
 
 #[test]
-fn example_four() {
-    assert_eq!(10, part_one(&EXAMPLE_FOUR));
+fn example_four_part_one() {
+    let layout = initial_layout(&EXAMPLE_FOUR);
+    assert_eq!(10, layout.len());
+}
+
+#[test]
+fn example_four_part_two() {
+    let mut layout = initial_layout(&EXAMPLE_FOUR);
+    for day in 1..=100 {
+        layout = do_step(&layout);
+        if let Some(e) = match day {
+            1 => Some(15),
+            2 => Some(12),
+            3 => Some(25),
+            4 => Some(14),
+            5 => Some(23),
+            6 => Some(28),
+            7 => Some(41),
+            8 => Some(37),
+            9 => Some(49),
+            10 => Some(37),
+            20 => Some(132),
+            30 => Some(259),
+            40 => Some(406),
+            50 => Some(566),
+            60 => Some(788),
+            70 => Some(1106),
+            80 => Some(1373),
+            90 => Some(1844),
+            100 => Some(2208),
+            _ => None,
+        } {
+            assert_eq!(
+                e,
+                layout.len(),
+                "Day {} should have {} black tiles, but has {}",
+                day,
+                e,
+                layout.len()
+            );
+        }
+    }
+
+    let layout = initial_layout(&EXAMPLE_FOUR);
+    assert_eq!(2208, part_two(&layout));
 }
