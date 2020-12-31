@@ -9,27 +9,27 @@ macro_rules! vector_type {
 
         #[allow(unused)]
         impl $n {
-            fn new($f: $t $( , $d: $t )*) -> $n {
+            fn new($f: $t $( , $d: $t )*) -> Self {
                 $n { $f $( , $d )* }
             }
 
-            fn origin() -> $n {
+            fn origin() -> Self {
                 $n { $f: 0 $( , $d: 0 )* }
             }
 
-            fn rectilinear_min(&self, other: &$n) -> $n {
+            fn rectilinear_min(&self, other: &Self) -> Self {
                 $n { $f: self.$f.min(other.$f)
                 $( , $d: self.$d.min(other.$d) )*
                 }
             }
 
-            fn rectilinear_max(&self, other: &$n) -> $n {
+            fn rectilinear_max(&self, other: &Self) -> Self {
                 $n { $f: self.$f.max(other.$f)
                 $( , $d: self.$d.max(other.$d) )*
                 }
             }
 
-            fn manhattan_distance(&self, p: &$n) -> usize {
+            fn manhattan_distance(&self, p: &Self) -> usize {
                 let mut d = (self.$f - p.$f).abs() as usize;
                 $( d += (self.$d - p.$d).abs() as usize; )*
                 d

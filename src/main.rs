@@ -1,4 +1,4 @@
-use aoc_2020::crab_cups_23::solve;
+use aoc_2020::lobby_layout_24::solve;
 use aoc_2020::{read_input, with_duration};
 
 fn main() {

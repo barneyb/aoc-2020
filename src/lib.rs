@@ -9,6 +9,7 @@ use std::fs;
 use std::time::{Duration, Instant};
 
 pub mod crab_cups_23;
+pub mod lobby_layout_24;
 
 pub mod ascii;
 pub mod boarding_pass;
