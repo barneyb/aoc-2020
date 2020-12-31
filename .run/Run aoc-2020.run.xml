@@ -4,11 +4,9 @@
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <option name="channel" value="DEFAULT" />
     <option name="allFeatures" value="false" />
-    <option name="emulateTerminal" value="false" />
+    <option name="emulateTerminal" value="true" />
     <option name="backtrace" value="SHORT" />
-    <envs>
-      <env name="CLICOLOR_FORCE" value="1" />
-    </envs>
+    <envs />
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
     <method v="2">

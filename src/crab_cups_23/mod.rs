@@ -59,7 +59,6 @@ impl<'a> Cups {
         debug_assert!(n > self.size, "Can't extend to a smaller size");
         self.arr.resize(n + 1, 0);
         let mut curr = self.tail;
-        assert_eq!(self.head, self.arr[curr]);
         for i in (self.size + 1)..(n + 1) {
             self.arr[curr] = i;
             curr = i;
