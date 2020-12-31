@@ -3,7 +3,7 @@ package com.barneyb.aoc.aoc2020;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class Aoc2020Day23CrabCups {
 
@@ -13,7 +13,7 @@ public class Aoc2020Day23CrabCups {
     @Data
     @AllArgsConstructor
     private static class Link {
-        int value;
+        final long value;
         Link next;
 
         @Override
@@ -36,7 +36,7 @@ public class Aoc2020Day23CrabCups {
         picked_up.next.next.next = null;
 
         // find the destination label
-        int dest_num = curr.value;
+        var dest_num = curr.value;
         do {
             dest_num = (dest_num + size - 1) % size;
         } while (picked_up.value == dest_num || picked_up.next.value == dest_num || picked_up.next.next.value == dest_num);
@@ -70,29 +70,47 @@ public class Aoc2020Day23CrabCups {
         return result;
     }
 
-    private static long partTwo(String input) {
-        var cupCount = 10_000;
+    private static long partTwo(String input, int cupCount, int moveCount) {
         var curr = buildRing(input, cupCount);
-        var hist = new HashMap<Long, Integer>();
-        for (int i = 0; i < 10_000; i++) {
-            curr = tick(curr, cupCount);
-            var res = computePartTwoResult(curr);
-            hist.compute(res, (k, v) -> v == null ? 1 : v + 1);
+        var one = curr;
+        // it's fast to find it now, since we know it's in the first few
+        while (one.value != 0) {
+            one = one.next;
         }
-        System.out.println(hist);
-        return computePartTwoResult(curr);
+        for (int i = 0; i < moveCount; i++) {
+            curr = tick(curr, cupCount);
+        }
+        return one.next.value * one.next.next.value;
     }
 
-    private static long computePartTwoResult(Link curr) {
-        while (curr.value != 0) {
-            curr = curr.next;
-        }
-        long result = 1;
-        for (int i = 0; i < 2; i++) {
-            curr = curr.next;
-            result *= curr.value + 1;
-        }
-        return result;
+    private static <T extends Comparable<T>> String drawHistogram(Map<T, Integer> hist) {
+        var max = hist.values().stream().reduce(Integer.MIN_VALUE, Math::max);
+        var min = hist.values().stream().reduce(Integer.MAX_VALUE, Math::min);
+        var sb = new StringBuilder();
+        hist.keySet().stream().sorted().forEach(k -> {
+            var label = k.toString();
+            if (label.length() > 10) {
+                label = label.substring(0, 10);
+            }
+            if (label.length() < 10) {
+                sb.append(" ".repeat(10 - label.length()));
+            }
+            var val = hist.get(k);
+            var bar = (val - min) * 60 / (max - min);
+            sb.append(label).append(" |")
+                    .append("#".repeat(bar))
+                    .append(" ".repeat(60 - bar))
+                    .append("| ")
+                    .append(val)
+                    .append('\n');
+        });
+        sb.append(hist.size())
+                .append(" keys, ranging from ")
+                .append(min)
+                .append(" to ")
+                .append(max)
+                .append(" occurrences.");
+        return sb.toString();
     }
 
     private static Link buildRing(String input) {
@@ -127,11 +145,15 @@ public class Aoc2020Day23CrabCups {
 
     public static void main(String[] args) {
         var start = System.currentTimeMillis();
-        System.out.print("Part One: " + partOne(MY_INPUT));
+        System.out.print("Part One: " + partOne(EXAMPLE_ONE));
         System.out.println(" (" + (System.currentTimeMillis() - start) + " ms)");
+        var tickCount = 100_000; // 10_000_000
+        var cupCount = 100_000; // 1_000_000
         start = System.currentTimeMillis();
-        System.out.print("Part Two: " + partTwo(MY_INPUT));
-        System.out.println(" (" + (System.currentTimeMillis() - start) + " ms)");
+        System.out.print("Part Two: " + partTwo(EXAMPLE_ONE, cupCount, tickCount));
+        var elapsed = System.currentTimeMillis() - start;
+        System.out.println(" (" + elapsed + " ms)");
+        System.out.println("expect " + (elapsed * 1_000_000 / 1_000 * 10_000_000 / cupCount / tickCount) + "s to solve part two");
     }
 
 }
