@@ -14,6 +14,8 @@ pub mod day23_crab_cups;
 pub mod day24_lobby_layout;
 pub mod day25_combo_breaker;
 
+pub mod y2019d22_slam_shuffle;
+
 pub mod ascii;
 pub mod boarding_pass;
 pub mod find_pairs;
