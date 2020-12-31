@@ -24,12 +24,15 @@ git merge --no-ff -m "Merge branch '$BRANCH'" $BRANCH
 git push
 git branch -D $BRANCH
 
-d=`echo $BRANCH | sed -e 's/^[^1-9]*0*\([1-9][0-9]*\).*$/\1/'`
-let "d = $d + 1"
+y=`echo $BRANCH | sed -e 's/^[^1-9]*0*\([1-9][0-9]*\).*$/\1/'`
+let "d = $y + 1"
 echo $d
 if [ ${#d} = 1 ]; then
   d="0$d"
 fi
-BRANCH="day$d"
-git checkout -b $BRANCH master
-cp ./template.rs.txt src/the_work.rs
+git checkout -b day$d master
+mkdir src/day_$d
+sed -i -e "s/aoc_2020::.*_$y::solve/aoc_2020::day_$d::solve/" src/main.rs
+sed -i -e "s/\(pub mod .*_$y;\)/\\1\\npub mod day_$d;/" src/lib.rs
+cp template/*.rs src/day_$d
+git add src/main.rs src/lib.rs src/day_$d
