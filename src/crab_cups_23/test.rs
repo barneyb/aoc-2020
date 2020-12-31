@@ -1,66 +1,82 @@
 use super::*;
-use crate::with_duration;
+
+const EXAMPLE_ONE: &str = "389125467";
 
 #[test]
 fn test_parse_and_unparse() {
     let cups = Cups::from("3412");
     assert_eq!(0, cups.moves);
     assert_eq!(vec![1usize, 2, 3, 4], cups.one_first());
-    assert_eq!("(3) 4  1  2 ", format!("{:?}", cups));
     assert_eq!("234", cups.to_string());
-}
 
-const EXAMPLE_ONE: &str = "389125467";
+    let cups = Cups::from(EXAMPLE_ONE);
+    assert_eq!(vec![0, 2, 5, 8, 6, 4, 7, 3, 9, 1], cups.arr);
+    assert_eq!(vec![1, 2, 5, 4, 6, 7, 3, 8, 9], cups.one_first());
+
+    let mut cups = Cups::from(EXAMPLE_ONE);
+    cups.extend_to(20);
+    assert_eq!(
+        vec![1, 2, 5, 4, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 3, 8, 9],
+        cups.one_first()
+    );
+    assert_eq!("254671011121314151617181920389", cups.to_string());
+    assert_eq!((2, 5), cups.pair_after_one());
+}
 
 #[test]
 fn test_single_moves() {
     let mut cups = Cups::from(EXAMPLE_ONE);
-    assert_eq!("(3) 8  9  1  2  5  4  6  7 ", format!("{:?}", cups));
+    assert_eq!("25467389", cups.to_string());
     cups.tick();
-    assert_eq!(" 3 (2) 8  9  1  5  4  6  7 ", format!("{:?}", cups));
+    assert_eq!("54673289", cups.to_string());
     cups.tick();
-    assert_eq!(" 3  2 (5) 4  6  7  8  9  1 ", format!("{:?}", cups));
+    assert_eq!("32546789", cups.to_string());
     cups.tick();
-    assert_eq!(" 7  2  5 (8) 9  1  3  4  6 ", format!("{:?}", cups));
+    assert_eq!("34672589", cups.to_string());
     cups.tick();
-    assert_eq!(" 3  2  5  8 (4) 6  7  9  1 ", format!("{:?}", cups));
+    assert_eq!("32584679", cups.to_string());
     cups.tick();
-    assert_eq!(" 9  2  5  8  4 (1) 3  6  7 ", format!("{:?}", cups));
+    assert_eq!("36792584", cups.to_string());
     cups.tick();
-    assert_eq!(" 7  2  5  8  4  1 (9) 3  6 ", format!("{:?}", cups));
+    assert_eq!("93672584", cups.to_string());
     cups.tick();
-    assert_eq!(" 8  3  6  7  4  1  9 (2) 5 ", format!("{:?}", cups));
+    assert_eq!("92583674", cups.to_string());
     cups.tick();
-    assert_eq!(" 7  4  1  5  8  3  9  2 (6)", format!("{:?}", cups));
+    assert_eq!("58392674", cups.to_string());
     cups.tick();
-    assert_eq!("(5) 7  4  1  8  3  9  2  6 ", format!("{:?}", cups));
+    assert_eq!("83926574", cups.to_string());
     cups.tick();
-    assert_eq!(" 5 (8) 3  7  4  1  9  2  6 ", format!("{:?}", cups));
-    assert_eq!("92658374", cups.to_string())
+    assert_eq!("92658374", cups.to_string());
 }
 
 #[test]
-fn bench() {
-    let tick_count = 10_000;
-
+fn extended_list_sanity() {
     let mut cups = Cups::from(EXAMPLE_ONE);
     cups.extend_to(20);
-
-    let (_, run) = with_duration(|| {
-        for _ in 0..tick_count {
-            cups.tick();
-        }
-    });
-    // this is for 10_000 ticks w/ 20 cups
-    let rotated = cups.one_first();
-    assert_eq!(vec![1, 19, 15, 5, 2, 13, 4, 12, 9, 20, 10, 8, 11, 16, 3, 17, 6, 7, 18, 14], rotated);
-
-    let expected_run = run.as_millis() * 1_000_000 * 10_000 / cups.size as u128 / tick_count;
-    println!("expect {}s to solve part two", expected_run);
+    cups.tick();
+    assert_eq!(
+        vec![1, 5, 4, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 3, 2, 8, 9],
+        cups.one_first()
+    );
+    assert_eq!("546710111213141516171819203289", cups.to_string());
+    assert_eq!((5, 4), cups.pair_after_one());
+    for _ in 0..100 {
+        cups.tick();
+    }
+    assert_eq!(
+        vec![1, 9, 6, 13, 3, 12, 8, 17, 10, 14, 20, 18, 5, 19, 2, 4, 7, 16, 11, 15],
+        cups.one_first()
+    );
+    assert_eq!("961331281710142018519247161115", cups.to_string());
+    assert_eq!((9, 6), cups.pair_after_one());
 }
 
 #[test]
-fn example_one() {
-    let mut cups = Cups::from(EXAMPLE_ONE);
-    assert_eq!("67384529", part_one(&mut cups));
+fn example_one_part_one() {
+    assert_eq!("67384529", part_one(&EXAMPLE_ONE));
+}
+
+#[test]
+fn example_one_part_two() {
+    assert_eq!(149245887792, part_two(&EXAMPLE_ONE));
 }
