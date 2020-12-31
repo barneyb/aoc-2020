@@ -8,6 +8,7 @@ use std::fmt::Display;
 use std::fs;
 use std::time::{Duration, Instant};
 
+pub mod combo_breaker_25;
 pub mod crab_cups_23;
 pub mod lobby_layout_24;
 
