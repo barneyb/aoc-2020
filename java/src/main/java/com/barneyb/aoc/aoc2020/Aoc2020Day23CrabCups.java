@@ -3,6 +3,8 @@ package com.barneyb.aoc.aoc2020;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.HashMap;
+
 public class Aoc2020Day23CrabCups {
 
     private static final String EXAMPLE_ONE = "389125467";
@@ -19,7 +21,7 @@ public class Aoc2020Day23CrabCups {
             var sb = new StringBuilder();
             sb.append("Link(").append(value + 1).append(')');
             var curr = this;
-            for (int i = 0; i < 10 && curr.next != null && curr.next != this; i++) {
+            for (int i = 0; i < 20 && curr.next != null && curr.next != this; i++) {
                 curr = curr.next;
                 sb.append(">").append(curr.value + 1);
             }
@@ -51,7 +53,7 @@ public class Aoc2020Day23CrabCups {
         return curr.next;
     }
 
-    private static long doIt(String input) {
+    private static long partOne(String input) {
         var curr = buildRing(input);
         for (int i = 0; i < 100; i++) {
             curr = tick(curr, input.length());
@@ -68,7 +70,36 @@ public class Aoc2020Day23CrabCups {
         return result;
     }
 
+    private static long partTwo(String input) {
+        var cupCount = 10_000;
+        var curr = buildRing(input, cupCount);
+        var hist = new HashMap<Long, Integer>();
+        for (int i = 0; i < 10_000; i++) {
+            curr = tick(curr, cupCount);
+            var res = computePartTwoResult(curr);
+            hist.compute(res, (k, v) -> v == null ? 1 : v + 1);
+        }
+        System.out.println(hist);
+        return computePartTwoResult(curr);
+    }
+
+    private static long computePartTwoResult(Link curr) {
+        while (curr.value != 0) {
+            curr = curr.next;
+        }
+        long result = 1;
+        for (int i = 0; i < 2; i++) {
+            curr = curr.next;
+            result *= curr.value + 1;
+        }
+        return result;
+    }
+
     private static Link buildRing(String input) {
+        return buildRing(input, 0);
+    }
+
+    private static Link buildRing(String input, int cupCount) {
         Link head = null;
         Link curr = null;
         for (int i = 0, len = input.length(); i < len; i++) {
@@ -83,13 +114,24 @@ public class Aoc2020Day23CrabCups {
                 curr = l;
             }
         }
+        // these aren't off-by-one
+        for (int i = input.length(); i < cupCount; i++) {
+            assert curr != null;
+            curr.next = new Link(i, null);
+            curr.next.next = head;
+            curr = curr.next;
+        }
         assert curr != null;
         return head;
     }
 
     public static void main(String[] args) {
-        System.out.println(doIt(EXAMPLE_ONE));
-        System.out.println(doIt(MY_INPUT));
+        var start = System.currentTimeMillis();
+        System.out.print("Part One: " + partOne(MY_INPUT));
+        System.out.println(" (" + (System.currentTimeMillis() - start) + " ms)");
+        start = System.currentTimeMillis();
+        System.out.print("Part Two: " + partTwo(MY_INPUT));
+        System.out.println(" (" + (System.currentTimeMillis() - start) + " ms)");
     }
 
 }
