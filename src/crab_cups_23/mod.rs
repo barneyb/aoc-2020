@@ -18,14 +18,29 @@ fn part_one(cups: &mut Cups) -> String {
     cups.to_string()
 }
 
-#[derive(Eq, PartialEq)]
 struct Cups {
     moves: usize,
     size: usize,
     ring: VecDeque<usize>,
 }
 
-impl Cups {
+impl<'a> Cups {
+
+    fn new(seed: &[usize]) -> Cups {
+        Cups {
+            moves: 0,
+            size: seed.len(),
+            ring: seed.iter().cloned().collect(),
+        }
+    }
+
+    fn extend_to(&mut self, n: usize) {
+        for i in self.size..n {
+            self.ring.push_back(i);
+        }
+        self.size = self.ring.len();
+    }
+
     fn tick(&mut self) {
         // The crab picks up the three cups that are immediately clockwise of the current cup. They
         // are removed from the circle; cup spacing is adjusted as necessary to maintain the circle.
@@ -62,47 +77,44 @@ impl Cups {
         self.ring.rotate_right(dest_idx);
         self.moves += 1;
     }
+
+    fn candy_stripe_current(&self) -> Vec<usize> {
+        self.partition_ring(self.size - (self.moves % self.size))
+    }
+
+    fn one_first(&self) -> Vec<usize> {
+        let idx = self.ring.iter().position(|v| *v == 0).unwrap();
+        self.partition_ring(idx)
+    }
+
+    fn partition_ring(&self, idx: usize) -> Vec<usize> {
+        let mut result = self.ring.iter().skip(idx).map(|v| *v + 1).collect::<Vec<_>>();
+        for v in self.ring.iter().take(idx) {
+            result.push(*v + 1);
+        }
+        result
+    }
 }
 
 impl From<&str> for Cups {
     fn from(s: &str) -> Self {
-        Cups::from(s.parse::<usize>().unwrap())
-    }
-}
-
-/*
- * Parsing shift numbers down by one, so that we can use modulo arithmetic
- * easily. Rendering shifts numbers up by one so they rematch the problem.
- */
-
-impl From<usize> for Cups {
-    fn from(mut n: usize) -> Self {
-        let mut cups = Cups {
-            moves: 0,
-            size: 0,
-            ring: VecDeque::new(),
-        };
+        let mut seed = VecDeque::with_capacity(s.len());
+        let mut n = s.parse::<usize>().unwrap();
         while n > 0 {
-            cups.ring.push_front(n % 10 - 1);
+            seed.push_front(n % 10 - 1);
             n /= 10;
         }
-        cups.ring.shrink_to_fit();
-        cups.size = cups.ring.len();
-        cups
+        let slices = seed.as_mut_slices();
+        assert_eq!(0, slices.1.len());
+        Cups::new(slices.0)
     }
 }
 
 impl Display for Cups {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut buffer = self.ring.clone();
-        loop {
-            if let Some(0) = buffer.front() {
-                break;
-            }
-            buffer.rotate_left(1);
-        }
+        let buffer = self.one_first();
         for d in buffer.iter().skip(1) {
-            write!(f, "{}", d + 1)?;
+            write!(f, "{}", d)?;
         }
         Ok(())
     }
@@ -110,14 +122,13 @@ impl Display for Cups {
 
 impl Debug for Cups {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut buffer = self.ring.clone();
+        let buffer = self.candy_stripe_current();
         let curr = self.moves % self.size;
-        buffer.rotate_right(curr);
         for (i, n) in buffer.iter().enumerate() {
             if i == curr {
-                write!(f, "({})", n + 1)?;
+                write!(f, "({})", n)?;
             } else {
-                write!(f, " {} ", n + 1)?;
+                write!(f, " {} ", n)?;
             }
         }
         Ok(())
