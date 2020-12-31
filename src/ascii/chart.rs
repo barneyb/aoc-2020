@@ -34,6 +34,7 @@ impl Shape {
     fn bar(width: usize) -> Shape {
         Shape {
             min_val: 0f64,
+            max_val: 0f64,
             plot_style: Bar,
             ..Shape::point(width)
         }

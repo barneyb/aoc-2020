@@ -1,14 +1,15 @@
 # Advent of Code 2020
 
-My Advent of Code 2020 solutions/solvers in Rust. It's the usual (assuming you
-have a Rust dev env, https://rustup.rs or otherwise):
+My Advent of Code 2020 solutions/solvers in Rust. It's the usual:
 
-    cargo run
+    # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    cargo test
+    cargo run --release
 
 If you want to see a specific day's solver in action, go find its branch and
-check it out. Some code is in durable modules, but the actual executable only
-solves one day: today. The first few days had two branches: one for the solution
-and one for modularization. I'm learning too!
+check it out. Most of code is in durable modules, but the actual executable only
+solves one day: today. Don't look too closely at the branch structure; I let go
+nuts on purpose to help learn how to articulate why keeping it hygienic matters. 
 
 If you want to solve _your_ input, after checking out the right commit, replace
 the `input.txt` file in the root with your input and do `cargo run` again. But
