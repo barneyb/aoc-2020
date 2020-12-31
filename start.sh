@@ -31,8 +31,8 @@ if [ ${#d} = 1 ]; then
   d="0$d"
 fi
 git checkout -b day$d master
-mkdir src/day_$d
-sed -i -e "s/aoc_2020::.*_$y::solve/aoc_2020::day_$d::solve/" src/main.rs
-sed -i -e "s/\(pub mod .*_$y;\)/\\1\\npub mod day_$d;/" src/lib.rs
-cp template/*.rs src/day_$d
-git add src/main.rs src/lib.rs src/day_$d
+mkdir src/day$d
+sed -i -e "s/aoc_2020::day${y}_.*::solve/aoc_2020::day$d::solve/" src/main.rs
+sed -i -e "s/\(pub mod day${y}_.*;\)/\\1\\npub mod day$d;/" src/lib.rs
+cp template/*.rs src/day$d
+git add src/main.rs src/lib.rs src/day$d

@@ -1,4 +1,4 @@
-use aoc_2020::combo_breaker_25::solve;
+use aoc_2020::day25_combo_breaker::solve;
 use aoc_2020::{read_input, with_duration};
 
 fn main() {
