@@ -16,30 +16,30 @@ const ITERATIONS: usize = 101_741_582_076_661;
 /// For unknown reasons I can't even guess at, this configuration runs
 /// well more than three times faster compared to any of:
 ///
-/// 1.  remove the benchmark of `part_two`
-/// 1.  inline the benchmark of `part_two`, instead of using `bench`
-/// 1.  use `bench` for `part_one_n`, instead of inlining it
-/// 1.  use `with_duration` for `part_one_n` instead of manually
+/// 1.  remove the benchmark of `go_back`
+/// 1.  inline the benchmark of `go_back`, instead of using `bench`
+/// 1.  use `bench` for `go_forward`, instead of inlining it
+/// 1.  use `with_duration` for `go_forward` instead of manually
 ///     computing (the `with_duration` inside `bench` is fine).
 ///
 /// In all four configurations, the returned answers are the same, as
 /// you'd expect.
 ///
 pub fn solve(_: &str) {
-    let ans = timed_block("Part One", || part_one(2019, 10007));
+    let ans = timed_block("Part One", || go_forward(2019, 10007, 1));
     println!("{}", ans);
 
     bench(
         "Benchmark Part Two (literal)",
         ITERATIONS,
         500_000_000,
-        part_two,
+        go_back,
     );
 
     let total_iters = DECK_SIZE - ITERATIONS - 1;
     let test_iters = total_iters / 5_000_000;
     let start = Instant::now();
-    let ans = part_one_n(2020, DECK_SIZE, test_iters);
+    let ans = go_forward(2020, DECK_SIZE, test_iters);
     let d = start.elapsed();
     println!(
         "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
@@ -73,11 +73,7 @@ where
     );
 }
 
-fn part_one(card: usize, deck_size: usize) -> usize {
-    part_one_n(card, deck_size, 1)
-}
-
-fn part_one_n(mut card: usize, deck_size: usize, iterations: usize) -> usize {
+fn go_forward(mut card: usize, deck_size: usize, iterations: usize) -> usize {
     let ops = operations();
     for _ in 0..iterations {
         card = shuffle(&ops, card, deck_size);
@@ -85,7 +81,7 @@ fn part_one_n(mut card: usize, deck_size: usize, iterations: usize) -> usize {
     card
 }
 
-fn part_two(mut position: usize, deck_size: usize, iterations: usize) -> usize {
+fn go_back(mut position: usize, deck_size: usize, iterations: usize) -> usize {
     let unops = reverse_operations(&operations(), deck_size);
     for _ in 0..iterations {
         position = shuffle(&unops, position, deck_size);

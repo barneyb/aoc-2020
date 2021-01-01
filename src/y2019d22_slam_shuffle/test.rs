@@ -84,20 +84,27 @@ fn test_unshuffle() {
 }
 
 #[test]
-fn test_reciprocity() {
+fn test_cyclic_nature() {
     let deck_size = 11933;
     let iterations = 10177;
-    let r = part_one_n(2020, deck_size, iterations);
-    assert_eq!(2020, part_two(r, deck_size, iterations));
-    assert_eq!(2020, part_one_n(r, deck_size, deck_size - iterations - 1));
+
+    // the part one case, going forward a single tick
+    assert_eq!(2331, go_forward(2019, deck_size, 1));
+    assert_eq!(2019, go_back(2331, deck_size, 1));
+    assert_eq!(2331, go_back(2019, deck_size, deck_size - 1 - 1));
+
+    // the part two case, going back a bunch of ticks
+    assert_eq!(278, go_back(2020, deck_size, iterations));
+    assert_eq!(2020, go_forward(278, deck_size, iterations));
+    assert_eq!(278, go_forward(2020, deck_size, deck_size - iterations - 1));
 }
 
 #[test]
 fn test_parts() {
-    assert_eq!(3036, part_one(2019, 10007));
-    assert_eq!(2019, part_two(3036, 10007, 1));
+    assert_eq!(3036, go_forward(2019, 10007, 1));
+    assert_eq!(2019, go_back(3036, 10007, 1));
 
     let iterations = 173; // a prime!
-    let r = part_one_n(2020, DECK_SIZE, iterations);
-    assert_eq!(2020, part_two(r, DECK_SIZE, iterations));
+    let r = go_forward(2020, DECK_SIZE, iterations);
+    assert_eq!(2020, go_back(r, DECK_SIZE, iterations));
 }
