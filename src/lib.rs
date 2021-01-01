@@ -26,6 +26,7 @@ pub mod histogram;
 pub mod indexer;
 pub mod passport;
 pub mod password;
+pub mod prime;
 
 pub fn read_input() -> String {
     fs::read_to_string("input.txt").unwrap().trim().to_string()
