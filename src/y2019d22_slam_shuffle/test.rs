@@ -12,7 +12,7 @@ fn check_shuffle(expected: Vec<usize>, ops: &Vec<Op>) {
 
 #[test]
 fn test_reverse() {
-    check_shuffle(vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 0], &vec![Reverse]);
+    check_shuffle(vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 0], &vec![Reverse(10 - 1)]);
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn example_four() {
     check_shuffle(
         vec![9, 2, 5, 8, 1, 4, 7, 0, 3, 6],
         &vec![
-            Reverse,
+            Reverse(10 - 1),
             Cut(10 - 2, 2),
             Deal(7),
             Cut(8, 10 - 8),
@@ -69,7 +69,7 @@ fn example_four() {
 fn test_unshuffle() {
     check_symmetry(
         &vec![
-            Reverse,
+            Reverse(17 - 1),
             Cut(17 - 2, 2),
             Deal(7),
             Cut(8, 17 - 8),

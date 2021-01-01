@@ -32,13 +32,13 @@ pub fn solve(_: &str) {
     let ans = bench(
         "Benchmark Part Two (literal)",
         ITERATIONS,
-        500_000_000,
+        1_000_000_000,
         go_back,
     );
-    if 14933013034763 != ans {
+    if 29649929027069 != ans {
         println!(
             "\nERROR: got {:>15}\n  expected {:>15}\n",
-            ans, 14933013034763_usize
+            ans, 29649929027069 as usize
         );
     }
 
@@ -100,7 +100,7 @@ fn reverse_operations(ops: &[Op], deck_size: usize) -> Vec<Op> {
     ops.iter()
         .rev()
         .map(|op| match *op {
-            Reverse => Reverse,
+            Reverse(n) => Reverse(n),
             Cut(n, u) => Cut(u, n),
             Deal(n) => Deal(mult_inv(n, deck_size)),
         })
@@ -109,7 +109,7 @@ fn reverse_operations(ops: &[Op], deck_size: usize) -> Vec<Op> {
 
 fn shuffle(ops: &[Op], card: usize, deck_size: usize) -> usize {
     ops.iter().fold(card, |c, op| match *op {
-        Reverse => deck_size - c - 1,
+        Reverse(n) => n - c,
         Cut(n, u) => {
             if c < n {
                 c + u
