@@ -1,42 +1,70 @@
 use crate::y2019d22_slam_shuffle::operations::Op::*;
 use crate::y2019d22_slam_shuffle::operations::{operations, Op};
 use crate::{timed_block, with_duration};
+use std::fmt::Display;
+use std::time::Instant;
 
 #[cfg(test)]
 mod test;
 
 mod operations;
 
-const DECK_SIZE: usize = 119315717514047;
-const ITERATIONS: usize = 101741582076661;
+const DECK_SIZE: usize = 119_315_717_514_047;
+const ITERATIONS: usize = 101_741_582_076_661;
 
+///
+/// For unknown reasons I can't even guess at, this configuration runs
+/// well more than three times faster compared to any of:
+///
+/// 1.  remove the benchmark of `part_two`
+/// 1.  inline the benchmark of `part_two`, instead of using `bench`
+/// 1.  use `bench` for `part_one_n`, instead of inlining it
+/// 1.  use `with_duration` for `part_one_n` instead of manually
+///     computing (the `with_duration` inside `bench` is fine).
+///
+/// In all four configurations, the returned answers are the same, as
+/// you'd expect.
+///
 pub fn solve(_: &str) {
     let ans = timed_block("Part One", || part_one(2019, 10007));
     println!("{}", ans);
 
-    let ans = timed_block("Part 2 (lit)", || {
-        let total_iters = ITERATIONS;
-        let test_iters = total_iters / 1_000_000_000;
-        let (ans, d) = with_duration(|| part_two(2020, DECK_SIZE, test_iters));
-        println!(
-            "expect {:.1} days",
-            d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32
-        );
-        ans
-    });
-    println!("{}", ans);
+    bench("Bnch 2 (lit)", ITERATIONS, 500_000_000, part_two);
 
-    let ans = timed_block("Part 2 (rev)", || {
-        let total_iters = DECK_SIZE - ITERATIONS - 1;
-        let test_iters = total_iters / 10_000_000;
-        let (ans, d) = with_duration(|| part_one_n(2020, DECK_SIZE, test_iters));
-        println!(
-            "expect {:.1} days",
-            d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32
-        );
-        ans
-    });
-    println!("{}", ans);
+    let total_iters = DECK_SIZE - ITERATIONS - 1;
+    let test_iters = total_iters / 10_000_000;
+    let start = Instant::now();
+    let ans = part_one_n(2020, DECK_SIZE, test_iters);
+    let d = start.elapsed();
+    println!(
+        "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
+        "Bnch 2 (rev)",
+        ans,
+        d,
+        d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32,
+    );
+
+    // TOO SLOW! Extrapolation above indicates about 50 days of CPU time.
+    // let ans = timed_block("Part Two", || {
+    //     // part_two(2020, DECK_SIZE, ITERATIONS) // 19 YEARS!
+    //     part_one_n(2020, DECK_SIZE, DECK_SIZE - ITERATIONS - 1)
+    // });
+    // println!("{}", ans);
+}
+
+fn bench<T>(lbl: &str, total_iters: usize, factor: usize, f: fn(usize, usize, usize) -> T)
+where
+    T: Display,
+{
+    let test_iters = total_iters / factor;
+    let (ans, d) = with_duration(|| f(2020, DECK_SIZE, test_iters));
+    println!(
+        "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
+        lbl,
+        ans,
+        d,
+        d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32,
+    );
 }
 
 fn part_one(card: usize, deck_size: usize) -> usize {
