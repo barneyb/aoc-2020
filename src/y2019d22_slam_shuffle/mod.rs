@@ -29,12 +29,18 @@ pub fn solve(_: &str) {
     let ans = timed_block("Part One", || go_forward(2019, 10007, 1));
     println!("{}", ans);
 
-    bench(
+    let ans = bench(
         "Benchmark Part Two (literal)",
         ITERATIONS,
         500_000_000,
         go_back,
     );
+    if 14933013034763 != ans {
+        println!(
+            "\nERROR: got {:>15}\n  expected {:>15}\n",
+            ans, 14933013034763_usize
+        );
+    }
 
     let total_iters = DECK_SIZE - ITERATIONS - 1;
     let test_iters = total_iters / 5_000_000;
@@ -58,7 +64,7 @@ pub fn solve(_: &str) {
     // println!("{}", ans);
 }
 
-fn bench<T>(lbl: &str, total_iters: usize, factor: usize, f: fn(usize, usize, usize) -> T)
+fn bench<T>(lbl: &str, total_iters: usize, factor: usize, f: fn(usize, usize, usize) -> T) -> T
 where
     T: Display,
 {
@@ -71,6 +77,7 @@ where
         d,
         d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32,
     );
+    ans
 }
 
 fn go_forward(mut card: usize, deck_size: usize, iterations: usize) -> usize {
