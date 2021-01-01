@@ -1,6 +1,5 @@
 use Op::*;
 
-#[derive(Eq, PartialEq, Debug)]
 pub enum Op {
     Reverse,
     Cut(usize),
