@@ -83,6 +83,49 @@ fn test_unshuffle() {
     );
 }
 
+fn prime_factorization(number: usize) -> Option<Vec<usize>> {
+    let mut result = Vec::new();
+    if number <= 3 {
+        return None;
+    }
+    let mut n = number;
+    let sqrt = (n as f64).sqrt() as usize;
+    for f in 2..=sqrt {
+        while n % f == 0 {
+            result.push(f);
+            n /= f;
+            if n == 1 {
+                return Some(result);
+            }
+        }
+    }
+    if n == number {
+        return None;
+    }
+    result.push(n);
+    Some(result)
+}
+
+#[test]
+fn test_prime_factorization() {
+    assert_eq!(None, prime_factorization(0));
+    assert_eq!(None, prime_factorization(1));
+    assert_eq!(None, prime_factorization(2));
+    assert_eq!(None, prime_factorization(3));
+    assert_eq!(Some(vec![2, 2]), prime_factorization(4));
+    assert_eq!(None, prime_factorization(17));
+    assert_eq!(Some(vec![2, 2, 5]), prime_factorization(20));
+    assert_eq!(Some(vec![2, 2, 2, 3]), prime_factorization(24));
+    assert_eq!(Some(vec![5, 5]), prime_factorization(25));
+    assert_eq!(Some(vec![2, 13]), prime_factorization(26));
+    assert_eq!(Some(vec![2, 5, 5]), prime_factorization(50));
+    assert_eq!(Some(vec![3, 3, 3, 5, 13]), prime_factorization(1755));
+    assert_eq!(
+        Some(vec![3, 3, 5, 87887, 4443619]),
+        prime_factorization(17574135437385)
+    );
+}
+
 #[test]
 fn test_cyclic_nature() {
     let deck_size = 11933;
