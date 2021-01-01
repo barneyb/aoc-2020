@@ -99,25 +99,25 @@ fn go_back(mut position: usize, deck_size: usize, iterations: usize) -> usize {
 fn reverse_operations(ops: &[Op], deck_size: usize) -> Vec<Op> {
     ops.iter()
         .rev()
-        .map(|op| match op {
+        .map(|op| match *op {
             Reverse => Reverse,
-            Cut(n) => Cut(deck_size - n),
-            Deal(n) => Deal(mult_inv(*n, deck_size)),
+            Cut(n, u) => Cut(u, n),
+            Deal(n) => Deal(mult_inv(n, deck_size)),
         })
         .collect::<Vec<_>>()
 }
 
 fn shuffle(ops: &[Op], card: usize, deck_size: usize) -> usize {
-    ops.iter().fold(card, |c, op| match op {
+    ops.iter().fold(card, |c, op| match *op {
         Reverse => deck_size - c - 1,
-        Cut(n) => {
-            if c < *n {
-                deck_size + c - n
+        Cut(n, u) => {
+            if c < n {
+                c + u
             } else {
                 c - n
             }
         }
-        Deal(n) => mult_mod(c, *n, deck_size),
+        Deal(n) => mult_mod(c, n, deck_size),
     })
 }
 

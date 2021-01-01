@@ -17,12 +17,12 @@ fn test_reverse() {
 
 #[test]
 fn test_cut_positive() {
-    check_shuffle(vec![3, 4, 5, 6, 7, 8, 9, 0, 1, 2], &vec![Cut(3)]);
+    check_shuffle(vec![3, 4, 5, 6, 7, 8, 9, 0, 1, 2], &vec![Cut(3, 10 - 3)]);
 }
 
 #[test]
 fn test_cut_negative() {
-    check_shuffle(vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5], &vec![Cut(10 - 4)]);
+    check_shuffle(vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5], &vec![Cut(10 - 4, 4)]);
 }
 
 #[test]
@@ -52,15 +52,15 @@ fn example_four() {
         vec![9, 2, 5, 8, 1, 4, 7, 0, 3, 6],
         &vec![
             Reverse,
-            Cut(10 - 2),
+            Cut(10 - 2, 2),
             Deal(7),
-            Cut(8),
-            Cut(10 - 4),
+            Cut(8, 10 - 8),
+            Cut(10 - 4, 4),
             Deal(7),
-            Cut(3),
+            Cut(3, 10 - 3),
             Deal(9),
             Deal(3),
-            Cut(10 - 1),
+            Cut(10 - 1, 1),
         ],
     );
 }
@@ -70,14 +70,14 @@ fn test_unshuffle() {
     check_symmetry(
         &vec![
             Reverse,
-            Cut(17 - 2),
+            Cut(17 - 2, 2),
             Deal(7),
-            Cut(8),
-            Cut(17 - 4),
+            Cut(8, 17 - 8),
+            Cut(17 - 4, 4),
             Deal(7),
-            Cut(3),
+            Cut(3, 17 - 3),
             Deal(3),
-            Cut(17 - 1),
+            Cut(17 - 1, 1),
         ],
         17,
     );
