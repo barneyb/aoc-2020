@@ -8,23 +8,38 @@ mod test;
 mod operations;
 
 const DECK_SIZE: usize = 119315717514047;
-const ITERATIONS: usize = /*1017415820*/76661;
+const ITERATIONS: usize = 101741582076661;
 
 pub fn solve(_: &str) {
     let ans = timed_block("Part One", || part_one(2019, 10007));
     println!("{}", ans);
-    let ans = timed_block("Part Two", || part_two(2020, DECK_SIZE, ITERATIONS));
+    let ans = timed_block("Part Two", || {
+        part_two(2020, DECK_SIZE, ITERATIONS % 100000)
+    });
     println!("{}", ans);
 }
 
 fn part_one(card: usize, deck_size: usize) -> usize {
-    shuffle(&operations(), card, deck_size)
+    part_one_n(card, deck_size, 1)
+}
+
+fn part_one_n(mut card: usize, deck_size: usize, iterations: usize) -> usize {
+    let ops = operations();
+    for _ in 0..iterations {
+        card = shuffle(&ops, card, deck_size);
+    }
+    card
 }
 
 fn part_two(mut position: usize, deck_size: usize, iterations: usize) -> usize {
+    // if it's "closer", go around the other direction
+    let forward_count = deck_size - iterations - 1;
+    if forward_count < iterations {
+        return part_one_n(position, deck_size, forward_count);
+    }
     let unops = reverse_operations(&operations(), deck_size);
     for _ in 0..iterations {
-        position = shuffle(&unops, position, deck_size)
+        position = shuffle(&unops, position, deck_size);
     }
     position
 }

@@ -84,10 +84,20 @@ fn test_unshuffle() {
 }
 
 #[test]
+fn test_reciprocity() {
+    let deck_size = 11933;
+    let iterations = 10177;
+    let r = part_one_n(2020, deck_size, iterations);
+    assert_eq!(2020, part_two(r, deck_size, iterations));
+    assert_eq!(2020, part_one_n(r, deck_size, deck_size - iterations - 1));
+}
+
+#[test]
 fn test_parts() {
     assert_eq!(3036, part_one(2019, 10007));
     assert_eq!(2019, part_two(3036, 10007, 1));
+
     let iterations = 173; // a prime!
-    let r = (0..iterations).fold(2020, |card, _| part_one(card, DECK_SIZE));
+    let r = part_one_n(2020, DECK_SIZE, iterations);
     assert_eq!(2020, part_two(r, DECK_SIZE, iterations));
 }
