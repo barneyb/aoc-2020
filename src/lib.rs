@@ -100,7 +100,7 @@ where
     let start = Instant::now();
     let result = f();
     let elapsed = start.elapsed();
-    println!("{:^>12} {:?}", progress.bold().apply_to(""), elapsed);
+    println!("{:^>12} {:?}", progress.apply_to(""), elapsed);
     result
 }
 

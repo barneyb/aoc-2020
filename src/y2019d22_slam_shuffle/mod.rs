@@ -1,6 +1,6 @@
-use crate::timed_block;
 use crate::y2019d22_slam_shuffle::operations::Op::*;
 use crate::y2019d22_slam_shuffle::operations::{operations, Op};
+use crate::{timed_block, with_duration};
 
 #[cfg(test)]
 mod test;
@@ -13,8 +13,28 @@ const ITERATIONS: usize = 101741582076661;
 pub fn solve(_: &str) {
     let ans = timed_block("Part One", || part_one(2019, 10007));
     println!("{}", ans);
-    let ans = timed_block("Part Two", || {
-        part_two(2020, DECK_SIZE, ITERATIONS % 100000)
+
+    let ans = timed_block("Part 2 (lit)", || {
+        let total_iters = ITERATIONS;
+        let test_iters = total_iters / 1_000_000_000;
+        let (ans, d) = with_duration(|| part_two(2020, DECK_SIZE, test_iters));
+        println!(
+            "expect {:.1} days",
+            d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32
+        );
+        ans
+    });
+    println!("{}", ans);
+
+    let ans = timed_block("Part 2 (rev)", || {
+        let total_iters = DECK_SIZE - ITERATIONS - 1;
+        let test_iters = total_iters / 10_000_000;
+        let (ans, d) = with_duration(|| part_one_n(2020, DECK_SIZE, test_iters));
+        println!(
+            "expect {:.1} days",
+            d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32
+        );
+        ans
     });
     println!("{}", ans);
 }
@@ -86,6 +106,9 @@ fn bin_pow(mut a: usize, mut b: usize, m: usize) -> usize {
 
 /// Finds `a * b mod m` while avoiding overflow.
 fn mult_mod(mut a: usize, mut b: usize, m: usize) -> usize {
+    if let Some(r) = a.checked_mul(b) {
+        return r % m;
+    }
     let mut res = 0;
     a = a % m;
     while b > 0 {
