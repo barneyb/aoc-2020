@@ -56,9 +56,9 @@ pub fn solve(_: &str) {
     );
     assert_eq!(23436842529065, ans);
 
-    // TOO SLOW! Extrapolation above indicates about 50 days of CPU time.
+    // TOO SLOW! Extrapolation above indicates about one month of CPU time.
     // let ans = timed_block("Part Two", || {
-    //     // part_two(2020, DECK_SIZE, ITERATIONS) // 19 YEARS!
+    //     // part_two(2020, DECK_SIZE, ITERATIONS) // 18.5 YEARS!
     //     part_one_n(2020, DECK_SIZE, DECK_SIZE - ITERATIONS - 1)
     // });
     // println!("{}", ans);
@@ -81,7 +81,7 @@ where
 }
 
 fn go_forward(mut card: usize, deck_size: usize, iterations: usize) -> usize {
-    let ops = operations();
+    let ops = operations(deck_size);
     for _ in 0..iterations {
         card = shuffle(&ops, card, deck_size);
     }
@@ -89,7 +89,7 @@ fn go_forward(mut card: usize, deck_size: usize, iterations: usize) -> usize {
 }
 
 fn go_back(mut position: usize, deck_size: usize, iterations: usize) -> usize {
-    let unops = reverse_operations(&operations(), deck_size);
+    let unops = reverse_operations(&operations(deck_size), deck_size);
     for _ in 0..iterations {
         position = shuffle(&unops, position, deck_size);
     }
@@ -101,8 +101,7 @@ fn reverse_operations(ops: &[Op], deck_size: usize) -> Vec<Op> {
         .rev()
         .map(|op| match op {
             Reverse => Reverse,
-            Cut(n) => Uncut(*n),
-            Uncut(n) => Cut(*n),
+            Cut(n) => Cut(deck_size - n),
             Deal(n) => Deal(mult_inv(*n, deck_size)),
         })
         .collect::<Vec<_>>()
@@ -111,8 +110,13 @@ fn reverse_operations(ops: &[Op], deck_size: usize) -> Vec<Op> {
 fn shuffle(ops: &[Op], card: usize, deck_size: usize) -> usize {
     ops.iter().fold(card, |c, op| match op {
         Reverse => deck_size - c - 1,
-        Cut(n) => (deck_size + c - n) % deck_size,
-        Uncut(n) => (c + n) % deck_size,
+        Cut(n) => {
+            if c < *n {
+                deck_size + c - n
+            } else {
+                c - n
+            }
+        }
         Deal(n) => mult_mod(c, *n, deck_size),
     })
 }

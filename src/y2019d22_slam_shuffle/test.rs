@@ -22,7 +22,7 @@ fn test_cut_positive() {
 
 #[test]
 fn test_cut_negative() {
-    check_shuffle(vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5], &vec![Uncut(4)]);
+    check_shuffle(vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5], &vec![Cut(10 - 4)]);
 }
 
 #[test]
@@ -52,15 +52,15 @@ fn example_four() {
         vec![9, 2, 5, 8, 1, 4, 7, 0, 3, 6],
         &vec![
             Reverse,
-            Uncut(2),
+            Cut(10 - 2),
             Deal(7),
             Cut(8),
-            Uncut(4),
+            Cut(10 - 4),
             Deal(7),
             Cut(3),
             Deal(9),
             Deal(3),
-            Uncut(1),
+            Cut(10 - 1),
         ],
     );
 }
@@ -70,17 +70,29 @@ fn test_unshuffle() {
     check_symmetry(
         &vec![
             Reverse,
-            Uncut(2),
+            Cut(17 - 2),
             Deal(7),
             Cut(8),
-            Uncut(4),
+            Cut(17 - 4),
             Deal(7),
             Cut(3),
             Deal(3),
-            Uncut(1),
+            Cut(17 - 1),
         ],
         17,
     );
+}
+
+#[test]
+fn test_factoring() {
+    // 1755 = 13 * 5 * 3 * 3 * 3
+    let deck_size = 11933;
+    let iterations = 10177;
+    assert_eq!(278, go_forward(2020, deck_size, deck_size - iterations - 1));
+    assert_eq!(278, go_forward(2020, deck_size, 1755));
+    let a = go_forward(2020, deck_size, 1);
+    let b = go_forward(2021, deck_size, 1);
+    println!("{} {}", a, b);
 }
 
 #[test]
