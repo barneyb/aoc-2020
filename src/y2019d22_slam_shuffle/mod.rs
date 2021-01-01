@@ -29,20 +29,26 @@ pub fn solve(_: &str) {
     let ans = timed_block("Part One", || part_one(2019, 10007));
     println!("{}", ans);
 
-    bench("Bnch 2 (lit)", ITERATIONS, 500_000_000, part_two);
+    bench(
+        "Benchmark Part Two (literal)",
+        ITERATIONS,
+        500_000_000,
+        part_two,
+    );
 
     let total_iters = DECK_SIZE - ITERATIONS - 1;
-    let test_iters = total_iters / 10_000_000;
+    let test_iters = total_iters / 5_000_000;
     let start = Instant::now();
     let ans = part_one_n(2020, DECK_SIZE, test_iters);
     let d = start.elapsed();
     println!(
         "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
-        "Bnch 2 (rev)",
+        "Benchmark Part Two (reversed)",
         ans,
         d,
         d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32,
     );
+    assert_eq!(23436842529065, ans);
 
     // TOO SLOW! Extrapolation above indicates about 50 days of CPU time.
     // let ans = timed_block("Part Two", || {
@@ -80,11 +86,6 @@ fn part_one_n(mut card: usize, deck_size: usize, iterations: usize) -> usize {
 }
 
 fn part_two(mut position: usize, deck_size: usize, iterations: usize) -> usize {
-    // if it's "closer", go around the other direction
-    let forward_count = deck_size - iterations - 1;
-    if forward_count < iterations {
-        return part_one_n(position, deck_size, forward_count);
-    }
     let unops = reverse_operations(&operations(), deck_size);
     for _ in 0..iterations {
         position = shuffle(&unops, position, deck_size);
