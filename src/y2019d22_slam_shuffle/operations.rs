@@ -1,113 +1,74 @@
+use std::iter::Map;
+use std::str::{FromStr, Lines};
 use Op::*;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Op {
     Reverse(usize),
     Cut(usize, usize),
-    Deal(usize),
+    Deal(usize, usize),
 }
 
-pub fn operations(deck_size: usize) -> Vec<Op> {
-    vec![
-        Cut(8988, deck_size - 8988),
-        Deal(25),
-        Cut(deck_size - 797, 797),
-        Deal(26),
-        Reverse(deck_size - 1),
-        Cut(deck_size - 2168, 2168),
-        Deal(39),
-        Cut(deck_size - 602, 602),
-        Deal(67),
-        Cut(1314, deck_size - 1314),
-        Reverse(deck_size - 1),
-        Deal(34),
-        Cut(deck_size - 5388, 5388),
-        Deal(69),
-        Reverse(deck_size - 1),
-        Deal(38),
-        Cut(579, deck_size - 579),
-        Reverse(deck_size - 1),
-        Deal(4),
-        Reverse(deck_size - 1),
-        Deal(32),
-        Cut(9476, deck_size - 9476),
-        Deal(71),
-        Cut(deck_size - 9536, 9536),
-        Reverse(deck_size - 1),
-        Cut(739, deck_size - 739),
-        Deal(19),
-        Cut(8867, deck_size - 8867),
-        Reverse(deck_size - 1),
-        Deal(26),
-        Cut(1596, deck_size - 1596),
-        Deal(45),
-        Cut(deck_size - 610, 610),
-        Deal(49),
-        Cut(deck_size - 8781, 8781),
-        Deal(68),
-        Cut(deck_size - 9322, 9322),
-        Reverse(deck_size - 1),
-        Deal(41),
-        Cut(deck_size - 557, 557),
-        Reverse(deck_size - 1),
-        Deal(25),
-        Cut(9649, deck_size - 9649),
-        Deal(58),
-        Cut(deck_size - 8004, 8004),
-        Deal(70),
-        Cut(deck_size - 8938, 8938),
-        Deal(24),
-        Cut(1409, deck_size - 1409),
-        Deal(33),
-        Cut(deck_size - 2854, 2854),
-        Deal(4),
-        Cut(deck_size - 2098, 2098),
-        Deal(44),
-        Cut(6281, deck_size - 6281),
-        Deal(13),
-        Cut(deck_size - 2661, 2661),
-        Deal(32),
-        Cut(deck_size - 8103, 8103),
-        Deal(5),
-        Reverse(deck_size - 1),
-        Cut(deck_size - 6363, 6363),
-        Deal(47),
-        Cut(8796, deck_size - 8796),
-        Deal(61),
-        Reverse(deck_size - 1),
-        Cut(deck_size - 6258, 6258),
-        Deal(35),
-        Cut(1920, deck_size - 1920),
-        Deal(31),
-        Cut(4034, deck_size - 4034),
-        Deal(53),
-        Cut(6002, deck_size - 6002),
-        Deal(51),
-        Cut(4284, deck_size - 4284),
-        Deal(22),
-        Reverse(deck_size - 1),
-        Cut(deck_size - 1707, 1707),
-        Deal(67),
-        Cut(83, deck_size - 83),
-        Deal(73),
-        Cut(6809, deck_size - 6809),
-        Deal(70),
-        Cut(deck_size - 3948, 3948),
-        Deal(66),
-        Cut(deck_size - 5498, 5498),
-        Deal(3),
-        Cut(deck_size - 5322, 5322),
-        Deal(52),
-        Cut(deck_size - 4069, 4069),
-        Deal(25),
-        Cut(deck_size - 7756, 7756),
-        Deal(34),
-        Cut(deck_size - 7383, 7383),
-        Deal(38),
-        Cut(2544, deck_size - 2544),
-        Deal(23),
-        Cut(deck_size - 1937, 1937),
-        Deal(16),
-        Cut(deck_size - 2114, 2114),
-    ]
+pub fn parse_operation_list(s: &str) -> Vec<Op> {
+    __str_to_op_iter(s).collect()
+}
+
+#[allow(dead_code)]
+pub fn parse_bound_operation_list(s: &str, deck_size: usize) -> Vec<Op> {
+    __str_to_op_iter(s)
+        .map(|op| op.for_deck_size(deck_size))
+        .collect()
+}
+
+pub fn bind_operation_list(ops: &[Op], deck_size: usize) -> Vec<Op> {
+    ops.iter().map(|op| op.for_deck_size(deck_size)).collect()
+}
+
+fn __str_to_op_iter(s: &str) -> Map<Lines, fn(&str) -> Op> {
+    s.trim().lines().map(|l| l.parse::<Op>().unwrap())
+}
+
+impl Op {
+    pub fn for_deck_size(&self, deck_size: usize) -> Op {
+        match self {
+            Reverse(0) => Reverse(deck_size - 1),
+            Cut(0, u) => Cut(deck_size - *u, *u),
+            Cut(n, 0) => Cut(*n, deck_size - *n),
+            Deal(n, 0) => Deal(*n, deck_size),
+            it => panic!("Already-bound {:?} found?!", it),
+        }
+    }
+}
+
+impl FromStr for Op {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        /*
+        deal with increment 26
+        redeal 26
+        deal into new stack
+        reverse
+        cut -2168
+         */
+        let mut words = s.trim().split(' ');
+        Ok(match words.next().unwrap() {
+            "deal" => match words.next().unwrap() {
+                "with" => Deal(words.nth(1).unwrap().parse::<usize>().unwrap(), 0),
+                "into" => Reverse(0),
+                w => panic!("Unrecognized 'deal {}' op", w),
+            },
+            "redeal" => Deal(words.next().unwrap().parse::<usize>().unwrap(), 0),
+            "reverse" => Reverse(0),
+            "cut" => {
+                let i = words.next().unwrap().parse::<isize>().unwrap();
+                if i < 0 {
+                    Cut(0, (i * -1) as usize)
+                } else {
+                    Cut(i as usize, 0)
+                }
+            }
+            w => panic!("Unrecognized '{}' op", w),
+        })
+    }
 }

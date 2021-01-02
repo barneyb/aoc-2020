@@ -1,8 +1,7 @@
 use crate::y2019d22_slam_shuffle::operations::Op::*;
-use crate::y2019d22_slam_shuffle::operations::{operations, Op};
+use crate::y2019d22_slam_shuffle::operations::{bind_operation_list, parse_operation_list, Op};
 use crate::{timed_block, with_duration};
 use std::fmt::Display;
-use std::time::Instant;
 
 #[cfg(test)]
 mod test;
@@ -12,65 +11,73 @@ mod operations;
 const DECK_SIZE: usize = 119_315_717_514_047;
 const ITERATIONS: usize = 101_741_582_076_661;
 
+/// The compiler (optimizer?, LLVM?) is doing something stupid that
+/// causes this to run a bit more than three times slower than it
+/// might otherwise. With very careful arrangements of needlessly
+/// calling `go_back`, using and not using `bench`, using and not
+/// using `with_duration`, and various `inline` attributes, I have
+/// been able to toggle between "speed x" and "speed x/3" (or "speed
+/// 3x", if you prefer) without any apparent rhyme or reason.
 ///
-/// For unknown reasons I can't even guess at, this configuration runs
-/// well more than three times faster compared to any of:
+/// It's clear that the idiot here is me, but I don't even have a
+/// guess at is causing the discrepancy, other than "appears to be
+/// something with compiler optimizations."
 ///
-/// 1.  remove the benchmark of `go_back`
-/// 1.  inline the benchmark of `go_back`, instead of using `bench`
-/// 1.  use `bench` for `go_forward`, instead of inlining it. This one
-///     makes the `go_back` benchmark _also_ get four times slower too!
-/// 1.  use `with_duration` for `go_forward` instead of manually
-///     computing (the `with_duration` inside `bench` is fine).
-///
-/// In all four configurations, the returned answers are the same, as
-/// you'd expect.
-///
-pub fn solve(_: &str) {
-    let ans = timed_block("Part One", || go_forward(2019, 10007, 1));
+/// However, at the end of the day, a 30 day runtime vs a 90 day
+/// runtime isn't really meaningfully differentiated. So purely an
+/// academic interest, not something actually in my way.
+pub fn solve(input: &str) {
+    let raw_ops = parse_operation_list(&input);
+
+    let ops = bind_operation_list(&raw_ops, 10007);
+    let ans = timed_block("Part One", || go_forward(2019, &ops, 1));
     println!("{}", ans);
+
+    let ops = bind_operation_list(&raw_ops, DECK_SIZE);
 
     let ans = bench(
         "Benchmark Part Two (literal)",
+        &ops,
         ITERATIONS,
-        1_000_000_000,
+        5_000_000_000,
         go_back,
     );
-    if 29649929027069 != ans {
+    if 110243237903680 != ans {
         println!(
             "\nERROR: got {:>15}\n  expected {:>15}\n",
-            ans, 29649929027069 as usize
+            ans, 110243237903680 as usize
         );
     }
 
-    let total_iters = DECK_SIZE - ITERATIONS - 1;
-    let test_iters = total_iters / 5_000_000;
-    let start = Instant::now();
-    let ans = go_forward(2020, DECK_SIZE, test_iters);
-    let d = start.elapsed();
-    println!(
-        "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
+    let ans = bench(
         "Benchmark Part Two (reversed)",
-        ans,
-        d,
-        d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32,
+        &ops,
+        DECK_SIZE - ITERATIONS - 1,
+        10_000_000,
+        go_forward,
     );
-    assert_eq!(23436842529065, ans);
+    assert_eq!(85445347441033, ans);
 
-    // TOO SLOW! Extrapolation above indicates about one month of CPU time.
+    // TOO SLOW! Extrapolation above indicates about three months of CPU time.
     // let ans = timed_block("Part Two", || {
-    //     // part_two(2020, DECK_SIZE, ITERATIONS) // 18.5 YEARS!
+    //     // part_two(2020, DECK_SIZE, ITERATIONS) // 67 YEARS!
     //     part_one_n(2020, DECK_SIZE, DECK_SIZE - ITERATIONS - 1)
     // });
     // println!("{}", ans);
 }
 
-fn bench<T>(lbl: &str, total_iters: usize, factor: usize, f: fn(usize, usize, usize) -> T) -> T
+fn bench<T>(
+    lbl: &str,
+    ops: &[Op],
+    total_iters: usize,
+    factor: usize,
+    f: fn(usize, &[Op], usize) -> T,
+) -> T
 where
     T: Display,
 {
     let test_iters = total_iters / factor;
-    let (ans, d) = with_duration(|| f(2020, DECK_SIZE, test_iters));
+    let (ans, d) = with_duration(|| f(2020, ops, test_iters));
     println!(
         "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
         lbl,
@@ -81,34 +88,33 @@ where
     ans
 }
 
-fn go_forward(mut card: usize, deck_size: usize, iterations: usize) -> usize {
-    let ops = operations(deck_size);
+fn go_forward(mut card: usize, ops: &[Op], iterations: usize) -> usize {
     for _ in 0..iterations {
-        card = shuffle(&ops, card, deck_size);
+        card = shuffle(&ops, card);
     }
     card
 }
 
-fn go_back(mut position: usize, deck_size: usize, iterations: usize) -> usize {
-    let unops = reverse_operations(&operations(deck_size), deck_size);
+fn go_back(mut position: usize, ops: &[Op], iterations: usize) -> usize {
+    let unops = reverse_operations(&ops);
     for _ in 0..iterations {
-        position = shuffle(&unops, position, deck_size);
+        position = shuffle(&unops, position);
     }
     position
 }
 
-fn reverse_operations(ops: &[Op], deck_size: usize) -> Vec<Op> {
+fn reverse_operations(ops: &[Op]) -> Vec<Op> {
     ops.iter()
         .rev()
         .map(|op| match *op {
             Reverse(n) => Reverse(n),
             Cut(n, u) => Cut(u, n),
-            Deal(n) => Deal(mult_inv(n, deck_size)),
+            Deal(n, s) => Deal(mult_inv(n, s), s),
         })
         .collect::<Vec<_>>()
 }
 
-fn shuffle(ops: &[Op], card: usize, deck_size: usize) -> usize {
+fn shuffle(ops: &[Op], card: usize) -> usize {
     ops.iter().fold(card, |c, op| match *op {
         Reverse(n) => n - c,
         Cut(n, u) => {
@@ -119,7 +125,7 @@ fn shuffle(ops: &[Op], card: usize, deck_size: usize) -> usize {
             }
         }
         // Deal(n) => c * n % deck_size,
-        Deal(n) => mult_mod(c, n, deck_size),
+        Deal(n, s) => mult_mod(c, n, s),
     })
 }
 
