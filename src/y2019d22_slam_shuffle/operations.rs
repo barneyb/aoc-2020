@@ -1,3 +1,4 @@
+use crate::math::mult_inv;
 use std::iter::Map;
 use std::str::{FromStr, Lines};
 use Op::*;
@@ -26,6 +27,17 @@ pub fn bind_operation_list(ops: &[Op], deck_size: usize) -> Vec<Op> {
 
 fn __str_to_op_iter(s: &str) -> Map<Lines, fn(&str) -> Op> {
     s.trim().lines().map(|l| l.parse::<Op>().unwrap())
+}
+
+pub fn reverse_operations(ops: &[Op]) -> Vec<Op> {
+    ops.iter()
+        .rev()
+        .map(|op| match *op {
+            Reverse(n) => Reverse(n),
+            Cut(n, u) => Cut(u, n),
+            Deal(n, s) => Deal(mult_inv(n, s), s),
+        })
+        .collect::<Vec<_>>()
 }
 
 impl Op {

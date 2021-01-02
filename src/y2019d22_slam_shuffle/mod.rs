@@ -1,5 +1,8 @@
+use crate::math::mult_mod;
 use crate::y2019d22_slam_shuffle::operations::Op::*;
-use crate::y2019d22_slam_shuffle::operations::{bind_operation_list, parse_operation_list, Op};
+use crate::y2019d22_slam_shuffle::operations::{
+    bind_operation_list, parse_operation_list, reverse_operations, Op,
+};
 use crate::{timed_block, with_duration};
 use std::fmt::Display;
 
@@ -103,17 +106,6 @@ fn go_back(mut position: usize, ops: &[Op], iterations: usize) -> usize {
     position
 }
 
-fn reverse_operations(ops: &[Op]) -> Vec<Op> {
-    ops.iter()
-        .rev()
-        .map(|op| match *op {
-            Reverse(n) => Reverse(n),
-            Cut(n, u) => Cut(u, n),
-            Deal(n, s) => Deal(mult_inv(n, s), s),
-        })
-        .collect::<Vec<_>>()
-}
-
 fn shuffle(ops: &[Op], card: usize) -> usize {
     ops.iter().fold(card, |c, op| match *op {
         Reverse(n) => n - c,
@@ -127,40 +119,4 @@ fn shuffle(ops: &[Op], card: usize) -> usize {
         // Deal(n) => c * n % deck_size,
         Deal(n, s) => mult_mod(c, n, s),
     })
-}
-
-/// Finds the multiplicative inverse of `a mod m`.
-fn mult_inv(a: usize, m: usize) -> usize {
-    bin_pow(a, m - 2, m)
-}
-
-/// Finds `a ^ b mod m` using binary exponentiation.
-fn bin_pow(mut a: usize, mut b: usize, m: usize) -> usize {
-    a %= m;
-    let mut res = 1;
-    while b > 0 {
-        if b & 1 != 0 {
-            res = mult_mod(res, a, m);
-        }
-        a = mult_mod(a, a, m);
-        b >>= 1;
-    }
-    return res;
-}
-
-/// Finds `a * b mod m` while avoiding overflow.
-fn mult_mod(mut a: usize, mut b: usize, m: usize) -> usize {
-    if let Some(r) = a.checked_mul(b) {
-        return r % m;
-    }
-    let mut res = 0;
-    a = a % m;
-    while b > 0 {
-        if b % 2 == 1 {
-            res = (res + a) % m;
-        }
-        a = (a * 2) % m;
-        b /= 2;
-    }
-    res % m
 }

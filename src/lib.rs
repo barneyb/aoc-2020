@@ -24,6 +24,7 @@ pub mod geom;
 pub mod geom2d;
 pub mod histogram;
 pub mod indexer;
+pub mod math;
 pub mod passport;
 pub mod password;
 pub mod prime;
