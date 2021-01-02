@@ -18,7 +18,8 @@ const ITERATIONS: usize = 101_741_582_076_661;
 ///
 /// 1.  remove the benchmark of `go_back`
 /// 1.  inline the benchmark of `go_back`, instead of using `bench`
-/// 1.  use `bench` for `go_forward`, instead of inlining it
+/// 1.  use `bench` for `go_forward`, instead of inlining it. This one
+///     makes the `go_back` benchmark _also_ get four times slower too!
 /// 1.  use `with_duration` for `go_forward` instead of manually
 ///     computing (the `with_duration` inside `bench` is fine).
 ///
@@ -117,6 +118,7 @@ fn shuffle(ops: &[Op], card: usize, deck_size: usize) -> usize {
                 c - n
             }
         }
+        // Deal(n) => c * n % deck_size,
         Deal(n) => mult_mod(c, n, deck_size),
     })
 }

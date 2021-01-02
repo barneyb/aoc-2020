@@ -112,6 +112,21 @@ fn test_cyclic_nature() {
 }
 
 #[test]
+fn do_benchmark() {
+    let total_iters = DECK_SIZE - ITERATIONS - 1;
+    let test_iters = total_iters / 100_000_000;
+    let (ans, d) = with_duration(|| go_forward(2020, DECK_SIZE, test_iters));
+    println!(
+        "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
+        "[Debug] Bench Part Two",
+        ans,
+        d,
+        d.as_secs_f32() / 86_400_f32 * total_iters as f32 / test_iters as f32,
+    );
+    assert_eq!(10531478815607, ans);
+}
+
+#[test]
 fn test_parts() {
     assert_eq!(3036, go_forward(2019, 10007, 1));
     assert_eq!(2019, go_back(3036, 10007, 1));
