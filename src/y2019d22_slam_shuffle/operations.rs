@@ -1,5 +1,6 @@
 use crate::math::mult_inv;
 use std::iter::Map;
+use std::num::ParseIntError;
 use std::str::{FromStr, Lines};
 use Op::*;
 
@@ -53,34 +54,51 @@ impl Op {
 }
 
 impl FromStr for Op {
-    type Err = ();
+    type Err = ParseOpError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use ParseOpError::*;
         /*
         deal with increment 26
-        redeal 26
+        deal 26
         deal into new stack
         reverse
         cut -2168
          */
         let mut words = s.trim().split(' ');
-        Ok(match words.next().unwrap() {
+        match words.next().unwrap() {
             "deal" => match words.next().unwrap() {
-                "with" => Deal(words.nth(1).unwrap().parse::<usize>().unwrap(), 0),
-                "into" => Reverse(0),
-                w => panic!("Unrecognized 'deal {}' op", w),
+                "with" => {
+                    let w = words.nth(1).unwrap();
+                    match w.parse() {
+                        Ok(n) => Ok(Deal(n, 0)),
+                        Err(e) => Err(BadDealWithIncrement(e)),
+                    }
+                }
+                "into" => Ok(Reverse(0)),
+                w => match w.parse() {
+                    Ok(n) => Ok(Deal(n, 0)),
+                    Err(e) => Err(BadDeal(e)),
+                },
             },
-            "redeal" => Deal(words.next().unwrap().parse::<usize>().unwrap(), 0),
-            "reverse" => Reverse(0),
+            "reverse" => Ok(Reverse(0)),
             "cut" => {
-                let i = words.next().unwrap().parse::<isize>().unwrap();
-                if i < 0 {
-                    Cut(0, (i * -1) as usize)
-                } else {
-                    Cut(i as usize, 0)
+                let w = words.next().unwrap();
+                match w.parse::<i32>() {
+                    Ok(n) if n > 0 => Ok(Cut(n as usize, 0)),
+                    Ok(n) => Ok(Cut(0, (n * -1) as usize)),
+                    Err(e) => Err(BadCut(e)),
                 }
             }
-            w => panic!("Unrecognized '{}' op", w),
-        })
+            _ => Err(Unrecognized),
+        }
     }
+}
+
+#[derive(Debug)]
+pub enum ParseOpError {
+    Unrecognized,
+    BadCut(ParseIntError),
+    BadDeal(ParseIntError),
+    BadDealWithIncrement(ParseIntError),
 }

@@ -68,13 +68,13 @@ cut -1";
 const EXAMPLE_FOUR_ALTERNATE: &str = "\
 reverse
 cut -2
-redeal 7
+deal 7
 cut 8
 cut -4
-redeal 7
+deal 7
 cut 3
-redeal 9
-redeal 3
+deal 9
+deal 3
 cut -1";
 
 #[test]
@@ -94,12 +94,12 @@ fn test_unshuffle() {
             "\
             reverse
             cut -2
-            redeal 7
+            deal 7
             cut 8
             cut -4
-            redeal 7
+            deal 7
             cut 3
-            redeal 3
+            deal 3
             cut -1
         ",
             17,

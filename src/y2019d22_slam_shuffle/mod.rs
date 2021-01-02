@@ -97,7 +97,7 @@ fn go_forward(mut card: usize, ops: &[Op], iterations: usize) -> usize {
 
 fn shuffle(ops: &[Op], card: usize) -> usize {
     ops.iter().fold(card, |c, op| match *op {
-        Reverse(n) => n - c,
+        Reverse(sm1) => sm1 - c,
         Cut(n, u) => {
             if c < n {
                 c + u
