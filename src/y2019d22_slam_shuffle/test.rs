@@ -126,14 +126,15 @@ fn test_cyclic_nature() {
     let deck_size = 11933;
     let iterations = 10177;
     let ops = parse_bound_operation_list(&read_input(), deck_size);
+    let unops = reverse_operations(&ops);
 
     // the part one case, going forward a single tick
     assert_eq!(2331, go_forward(2019, &ops, 1));
-    assert_eq!(2019, go_back(2331, &ops, 1));
-    assert_eq!(2331, go_back(2019, &ops, deck_size - 1 - 1));
+    assert_eq!(2019, go_forward(2331, &unops, 1));
+    assert_eq!(2331, go_forward(2019, &unops, deck_size - 1 - 1));
 
     // the part two case, going back a bunch of ticks
-    assert_eq!(278, go_back(2020, &ops, iterations));
+    assert_eq!(278, go_forward(2020, &unops, iterations));
     assert_eq!(2020, go_forward(278, &ops, iterations));
     assert_eq!(278, go_forward(2020, &ops, deck_size - iterations - 1));
 }
@@ -155,11 +156,13 @@ fn do_benchmark() {
 fn test_parts() {
     let raw_ops = parse_operation_list(&read_input());
     let ops = bind_operation_list(&raw_ops, 10007);
+    let unops = reverse_operations(&ops);
     assert_eq!(3036, go_forward(2019, &ops, 1));
-    assert_eq!(2019, go_back(3036, &ops, 1));
+    assert_eq!(2019, go_forward(3036, &unops, 1));
 
     let iterations = 173; // a prime!
     let ops = bind_operation_list(&raw_ops, DECK_SIZE);
+    let unops = reverse_operations(&ops);
     let r = go_forward(2020, &ops, iterations);
-    assert_eq!(2020, go_back(r, &ops, iterations));
+    assert_eq!(2020, go_forward(r, &unops, iterations));
 }

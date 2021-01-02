@@ -14,21 +14,17 @@ mod operations;
 const DECK_SIZE: usize = 119_315_717_514_047;
 const ITERATIONS: usize = 101_741_582_076_661;
 
-/// The compiler (optimizer?, LLVM?) is doing something stupid that
-/// causes this to run a bit more than three times slower than it
-/// might otherwise. With very careful arrangements of needlessly
-/// calling `go_back`, using and not using `bench`, using and not
-/// using `with_duration`, and various `inline` attributes, I have
-/// been able to toggle between "speed x" and "speed x/3" (or "speed
-/// 3x", if you prefer) without any apparent rhyme or reason.
+/// The compiler (optimizer?, LLVM?) is doing something stupid that causes this to run a bit more
+/// than three times slower than it might otherwise. With very careful arrangements of using and not
+/// using `bench`, using and not using `with_duration`, and various `inline` attributes, I have been
+/// able to toggle between "speed x" and "speed x/3" (or "speed 3x", if you prefer) without any
+/// apparent rhyme or reason.
 ///
-/// It's clear that the idiot here is me, but I don't even have a
-/// guess at is causing the discrepancy, other than "appears to be
-/// something with compiler optimizations."
+/// It's clear that the idiot here is me, but I don't even have a guess at is causing the
+/// discrepancy, other than "appears to be something with compiler optimizations."
 ///
-/// However, at the end of the day, a 30 day runtime vs a 90 day
-/// runtime isn't really meaningfully differentiated. So purely an
-/// academic interest, not something actually in my way.
+/// However, at the end of the day, a 30 day runtime vs a 90 day runtime isn't really meaningfully
+/// differentiated. So purely an academic interest, not something actually in my way.
 pub fn solve(input: &str) {
     let raw_ops = parse_operation_list(&input);
 
@@ -37,13 +33,14 @@ pub fn solve(input: &str) {
     println!("{}", ans);
 
     let ops = bind_operation_list(&raw_ops, DECK_SIZE);
+    let unops = reverse_operations(&ops);
 
     let ans = bench(
         "Benchmark Part Two (literal)",
-        &ops,
+        &unops,
         ITERATIONS,
         5_000_000_000,
-        go_back,
+        go_forward,
     );
     if 110243237903680 != ans {
         println!(
@@ -96,14 +93,6 @@ fn go_forward(mut card: usize, ops: &[Op], iterations: usize) -> usize {
         card = shuffle(&ops, card);
     }
     card
-}
-
-fn go_back(mut position: usize, ops: &[Op], iterations: usize) -> usize {
-    let unops = reverse_operations(&ops);
-    for _ in 0..iterations {
-        position = shuffle(&unops, position);
-    }
-    position
 }
 
 fn shuffle(ops: &[Op], card: usize) -> usize {
