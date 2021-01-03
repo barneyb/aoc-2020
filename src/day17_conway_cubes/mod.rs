@@ -1,5 +1,6 @@
+use crate::histogram::Histogram;
 use crate::{timed_block, vector_type};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display, Formatter, Write};
 use std::ops::Add;
 
@@ -17,8 +18,6 @@ fn run_simulation(input: &str) -> usize {
 
 struct Game {
     active: HashSet<Point>,
-    min: Point,
-    max: Point,
     cycle_count: usize,
 }
 
@@ -34,49 +33,32 @@ impl Game {
         }
         Game {
             active,
-            min: Point::origin(),
-            max: Point::new(
-                input.lines().next().unwrap().len() as isize - 1,
-                input.lines().count() as isize - 1,
-                0,
-                0,
-            ),
             cycle_count: 0,
         }
     }
 
     fn cycle(&self) -> Game {
         let mut active = HashSet::new();
-        let mut min = Point::origin();
-        let mut max = Point::origin();
-        for w in (self.min.w - 1)..=(self.max.w + 1) {
-            for z in (self.min.z - 1)..=(self.max.z + 1) {
-                for y in (self.min.y - 1)..=(self.max.y + 1) {
-                    for x in (self.min.x - 1)..=(self.max.x + 1) {
-                        let p = Point::new(x, y, z, w);
-                        let active_neighbor_count =
-                            p.neighbors().filter(|p| self.active.contains(p)).count();
-                        if self.active.contains(&p) {
-                            if active_neighbor_count == 2 || active_neighbor_count == 3 {
-                                active.insert(p);
-                                min = min.rectilinear_min(&p);
-                                max = max.rectilinear_max(&p);
-                            }
-                        } else {
-                            if active_neighbor_count == 3 {
-                                active.insert(p);
-                                min = min.rectilinear_min(&p);
-                                max = max.rectilinear_max(&p);
-                            }
-                        }
-                    }
+        let mut neighbor_hist = HashMap::new();
+        for p in &self.active {
+            let mut count = 0;
+            for n in p.neighbors() {
+                if self.active.contains(&n) {
+                    count += 1;
                 }
+                neighbor_hist.increment_bucket(n);
+            }
+            if count == 2 || count == 3 {
+                active.insert(p.clone());
+            }
+        }
+        for (p, nc) in neighbor_hist {
+            if nc == 3 && !self.active.contains(&p) {
+                active.insert(p.clone());
             }
         }
         Game {
             active,
-            min,
-            max,
             cycle_count: self.cycle_count + 1,
         }
     }
@@ -88,11 +70,17 @@ impl Game {
 
 impl Display for Game {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for w in self.min.w..=self.max.w {
-            for z in self.min.z..=self.max.z {
+        let (min, max) = self
+            .active
+            .iter()
+            .fold((Point::origin(), Point::origin()), |(min, max), p| {
+                (min.rectilinear_min(p), max.rectilinear_max(p))
+            });
+        for w in min.w..=max.w {
+            for z in min.z..=max.z {
                 writeln!(f, "z={}, w={}", z, w)?;
-                for y in self.min.y..=self.max.y {
-                    for x in self.min.x..=self.max.x {
+                for y in min.y..=max.y {
+                    for x in min.x..=max.x {
                         if self.active.contains(&Point::new(x, y, z, w)) {
                             f.write_char('#')?;
                         } else {
