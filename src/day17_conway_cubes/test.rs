@@ -49,3 +49,13 @@ fn example_one_part_two_cycle_by_cycle() {
     assert_eq!(2, g.cycle_count);
     assert_eq!(60, g.get_active_cell_count());
 }
+
+#[test]
+fn test_neighbors() {
+    let p = Point::origin();
+    for n in p.neighbors() {
+        println!("{}", n);
+    }
+    // assert_eq!(26, p.neighbors().count());
+    assert_eq!(80, p.neighbors().count());
+}

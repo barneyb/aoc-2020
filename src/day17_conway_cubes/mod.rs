@@ -101,7 +101,7 @@ type Offset = [isize; 4];
 
 impl Point {
     pub fn neighbors(&self) -> Neighbors {
-        Neighbors { p: self, i: 0 }
+        Neighbors::new(self)
     }
 }
 
@@ -118,104 +118,58 @@ impl Add<&Offset> for &Point {
     }
 }
 
-const NEIGHBOR_OFFSETS: [Offset; 80] = [
-    [-1, -1, -1, -1],
-    [-1, -1, -1, 0],
-    [-1, -1, -1, 1],
-    [-1, -1, 0, -1],
-    [-1, -1, 0, 0],
-    [-1, -1, 0, 1],
-    [-1, -1, 1, -1],
-    [-1, -1, 1, 0],
-    [-1, -1, 1, 1],
-    [-1, 0, -1, -1],
-    [-1, 0, -1, 0],
-    [-1, 0, -1, 1],
-    [-1, 0, 0, -1],
-    [-1, 0, 0, 0],
-    [-1, 0, 0, 1],
-    [-1, 0, 1, -1],
-    [-1, 0, 1, 0],
-    [-1, 0, 1, 1],
-    [-1, 1, -1, -1],
-    [-1, 1, -1, 0],
-    [-1, 1, -1, 1],
-    [-1, 1, 0, -1],
-    [-1, 1, 0, 0],
-    [-1, 1, 0, 1],
-    [-1, 1, 1, -1],
-    [-1, 1, 1, 0],
-    [-1, 1, 1, 1],
-    [0, -1, -1, -1],
-    [0, -1, -1, 0],
-    [0, -1, -1, 1],
-    [0, -1, 0, -1],
-    [0, -1, 0, 0],
-    [0, -1, 0, 1],
-    [0, -1, 1, -1],
-    [0, -1, 1, 0],
-    [0, -1, 1, 1],
-    [0, 0, -1, -1],
-    [0, 0, -1, 0],
-    [0, 0, -1, 1],
-    [0, 0, 0, -1],
-    // [0, 0, 0, 0],
-    [0, 0, 0, 1],
-    [0, 0, 1, -1],
-    [0, 0, 1, 0],
-    [0, 0, 1, 1],
-    [0, 1, -1, -1],
-    [0, 1, -1, 0],
-    [0, 1, -1, 1],
-    [0, 1, 0, -1],
-    [0, 1, 0, 0],
-    [0, 1, 0, 1],
-    [0, 1, 1, -1],
-    [0, 1, 1, 0],
-    [0, 1, 1, 1],
-    [1, -1, -1, -1],
-    [1, -1, -1, 0],
-    [1, -1, -1, 1],
-    [1, -1, 0, -1],
-    [1, -1, 0, 0],
-    [1, -1, 0, 1],
-    [1, -1, 1, -1],
-    [1, -1, 1, 0],
-    [1, -1, 1, 1],
-    [1, 0, -1, -1],
-    [1, 0, -1, 0],
-    [1, 0, -1, 1],
-    [1, 0, 0, -1],
-    [1, 0, 0, 0],
-    [1, 0, 0, 1],
-    [1, 0, 1, -1],
-    [1, 0, 1, 0],
-    [1, 0, 1, 1],
-    [1, 1, -1, -1],
-    [1, 1, -1, 0],
-    [1, 1, -1, 1],
-    [1, 1, 0, -1],
-    [1, 1, 0, 0],
-    [1, 1, 0, 1],
-    [1, 1, 1, -1],
-    [1, 1, 1, 0],
-    [1, 1, 1, 1],
-];
+#[derive(Default)]
+struct NeighborOffsets {
+    o: Offset,
+}
+
+impl Iterator for NeighborOffsets {
+    type Item = Offset;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for i in 0..self.o.len() {
+            match self.o[i] {
+                0 => {
+                    for j in 0..i {
+                        self.o[j] = 0;
+                    }
+                    self.o[i] = -1;
+                }
+                -1 => {
+                    for j in 0..i {
+                        self.o[j] = 0;
+                    }
+                    self.o[i] = 1;
+                }
+                _ => continue,
+            }
+            return Some(self.o.clone());
+        }
+        None
+    }
+}
 
 struct Neighbors<'a> {
     p: &'a Point,
-    i: usize,
+    os: NeighborOffsets,
+}
+
+impl<'a> Neighbors<'a> {
+    fn new(p: &'a Point) -> Neighbors {
+        Neighbors {
+            p,
+            os: Default::default(),
+        }
+    }
 }
 
 impl Iterator for Neighbors<'_> {
     type Item = Point;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.i >= NEIGHBOR_OFFSETS.len() {
-            return None;
+        match self.os.next() {
+            Some(o) => Some(self.p + &o),
+            None => None,
         }
-        let offset = &NEIGHBOR_OFFSETS[self.i];
-        self.i += 1;
-        Some(self.p + offset)
     }
 }
