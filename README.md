@@ -1,16 +1,24 @@
 # Advent of Code 2020
 
-My Advent of Code 2020 solutions/solvers in Rust. It's the usual (assuming you
-have a Rust dev env, https://rustup.rs or otherwise):
+My Advent of Code 2020 solutions/solvers in Rust. It's the usual:
 
-    cargo run
+    # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    cargo test
+    cargo run --release
 
-If you want to see a specific day's solver in action, go find when its branch
-merged into master and check out that revision. Most of the code is in durable
-modules, but the actual executable only solves one day: today. The first few
-days had two branches: one for the solution and one for modularization. I'm
-learning too!
+If you want to see a specific day's solver in action, go find its branch and
+check it out. Most of code is in durable modules, but the actual executable only
+solves one day: today. Don't look too closely at the branch structure; I let go
+nuts on purpose to help learn how to articulate why keeping it hygienic matters. 
 
 If you want to solve _your_ input, after checking out the right commit, replace
 the `input.txt` file in the root with your input and do `cargo run` again. But
 don't do that; the point of AoC isn't the stars, it's the pleasure of discovery.
+
+## Java Playground
+
+There are also a couple Java tidbits in there, where I needed to think through
+some stuff. Having to fight the borrow checker and mutability (and to a lesser
+extend, lifetimes) interfered with my ability to think through the "business"
+problem, since they're still pretty unfamiliar. Yes, I use Java as a scripting
+language for exploration. Shush.

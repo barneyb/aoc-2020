@@ -4,8 +4,13 @@ extern crate lazy_static;
 extern crate num_traits;
 
 use std::fmt;
+use std::fmt::Display;
 use std::fs;
 use std::time::{Duration, Instant};
+
+pub mod day23_crab_cups;
+pub mod day24_lobby_layout;
+pub mod day25_combo_breaker;
 
 pub mod ascii;
 pub mod boarding_pass;
@@ -14,6 +19,7 @@ pub mod find_pairs;
 pub mod geom;
 pub mod geom2d;
 pub mod histogram;
+pub mod indexer;
 pub mod passport;
 pub mod password;
 
@@ -21,6 +27,7 @@ pub fn read_input() -> String {
     fs::read_to_string("input.txt").unwrap().trim().to_string()
 }
 
+#[deprecated]
 pub fn read_lines<T, F>(f: F) -> Vec<T>
 where
     F: Fn(&str) -> T,
@@ -52,7 +59,7 @@ pub fn unwrap_paragraphs(input: &str) -> Vec<String> {
 
 pub fn with_duration<T, F>(f: F) -> (T, Duration)
 where
-    F: Fn() -> T,
+    F: FnOnce() -> T,
 {
     let start = Instant::now();
     let r = f();
@@ -60,13 +67,37 @@ where
     (r, elapsed)
 }
 
+#[deprecated]
 pub fn print_duration<T, F>(f: F) -> T
 where
-    F: Fn() -> T,
+    F: FnOnce() -> T,
 {
     let (r, elapsed) = with_duration(f);
     println!("{:?}", elapsed);
     r
+}
+
+#[deprecated(note = "Use timed_block instead.")]
+pub fn time_block<L, T, F>(label: L, f: F) -> T
+where
+    L: Display,
+    F: FnOnce() -> T,
+{
+    timed_block(label, f)
+}
+
+pub fn timed_block<L, T, F>(label: L, f: F) -> T
+where
+    L: Display,
+    F: FnOnce() -> T,
+{
+    let progress = console::Style::new().yellow();
+    println!("\n{:>12} ...", progress.apply_to(&label));
+    let start = Instant::now();
+    let result = f();
+    let elapsed = start.elapsed();
+    println!("{:^>12} {:?}", progress.bold().apply_to(""), elapsed);
+    result
 }
 
 pub struct Benchmark {
