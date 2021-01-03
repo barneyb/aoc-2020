@@ -1,4 +1,4 @@
-use aoc_2020::day17_conway_cubes::solve;
+use aoc_2020::day11_seating_chart::solve;
 use aoc_2020::{read_input, with_duration};
 
 fn main() {
