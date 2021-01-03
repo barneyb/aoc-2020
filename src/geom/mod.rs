@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! vector_type {
     ( $n:ident, $t:ty, $f:ident $( ,$d:ident )* ) => {
-        #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+        #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone)]
         struct $n {
             $f: $t
             $( , $d: $t )*
