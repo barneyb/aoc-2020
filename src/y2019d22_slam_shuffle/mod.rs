@@ -1,5 +1,5 @@
 use crate::y2019d22_slam_shuffle::operations::{
-    bind_operation_list, parse_operation_list, reverse_operations, Op,
+    bind_operation_list, parse_operation_list, reverse_operations, shuffle, Op,
 };
 use crate::{timed_block, with_duration};
 use std::fmt::Display;
@@ -47,14 +47,25 @@ pub fn solve(input: &str) {
         );
     }
 
-    let ans = bench(
-        "Benchmark Part Two (reversed)",
-        &ops,
-        DECK_SIZE - ITERATIONS - 1,
-        10_000_000,
-        go_forward,
-    );
-    assert_eq!(85445347441033, ans);
+    if cfg!(debug_assertions) {
+        let ans = bench(
+            "Benchmark Part Two (reversed)",
+            &ops,
+            DECK_SIZE - ITERATIONS - 1,
+            100_000_000,
+            go_forward,
+        );
+        assert_eq!(10531478815607, ans);
+    } else {
+        let ans = bench(
+            "Benchmark Part Two (reversed)",
+            &ops,
+            DECK_SIZE - ITERATIONS - 1,
+            10_000_000,
+            go_forward,
+        );
+        assert_eq!(85445347441033, ans);
+    }
 
     // TOO SLOW! Extrapolation above indicates about three months of CPU time.
     // let ans = timed_block("Part Two", || {
@@ -91,8 +102,4 @@ fn go_forward(mut card: usize, ops: &[Op], iterations: usize) -> usize {
         card = shuffle(card, &ops);
     }
     card
-}
-
-fn shuffle(card: usize, ops: &[Op]) -> usize {
-    ops.iter().fold(card, |c, op| op.execute(c))
 }

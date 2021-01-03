@@ -4,6 +4,13 @@ use std::num::ParseIntError;
 use std::str::{FromStr, Lines};
 use Op::*;
 
+#[cfg(test)]
+mod test;
+
+pub fn shuffle(card: usize, ops: &[Op]) -> usize {
+    ops.iter().fold(card, |c, op| op.execute(c))
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub enum Op {
     Reverse(usize),

@@ -1,9 +1,8 @@
+use super::operations::{
+    bind_operation_list, parse_bound_operation_list, parse_operation_list, shuffle,
+};
 use super::*;
 use crate::read_input;
-use crate::y2019d22_slam_shuffle::operations::Op::*;
-use crate::y2019d22_slam_shuffle::operations::{
-    bind_operation_list, parse_bound_operation_list, parse_operation_list,
-};
 
 fn check_shuffle(expected: &Vec<usize>, ops: &Vec<Op>) {
     let in_order = (0..expected.len()).collect::<Vec<_>>();
@@ -13,45 +12,6 @@ fn check_shuffle(expected: &Vec<usize>, ops: &Vec<Op>) {
         shuffled[shuffle(c, ops)] = c;
     }
     assert_eq!(expected, &shuffled);
-}
-
-#[test]
-fn test_reverse() {
-    check_shuffle(&vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 0], &vec![Reverse(10 - 1)]);
-}
-
-#[test]
-fn test_cut_positive() {
-    check_shuffle(&vec![3, 4, 5, 6, 7, 8, 9, 0, 1, 2], &vec![Cut(3, 10 - 3)]);
-}
-
-#[test]
-fn test_cut_negative() {
-    check_shuffle(&vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5], &vec![Cut(10 - 4, 4)]);
-}
-
-#[test]
-fn test_deal() {
-    let ops = vec![Deal(3, 0)];
-    check_shuffle(
-        &vec![0, 7, 4, 1, 8, 5, 2, 9, 6, 3],
-        &bind_operation_list(&ops, 10),
-    );
-    let ds = 7;
-    check_symmetry(&bind_operation_list(&ops, ds), ds)
-}
-
-fn check_symmetry(ops: &[Op], ds: usize) {
-    let unops = reverse_operations(&ops);
-    for card in 0..ds {
-        let s = shuffle(card, &ops);
-        let us = shuffle(s, &unops);
-        assert_eq!(
-            card, us,
-            "{} shuffled to {}, but unshuffled to {}",
-            card, s, us
-        );
-    }
 }
 
 const EXAMPLE_FOUR: &str = "\
@@ -86,27 +46,6 @@ fn example_four() {
     let ops = parse_bound_operation_list(&EXAMPLE_FOUR, 10);
     assert_eq!(bound_ops, ops);
     check_shuffle(&vec![9, 2, 5, 8, 1, 4, 7, 0, 3, 6], &ops);
-}
-
-#[test]
-fn test_unshuffle() {
-    check_symmetry(
-        &parse_bound_operation_list(
-            "\
-            reverse
-            cut -2
-            deal 7
-            cut 8
-            cut -4
-            deal 7
-            cut 3
-            deal 3
-            cut -1
-        ",
-            17,
-        ),
-        17,
-    );
 }
 
 #[test]
