@@ -1,5 +1,6 @@
 use super::*;
 use crate::read_input;
+use crate::y2019d22_slam_shuffle::operations::Op::*;
 use crate::y2019d22_slam_shuffle::operations::{
     bind_operation_list, parse_bound_operation_list, parse_operation_list,
 };
@@ -9,7 +10,7 @@ fn check_shuffle(expected: &Vec<usize>, ops: &Vec<Op>) {
     let mut shuffled = Vec::with_capacity(expected.len());
     shuffled.resize(expected.len(), 42);
     for &c in &in_order {
-        shuffled[shuffle(ops, c)] = c;
+        shuffled[shuffle(c, ops)] = c;
     }
     assert_eq!(expected, &shuffled);
 }
@@ -43,8 +44,8 @@ fn test_deal() {
 fn check_symmetry(ops: &[Op], ds: usize) {
     let unops = reverse_operations(&ops);
     for card in 0..ds {
-        let s = shuffle(&ops, card);
-        let us = shuffle(&unops, s);
+        let s = shuffle(card, &ops);
+        let us = shuffle(s, &unops);
         assert_eq!(
             card, us,
             "{} shuffled to {}, but unshuffled to {}",
@@ -106,19 +107,6 @@ fn test_unshuffle() {
         ),
         17,
     );
-}
-
-#[test]
-fn test_factoring() {
-    // 1755 = 13 * 5 * 3 * 3 * 3
-    let deck_size = 11933;
-    let iterations = 10177;
-    let ops = parse_bound_operation_list(&read_input(), deck_size);
-    assert_eq!(278, go_forward(2020, &ops, deck_size - iterations - 1));
-    assert_eq!(278, go_forward(2020, &ops, 1755));
-    let a = go_forward(2020, &ops, 1);
-    let b = go_forward(2021, &ops, 1);
-    println!("{} {}", a, b);
 }
 
 #[test]

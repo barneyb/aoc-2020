@@ -1,5 +1,3 @@
-use crate::math::mult_mod;
-use crate::y2019d22_slam_shuffle::operations::Op::*;
 use crate::y2019d22_slam_shuffle::operations::{
     bind_operation_list, parse_operation_list, reverse_operations, Op,
 };
@@ -90,22 +88,11 @@ where
 
 fn go_forward(mut card: usize, ops: &[Op], iterations: usize) -> usize {
     for _ in 0..iterations {
-        card = shuffle(&ops, card);
+        card = shuffle(card, &ops);
     }
     card
 }
 
-fn shuffle(ops: &[Op], card: usize) -> usize {
-    ops.iter().fold(card, |c, op| match *op {
-        Reverse(sm1) => sm1 - c,
-        Cut(n, u) => {
-            if c < n {
-                c + u
-            } else {
-                c - n
-            }
-        }
-        // Deal(n) => c * n % deck_size,
-        Deal(n, s) => mult_mod(c, n, s),
-    })
+fn shuffle(card: usize, ops: &[Op]) -> usize {
+    ops.iter().fold(card, |c, op| op.execute(c))
 }

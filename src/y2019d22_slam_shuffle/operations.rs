@@ -1,4 +1,4 @@
-use crate::math::mult_inv;
+use crate::math::{mult_inv, mult_mod};
 use std::iter::Map;
 use std::num::ParseIntError;
 use std::str::{FromStr, Lines};
@@ -9,6 +9,23 @@ pub enum Op {
     Reverse(usize),
     Cut(usize, usize),
     Deal(usize, usize),
+}
+
+impl Op {
+    pub fn execute(&self, c: usize) -> usize {
+        match self {
+            Reverse(sm1) => sm1 - c,
+            Cut(n, u) => {
+                if c < *n {
+                    c + u
+                } else {
+                    c - n
+                }
+            }
+            // Deal(n) => c * n % deck_size,
+            Deal(n, s) => mult_mod(c, *n, *s),
+        }
+    }
 }
 
 pub fn parse_operation_list(s: &str) -> Vec<Op> {
@@ -27,7 +44,7 @@ pub fn bind_operation_list(ops: &[Op], deck_size: usize) -> Vec<Op> {
 }
 
 fn __str_to_op_iter(s: &str) -> Map<Lines, fn(&str) -> Op> {
-    s.trim().lines().map(|l| l.parse::<Op>().unwrap())
+    s.trim().lines().map(|l| l.trim().parse::<Op>().unwrap())
 }
 
 pub fn reverse_operations(ops: &[Op]) -> Vec<Op> {
