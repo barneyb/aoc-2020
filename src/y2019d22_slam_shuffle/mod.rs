@@ -1,4 +1,4 @@
-use crate::math::mult_mod;
+use crate::math::{mult_inv, mult_mod};
 use crate::y2019d22_slam_shuffle::operations::{
     bind_operation_list, parse_operation_list, reverse_operations, Op, Op::*,
 };
@@ -47,6 +47,15 @@ pub fn solve(input: &str) {
             ans, 110243237903680 as usize
         );
     }
+
+    let ans = bench(
+        "Benchmark Part Two (montgomery)",
+        &ops,
+        DECK_SIZE - ITERATIONS - 1,
+        5_000_000_000,
+        montgomery_shuffle,
+    );
+    assert_eq!(95789009747632, ans);
 
     if cfg!(debug_assertions) {
         let ans = bench(
@@ -98,10 +107,51 @@ where
     ans
 }
 
+#[allow(unused_variables)]
+#[allow(non_snake_case)]
+fn montgomery_shuffle(mut card: usize, ops: &[Op], deck_size: usize, iterations: usize) -> usize {
+    let N = deck_size;
+    let mut R = 1;
+    while R <= N {
+        R *= 2;
+    }
+    debug_assert!(R > N);
+    let R_prime = mult_inv(R, N).unwrap();
+    debug_assert_eq!(1, mult_mod(R, R_prime, N));
+    card = mult_mod(card, R, N);
+    let N_prime = ((R as u128 * R_prime as u128 - 1) / N as u128) as usize;
+
+    let ops = ops
+        .iter()
+        .map(|op| match op {
+            Reverse(dsm1) => Reverse(mult_mod(*dsm1, R, deck_size) + deck_size),
+            Cut(n, u) => Cut(
+                mult_mod(deck_size - n, R, deck_size),
+                mult_mod(*u, R, deck_size),
+            ),
+            Deal(n, ds) => {
+                debug_assert_eq!(*ds, deck_size);
+                Deal(mult_mod(*n, R, *ds), *ds)
+            }
+        })
+        .collect::<Vec<_>>();
+
+    for _ in 0..iterations {
+        card = ops.iter().fold(card, |c, op| match op {
+            Reverse(dsm1) => dsm1 - c,
+            Cut(n, _) => (n + c) % N,
+            // Deal(n) => redc(R, N, N_prime, c * *n)
+            Deal(n, ds) => mult_mod(mult_mod(c, *n, *ds), R_prime, *ds),
+        })
+    }
+
+    mult_mod(card, R_prime, deck_size)
+}
+
 fn shuffle(mut card: usize, ops: &[Op], _deck_size: usize, iterations: usize) -> usize {
     for _ in 0..iterations {
         card = ops.iter().fold(card, |c, op| match op {
-            Reverse(sm1) => sm1 - c,
+            Reverse(dsm1) => dsm1 - c,
             Cut(n, u) => {
                 if c < *n {
                     c + u
@@ -109,7 +159,7 @@ fn shuffle(mut card: usize, ops: &[Op], _deck_size: usize, iterations: usize) ->
                     c - n
                 }
             }
-            Deal(n, s) => mult_mod(c, *n, *s),
+            Deal(n, ds) => mult_mod(c, *n, *ds),
         });
     }
     card

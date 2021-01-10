@@ -128,6 +128,10 @@ fn test_cyclic_nature() {
     assert_eq!(2331, shuffle(2019, &ops, deck_size, 1));
     assert_eq!(2019, shuffle(2331, &unops, deck_size, 1));
     assert_eq!(2331, shuffle(2019, &unops, deck_size, deck_size - 1 - 1));
+    assert_eq!(
+        2331,
+        montgomery_shuffle(2019, &unops, deck_size, deck_size - 1 - 1)
+    );
 
     // the part two case, going back a bunch of ticks
     assert_eq!(278, shuffle(2020, &unops, deck_size, iterations));
@@ -135,6 +139,10 @@ fn test_cyclic_nature() {
     assert_eq!(
         278,
         shuffle(2020, &ops, deck_size, deck_size - iterations - 1)
+    );
+    assert_eq!(
+        278,
+        montgomery_shuffle(2020, &ops, deck_size, deck_size - iterations - 1)
     );
 }
 
@@ -145,10 +153,21 @@ fn do_benchmark() {
         "[Debug] Bench Part Two",
         &ops,
         DECK_SIZE - ITERATIONS - 1,
-        100_000_000,
+        100 * 100_000_000,
         shuffle,
     );
-    assert_eq!(10531478815607, ans);
+    // assert_eq!(10531478815607, ans);
+    assert_eq!(119198142480316, ans);
+
+    let ans = bench(
+        "[Debug] Bench Part Two (Montgomery)",
+        &ops,
+        DECK_SIZE - ITERATIONS - 1,
+        100 * 100_000_000,
+        montgomery_shuffle,
+    );
+    // assert_eq!(10531478815607, ans);
+    assert_eq!(119198142480316, ans);
 }
 
 #[test]
@@ -164,4 +183,8 @@ fn test_parts() {
     let unops = reverse_operations(&ops);
     assert_eq!(81897533950870, shuffle(2020, &ops, DECK_SIZE, iterations));
     assert_eq!(2020, shuffle(81897533950870, &unops, DECK_SIZE, iterations));
+    assert_eq!(
+        2020,
+        montgomery_shuffle(81897533950870, &unops, DECK_SIZE, iterations)
+    );
 }
