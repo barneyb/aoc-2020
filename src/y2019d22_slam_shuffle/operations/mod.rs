@@ -60,7 +60,8 @@ pub fn reverse_operations(ops: &[Op]) -> Vec<Op> {
         .map(|op| match *op {
             Reverse(n) => Reverse(n),
             Cut(n, u) => Cut(u, n),
-            Deal(n, s) => Deal(mult_inv(n, s), s),
+            Deal(_, 0) => panic!("Unbound {:?} found?!", op),
+            Deal(n, s) => Deal(mult_inv(n, s).unwrap(), s),
         })
         .collect::<Vec<_>>()
 }
@@ -110,7 +111,7 @@ impl FromStr for Op {
                 let w = words.next().unwrap();
                 match w.parse::<i32>() {
                     Ok(n) if n > 0 => Ok(Cut(n as usize, 0)),
-                    Ok(n) => Ok(Cut(0, (n * -1) as usize)),
+                    Ok(n) => Ok(Cut(0, n.abs() as usize)),
                     Err(e) => Err(BadCut(e)),
                 }
             }

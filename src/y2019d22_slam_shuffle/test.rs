@@ -90,6 +90,6 @@ fn test_parts() {
     let iterations = 173; // a prime!
     let ops = bind_operation_list(&raw_ops, DECK_SIZE);
     let unops = reverse_operations(&ops);
-    let r = go_forward(2020, &ops, iterations);
-    assert_eq!(2020, go_forward(r, &unops, iterations));
+    assert_eq!(81897533950870, go_forward(2020, &ops, iterations));
+    assert_eq!(2020, go_forward(81897533950870, &unops, iterations));
 }

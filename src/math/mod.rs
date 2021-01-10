@@ -1,6 +1,26 @@
 /// Finds the multiplicative inverse of `a mod m`.
-pub fn mult_inv(a: usize, m: usize) -> usize {
-    bin_pow(a, m - 2, m)
+pub fn mult_inv(a: usize, m: usize) -> Result<usize, ()> {
+    let mut t: isize = 0;
+    let mut newt = 1;
+    let mut r = m as isize;
+    let mut newr = a as isize;
+
+    while newr != 0 {
+        let quotient = r / newr;
+        let prev = t;
+        t = newt;
+        newt = prev - quotient * newt;
+        let prev = r;
+        r = newr;
+        newr = prev - quotient * newr;
+    }
+    if r > 1 {
+        return Err(());
+    }
+    if t < 0 {
+        t += m as isize;
+    }
+    Ok(t as usize)
 }
 
 /// Finds `a ^ b mod m` using binary exponentiation.
