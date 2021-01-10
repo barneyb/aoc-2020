@@ -1,38 +1,14 @@
-use crate::math::{mult_inv, mult_mod};
+use crate::math::mult_inv;
 use std::iter::Map;
 use std::num::ParseIntError;
 use std::str::{FromStr, Lines};
 use Op::*;
-
-#[cfg(test)]
-mod test;
-
-pub fn shuffle(card: usize, ops: &[Op]) -> usize {
-    ops.iter().fold(card, |c, op| op.execute(c))
-}
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Op {
     Reverse(usize),
     Cut(usize, usize),
     Deal(usize, usize),
-}
-
-impl Op {
-    pub fn execute(&self, c: usize) -> usize {
-        match self {
-            Reverse(sm1) => sm1 - c,
-            Cut(n, u) => {
-                if c < *n {
-                    c + u
-                } else {
-                    c - n
-                }
-            }
-            // Deal(n) => c * n % deck_size,
-            Deal(n, s) => mult_mod(c, *n, *s),
-        }
-    }
 }
 
 pub fn parse_operation_list(s: &str) -> Vec<Op> {

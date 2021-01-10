@@ -1,5 +1,6 @@
+use crate::math::mult_mod;
 use crate::y2019d22_slam_shuffle::operations::{
-    bind_operation_list, parse_operation_list, reverse_operations, shuffle, Op,
+    bind_operation_list, parse_operation_list, reverse_operations, Op, Op::*,
 };
 use crate::{timed_block, with_duration};
 use std::fmt::Display;
@@ -27,7 +28,7 @@ pub fn solve(input: &str) {
     let raw_ops = parse_operation_list(&input);
 
     let ops = bind_operation_list(&raw_ops, 10007);
-    let ans = timed_block("Part One", || go_forward(2019, &ops, 1));
+    let ans = timed_block("Part One", || shuffle(2019, &ops, 10007, 1));
     println!("{}", ans);
 
     let ops = bind_operation_list(&raw_ops, DECK_SIZE);
@@ -38,7 +39,7 @@ pub fn solve(input: &str) {
         &unops,
         ITERATIONS,
         5_000_000_000,
-        go_forward,
+        shuffle,
     );
     if 110243237903680 != ans {
         println!(
@@ -53,7 +54,7 @@ pub fn solve(input: &str) {
             &ops,
             DECK_SIZE - ITERATIONS - 1,
             100_000_000,
-            go_forward,
+            shuffle,
         );
         assert_eq!(10531478815607, ans);
     } else {
@@ -62,7 +63,7 @@ pub fn solve(input: &str) {
             &ops,
             DECK_SIZE - ITERATIONS - 1,
             10_000_000,
-            go_forward,
+            shuffle,
         );
         assert_eq!(85445347441033, ans);
     }
@@ -80,13 +81,13 @@ fn bench<T>(
     ops: &[Op],
     total_iters: usize,
     factor: usize,
-    f: fn(usize, &[Op], usize) -> T,
+    f: fn(usize, &[Op], usize, usize) -> T,
 ) -> T
 where
     T: Display,
 {
     let test_iters = total_iters / factor;
-    let (ans, d) = with_duration(|| f(2020, ops, test_iters));
+    let (ans, d) = with_duration(|| f(2020, ops, DECK_SIZE, test_iters));
     println!(
         "{}\n  answer {}\n  took   {:?}\n  expect {:.1} days",
         lbl,
@@ -97,9 +98,19 @@ where
     ans
 }
 
-fn go_forward(mut card: usize, ops: &[Op], iterations: usize) -> usize {
+fn shuffle(mut card: usize, ops: &[Op], _deck_size: usize, iterations: usize) -> usize {
     for _ in 0..iterations {
-        card = shuffle(card, &ops);
+        card = ops.iter().fold(card, |c, op| match op {
+            Reverse(sm1) => sm1 - c,
+            Cut(n, u) => {
+                if c < *n {
+                    c + u
+                } else {
+                    c - n
+                }
+            }
+            Deal(n, s) => mult_mod(c, *n, *s),
+        });
     }
     card
 }
