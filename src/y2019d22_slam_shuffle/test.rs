@@ -147,27 +147,45 @@ fn test_cyclic_nature() {
 }
 
 #[test]
+#[allow(non_snake_case)]
+fn test_get_redc_primes() {
+    assert_eq!((8, 47), get_redc_primes(100, 17));
+    assert_eq!((12, 7), get_redc_primes(10, 17));
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_REDC() {
+    // 7 * 15 mod 17 w/ R=100
+    assert_eq!(11, REDC(100, 17, 47, 12));
+    // 7 * 15 mod 17 w/ R=10
+    assert_eq!(13, REDC(10, 17, 7, 28));
+}
+
+#[test]
 fn do_benchmark() {
     let ops = parse_bound_operation_list(&read_input(), DECK_SIZE);
     let ans = bench(
         "[Debug] Bench Part Two",
         &ops,
         DECK_SIZE - ITERATIONS - 1,
-        100 * 100_000_000,
+        10 * 100_000_000,
         shuffle,
     );
     // assert_eq!(10531478815607, ans);
-    assert_eq!(119198142480316, ans);
+    assert_eq!(78684544058002, ans);
+    // assert_eq!(119198142480316, ans); // * 100
 
     let ans = bench(
         "[Debug] Bench Part Two (Montgomery)",
         &ops,
         DECK_SIZE - ITERATIONS - 1,
-        100 * 100_000_000,
+        10 * 100_000_000,
         montgomery_shuffle,
     );
     // assert_eq!(10531478815607, ans);
-    assert_eq!(119198142480316, ans);
+    assert_eq!(78684544058002, ans);
+    // assert_eq!(119198142480316, ans); // * 100
 }
 
 #[test]

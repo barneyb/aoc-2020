@@ -107,45 +107,102 @@ where
     ans
 }
 
-#[allow(unused_variables)]
 #[allow(non_snake_case)]
-fn montgomery_shuffle(mut card: usize, ops: &[Op], deck_size: usize, iterations: usize) -> usize {
-    let N = deck_size;
-    let mut R = 1;
-    while R <= N {
-        R *= 2;
-    }
-    debug_assert!(R > N);
-    let R_prime = mult_inv(R, N).unwrap();
-    debug_assert_eq!(1, mult_mod(R, R_prime, N));
-    card = mult_mod(card, R, N);
-    let N_prime = ((R as u128 * R_prime as u128 - 1) / N as u128) as usize;
+fn get_redc_primes(R: u128, N: u128) -> (u128, u128) {
+    let R_prime = mult_inv(R as usize, N as usize).unwrap() as u128;
+    debug_assert_eq!(1, mult_mod(R as usize, R_prime as usize, N as usize));
+    // RR' - NN' = 1 :: should be Hensel's lemma, but I don't understand...
+    let N_prime = (R * R_prime - 1) / N;
+    (R_prime, N_prime)
+}
 
-    let ops = ops
+#[allow(non_snake_case)]
+fn REDC(R: u128, N: u128, N_prime: u128, T: u128) -> u128 {
+    // if cfg!(debug_assertions) {
+    //     use crate::prime::prime_factors;
+    //     let mut r_fact = prime_factors(R as usize);
+    //     let n_fact = prime_factors(N as usize).collect::<Vec<_>>();
+    //     assert!(
+    //         r_fact.all(|f| !n_fact.contains(&f)),
+    //         "R={} and N={} aren't coprime",
+    //         R,
+    //         N
+    //     );
+    //     assert!(N_prime < R, "N'={} isn't less than R={}", N_prime, R);
+    //     assert_eq!(
+    //         mult_mod(N, N_prime, R),
+    //         R - 1,
+    //         "N={} * N'={} isn't -1 mod R={}",
+    //         N,
+    //         N_prime,
+    //         R
+    //     );
+    //     assert!(T < R * N, "T={} isn't less than R={}*N={}", T, R, N);
+    // }
+
+    let m = ((T % R) * N_prime) % R;
+    let t = (T + m * N) / R;
+    if t >= N {
+        t - N
+    } else {
+        t
+    }
+}
+
+#[allow(non_snake_case)]
+fn montgomery_shuffle(
+    starting_card: usize,
+    ops: &[Op],
+    deck_size: usize,
+    iterations: usize,
+) -> usize {
+    let mut card = starting_card as u128;
+
+    let N = deck_size as u128;
+    let R = 2_u128.pow((N as f64).log2().ceil() as u32);
+    debug_assert!(R > N);
+    let (_, N_prime) = get_redc_primes(R, N);
+    let R_squared = R * R % N;
+    let redc = |T| REDC(R, N, N_prime, T);
+
+    #[derive(Debug)]
+    enum MOp {
+        Reverse(u128),
+        Cut(u128, u128),
+        Deal(u128),
+    }
+
+    card = redc(card * R_squared);
+    let mops = ops
         .iter()
         .map(|op| match op {
-            Reverse(dsm1) => Reverse(mult_mod(*dsm1, R, deck_size) + deck_size),
-            Cut(n, u) => Cut(
-                mult_mod(deck_size - n, R, deck_size),
-                mult_mod(*u, R, deck_size),
+            Reverse(dsm1) => MOp::Reverse(redc(*dsm1 as u128 * R_squared) + N),
+            Cut(n, u) => MOp::Cut(
+                redc((deck_size - n) as u128 * R_squared),
+                redc(*u as u128 * R_squared),
             ),
             Deal(n, ds) => {
                 debug_assert_eq!(*ds, deck_size);
-                Deal(mult_mod(*n, R, *ds), *ds)
+                MOp::Deal(redc(*n as u128 * R_squared))
             }
         })
         .collect::<Vec<_>>();
 
     for _ in 0..iterations {
-        card = ops.iter().fold(card, |c, op| match op {
-            Reverse(dsm1) => dsm1 - c,
-            Cut(n, _) => (n + c) % N,
-            // Deal(n) => redc(R, N, N_prime, c * *n)
-            Deal(n, ds) => mult_mod(mult_mod(c, *n, *ds), R_prime, *ds),
+        card = mops.iter().fold(card, |c, op| match op {
+            MOp::Reverse(dsm1) => *dsm1 - c,
+            MOp::Cut(n, _) => {
+                let next = *n + c;
+                if next < N {
+                    return next;
+                }
+                next - N
+            }
+            MOp::Deal(n) => redc(*n * c),
         })
     }
 
-    mult_mod(card, R_prime, deck_size)
+    redc(card) as usize
 }
 
 fn shuffle(mut card: usize, ops: &[Op], _deck_size: usize, iterations: usize) -> usize {
