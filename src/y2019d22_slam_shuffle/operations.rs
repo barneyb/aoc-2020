@@ -64,7 +64,9 @@ impl FromStr for Op {
         deal 26
         deal into new stack
         reverse
+        cut 47
         cut -2168
+        uncut 2168
          */
         let mut words = s.trim().split(' ');
         match words.next().unwrap() {
@@ -88,6 +90,14 @@ impl FromStr for Op {
                 match w.parse::<i32>() {
                     Ok(n) if n > 0 => Ok(Cut(n as usize, 0)),
                     Ok(n) => Ok(Cut(0, n.abs() as usize)),
+                    Err(e) => Err(BadCut(e)),
+                }
+            }
+            "uncut" => {
+                let w = words.next().unwrap();
+                match w.parse::<i32>() {
+                    Ok(n) if n > 0 => Ok(Cut(0, n.abs() as usize)),
+                    Ok(n) => Ok(Cut(n as usize, 0)),
                     Err(e) => Err(BadCut(e)),
                 }
             }
