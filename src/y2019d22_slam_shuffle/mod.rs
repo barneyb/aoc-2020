@@ -105,7 +105,7 @@ fn get_redc_primes(R: u128, N: u128) -> (u128, u128) {
     (R_prime, N_prime)
 }
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, unused)]
 fn REDC(R: u128, N: u128, N_prime: u128, T: u128) -> u128 {
     let m = ((T % R) * N_prime) % R;
     let t = (T + m * N) / R;
@@ -127,24 +127,30 @@ fn REDC_pow_2(R_mod_and: u128, R_div_shift: u32, N: u128, N_prime: u128, T: u128
     }
 }
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, non_upper_case_globals)]
 fn montgomery_shuffle(
     starting_card: usize,
     ops: &[Op],
     deck_size: usize,
     iterations: usize,
 ) -> usize {
-    let mut card = starting_card as u128;
-
-    let N = deck_size as u128;
-    let R = 2_u128.pow((N as f64).log2().ceil() as u32);
+    const N: u128 = 119_315_717_514_047;
+    debug_assert_eq!(N, deck_size as u128);
+    const R: u128 = 140_737_488_355_328;
+    debug_assert_eq!(R, 2_u128.pow((N as f64).log2().ceil() as u32));
     debug_assert!(R > N);
-    let (_, N_prime) = get_redc_primes(R, N);
-    let R_squared = R * R % N;
+    const N_prime: u128 = 24_153_810_006_849;
+    debug_assert_eq!(N_prime, get_redc_primes(R, N).1);
+    const R_squared: u128 = 75_538_044_744_402;
+    debug_assert_eq!(R_squared, R * R % N);
 
-    let R_mod_and = R - 1;
-    let R_div_shift = R_mod_and.count_ones();
+    const R_mod_and: u128 = 140_737_488_355_327;
+    debug_assert_eq!(R_mod_and, R - 1);
+    const R_div_shift: u32 = 47;
+    debug_assert_eq!(R_div_shift, R_mod_and.count_ones());
+
     let redc = |T| REDC_pow_2(R_mod_and, R_div_shift, N, N_prime, T);
+    let to_mont = |n| redc(n as u128 * R_squared);
 
     #[derive(Debug)]
     enum MOp {
@@ -153,19 +159,16 @@ fn montgomery_shuffle(
         Deal(u128),
     }
 
-    card = redc(card * R_squared);
     let mops = ops
         .iter()
         .map(|op| match op {
-            Reverse(dsm1) => MOp::Reverse(redc(*dsm1 as u128 * R_squared) + N),
-            Cut(n, _) => MOp::Cut(redc((deck_size - n) as u128 * R_squared)),
-            Deal(n, ds) => {
-                debug_assert_eq!(*ds, deck_size);
-                MOp::Deal(redc(*n as u128 * R_squared))
-            }
+            Reverse(dsm1) => MOp::Reverse(to_mont(*dsm1) + N),
+            Cut(n, _) => MOp::Cut(to_mont(deck_size - n)),
+            Deal(n, _) => MOp::Deal(to_mont(*n))
         })
         .collect::<Vec<_>>();
 
+    let mut card = to_mont(starting_card);
     for _ in 0..iterations {
         card = mops.iter().fold(card, |c, op| match op {
             MOp::Reverse(dsm1) => *dsm1 - c,
@@ -173,7 +176,6 @@ fn montgomery_shuffle(
             MOp::Deal(n) => redc(*n * c),
         })
     }
-
     redc(card) as usize
 }
 
