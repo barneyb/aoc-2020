@@ -1,36 +1,38 @@
 /// I return a `Vec` with all the number's prime factors, in ascending order. If a prime number is
-/// passed, the `Vec` will be empty.
+/// passed, the `Vec` will contain only the prime itself.
 ///
 /// # Examples
 ///
 /// ```
 /// use aoc_2020::prime::prime_factorization;
 ///
-/// assert!(prime_factorization(17).is_empty());
+/// assert_eq!(vec![17], prime_factorization(17));
 /// assert_eq!(vec![2, 2, 5], prime_factorization(20));
 /// ```
 pub fn prime_factorization(number: usize) -> Vec<usize> {
     prime_factors(number).collect()
 }
 
-/// I iterate over the prime factors of the passed composite number, in ascending order. If a prime
-/// number is passed, the returned `Factors` will be empty.
+/// I iterate over the prime factors of the passed number, in ascending order. If a prime
+/// number is passed, the returned `Factors` will contain only the prime itself.
 ///
 /// ## Examples
 ///
 /// ```
 /// use aoc_2020::prime::prime_factors;
 ///
-/// assert_eq!(None, prime_factors(17).next());
+/// let mut factors = prime_factors(17);
+/// assert_eq!(Some(17), factors.next());
+/// assert_eq!(None, factors.next());
 ///
 /// let mut factors = prime_factors(20);
 /// assert_eq!(Some(2), factors.next());
 /// assert_eq!(Some(2), factors.next());
 /// assert_eq!(Some(5), factors.next());
+/// assert_eq!(None, factors.next());
 /// ```
 pub fn prime_factors(number: usize) -> PrimeFactors {
     PrimeFactors {
-        number,
         n: number,
         sqrt: (number as f64).sqrt() as usize,
         f: 2,
@@ -38,7 +40,6 @@ pub fn prime_factors(number: usize) -> PrimeFactors {
 }
 
 pub struct PrimeFactors {
-    number: usize,
     n: usize,
     sqrt: usize,
     f: usize,
@@ -56,13 +57,9 @@ impl Iterator for PrimeFactors {
             self.f += 1;
         }
         if self.n > 1 {
-            if self.n == self.number {
-                self.n = 1;
-            } else {
-                let n = self.n;
-                self.n = 1;
-                return Some(n);
-            }
+            let n = self.n;
+            self.n = 1;
+            return Some(n);
         }
         None
     }
@@ -76,10 +73,10 @@ mod test {
     fn test_prime_factorization() {
         assert!(prime_factorization(0).is_empty());
         assert!(prime_factorization(1).is_empty());
-        assert!(prime_factorization(2).is_empty());
-        assert!(prime_factorization(3).is_empty());
+        assert_eq!(vec![2], prime_factorization(2));
+        assert_eq!(vec![3], prime_factorization(3));
         assert_eq!(vec![2, 2], prime_factorization(4));
-        assert!(prime_factorization(17).is_empty());
+        assert_eq!(vec![17], prime_factorization(17));
         assert_eq!(vec![2, 2, 5], prime_factorization(20));
         assert_eq!(vec![2, 2, 2, 3], prime_factorization(24));
         assert_eq!(vec![5, 5], prime_factorization(25));
