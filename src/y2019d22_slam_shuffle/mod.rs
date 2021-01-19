@@ -49,33 +49,22 @@ pub fn solve(input: &str) {
     }
 
     let ans = bench(
+        "Benchmark Part Two (reversed)",
+        &ops,
+        DECK_SIZE - ITERATIONS - 1,
+        50_000_000,
+        shuffle,
+    );
+    assert_eq!(95670451920023, ans);
+
+    let ans = bench(
         "Benchmark Part Two (montgomery)",
         &ops,
         DECK_SIZE - ITERATIONS - 1,
-        5_000_000_000,
+        50_000_000,
         montgomery_shuffle,
     );
-    assert_eq!(95789009747632, ans);
-
-    if cfg!(debug_assertions) {
-        let ans = bench(
-            "Benchmark Part Two (reversed)",
-            &ops,
-            DECK_SIZE - ITERATIONS - 1,
-            100_000_000,
-            shuffle,
-        );
-        assert_eq!(10531478815607, ans);
-    } else {
-        let ans = bench(
-            "Benchmark Part Two (reversed)",
-            &ops,
-            DECK_SIZE - ITERATIONS - 1,
-            10_000_000,
-            shuffle,
-        );
-        assert_eq!(85445347441033, ans);
-    }
+    assert_eq!(95670451920023, ans);
 
     // TOO SLOW! Extrapolation above indicates about three months of CPU time.
     // let ans = timed_block("Part Two", || {
@@ -118,30 +107,19 @@ fn get_redc_primes(R: u128, N: u128) -> (u128, u128) {
 
 #[allow(non_snake_case)]
 fn REDC(R: u128, N: u128, N_prime: u128, T: u128) -> u128 {
-    // if cfg!(debug_assertions) {
-    //     use crate::prime::prime_factors;
-    //     let mut r_fact = prime_factors(R as usize);
-    //     let n_fact = prime_factors(N as usize).collect::<Vec<_>>();
-    //     assert!(
-    //         r_fact.all(|f| !n_fact.contains(&f)),
-    //         "R={} and N={} aren't coprime",
-    //         R,
-    //         N
-    //     );
-    //     assert!(N_prime < R, "N'={} isn't less than R={}", N_prime, R);
-    //     assert_eq!(
-    //         mult_mod(N, N_prime, R),
-    //         R - 1,
-    //         "N={} * N'={} isn't -1 mod R={}",
-    //         N,
-    //         N_prime,
-    //         R
-    //     );
-    //     assert!(T < R * N, "T={} isn't less than R={}*N={}", T, R, N);
-    // }
-
     let m = ((T % R) * N_prime) % R;
     let t = (T + m * N) / R;
+    if t >= N {
+        t - N
+    } else {
+        t
+    }
+}
+
+#[allow(non_snake_case)]
+fn REDC_pow_2(R_mod_and: u128, R_div_shift: u32, N: u128, N_prime: u128, T: u128) -> u128 {
+    let m = ((T & R_mod_and) * N_prime) & R_mod_and;
+    let t = (T + m * N) >> R_div_shift;
     if t >= N {
         t - N
     } else {
@@ -163,12 +141,15 @@ fn montgomery_shuffle(
     debug_assert!(R > N);
     let (_, N_prime) = get_redc_primes(R, N);
     let R_squared = R * R % N;
-    let redc = |T| REDC(R, N, N_prime, T);
+
+    let R_mod_and = R - 1;
+    let R_div_shift = R_mod_and.count_ones();
+    let redc = |T| REDC_pow_2(R_mod_and, R_div_shift, N, N_prime, T);
 
     #[derive(Debug)]
     enum MOp {
         Reverse(u128),
-        Cut(u128, u128),
+        Cut(u128),
         Deal(u128),
     }
 
@@ -177,10 +158,7 @@ fn montgomery_shuffle(
         .iter()
         .map(|op| match op {
             Reverse(dsm1) => MOp::Reverse(redc(*dsm1 as u128 * R_squared) + N),
-            Cut(n, u) => MOp::Cut(
-                redc((deck_size - n) as u128 * R_squared),
-                redc(*u as u128 * R_squared),
-            ),
+            Cut(n, _) => MOp::Cut(redc((deck_size - n) as u128 * R_squared)),
             Deal(n, ds) => {
                 debug_assert_eq!(*ds, deck_size);
                 MOp::Deal(redc(*n as u128 * R_squared))
@@ -191,12 +169,13 @@ fn montgomery_shuffle(
     for _ in 0..iterations {
         card = mops.iter().fold(card, |c, op| match op {
             MOp::Reverse(dsm1) => *dsm1 - c,
-            MOp::Cut(n, _) => {
+            MOp::Cut(n) => {
                 let next = *n + c;
-                if next < N {
-                    return next;
+                if next >= N {
+                    next - N
+                } else {
+                    next
                 }
-                next - N
             }
             MOp::Deal(n) => redc(*n * c),
         })
