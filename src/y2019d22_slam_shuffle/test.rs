@@ -128,10 +128,6 @@ fn test_cyclic_nature() {
     assert_eq!(2331, shuffle(2019, &ops, deck_size, 1));
     assert_eq!(2019, shuffle(2331, &unops, deck_size, 1));
     assert_eq!(2331, shuffle(2019, &unops, deck_size, deck_size - 1 - 1));
-    assert_eq!(
-        2331,
-        montgomery_shuffle(2019, &unops, deck_size, deck_size - 1 - 1)
-    );
 
     // the part two case, going back a bunch of ticks
     assert_eq!(278, shuffle(2020, &unops, deck_size, iterations));
@@ -139,10 +135,6 @@ fn test_cyclic_nature() {
     assert_eq!(
         278,
         shuffle(2020, &ops, deck_size, deck_size - iterations - 1)
-    );
-    assert_eq!(
-        278,
-        montgomery_shuffle(2020, &ops, deck_size, deck_size - iterations - 1)
     );
 }
 
@@ -200,9 +192,9 @@ fn test_parts() {
     let ops = bind_operation_list(&raw_ops, DECK_SIZE);
     let unops = reverse_operations(&ops);
     assert_eq!(81897533950870, shuffle(2020, &ops, DECK_SIZE, iterations));
-    assert_eq!(2020, shuffle(81897533950870, &unops, DECK_SIZE, iterations));
     assert_eq!(
-        2020,
-        montgomery_shuffle(81897533950870, &unops, DECK_SIZE, iterations)
+        81897533950870,
+        montgomery_shuffle(2020, &ops, DECK_SIZE, iterations)
     );
+    assert_eq!(2020, shuffle(81897533950870, &unops, DECK_SIZE, iterations));
 }

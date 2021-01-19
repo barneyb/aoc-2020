@@ -169,14 +169,7 @@ fn montgomery_shuffle(
     for _ in 0..iterations {
         card = mops.iter().fold(card, |c, op| match op {
             MOp::Reverse(dsm1) => *dsm1 - c,
-            MOp::Cut(n) => {
-                let next = *n + c;
-                if next >= N {
-                    next - N
-                } else {
-                    next
-                }
-            }
+            MOp::Cut(n) => *n + c, // this may > N, but it'll fold away
             MOp::Deal(n) => redc(*n * c),
         })
     }
