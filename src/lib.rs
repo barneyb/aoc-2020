@@ -10,6 +10,7 @@ use std::time::{Duration, Instant};
 
 pub mod day11_seating_chart;
 pub mod day17_conway_cubes;
+pub mod day19_monster_messages;
 pub mod day23_crab_cups;
 pub mod day24_lobby_layout;
 pub mod day25_combo_breaker;
