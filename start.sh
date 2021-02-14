@@ -16,41 +16,23 @@ if [ "$BRANCH" = "master" ]; then
   echo
   exit 0
 fi
-REMOTE_BRANCH=`git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d / -f 2-`
+git push --set-upstream origin $BRANCH
 git tag -f before-start-day
 git checkout master
 git pull
 git merge --no-ff -m "Merge branch '$BRANCH'" $BRANCH
 git push
 git branch -D $BRANCH
-git push origin :$REMOTE_BRANCH
 
-d=`echo $BRANCH | sed -e 's/^[^1-9]*0*\([1-9][0-9]*\).*$/\1/'`
-let "d = $d + 1"
+y=`echo $BRANCH | sed -e 's/^[^1-9]*0*\([1-9][0-9]*\).*$/\1/'`
+let "d = $y + 1"
 echo $d
 if [ ${#d} = 1 ]; then
   d="0$d"
 fi
-BRANCH="day$d"
-git checkout -b $BRANCH master
-cat > src/the_work.rs <<EOF
-use aoc_2020::read_input;
-
-pub fn the_work() {
-    let s = read_input();
-    println!("{:?}", s.len());
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    const EXAMPLE_ONE: &str = "goat";
-
-    #[test]
-    fn example_one() {
-        let s = EXAMPLE_ONE.trim();
-        assert_eq!(4, s.len());
-    }
-}
-EOF
+git checkout -b day$d master
+mkdir src/day$d
+sed -i -e "s/aoc_2020::day${y}_.*::solve/aoc_2020::day$d::solve/" src/main.rs
+sed -i -e "s/\(pub mod day${y}_.*;\)/\\1\\npub mod day$d;/" src/lib.rs
+cp template/*.rs src/day$d
+git add src/main.rs src/lib.rs src/day$d
