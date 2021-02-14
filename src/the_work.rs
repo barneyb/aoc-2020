@@ -5,16 +5,14 @@ use std::collections::HashMap;
 
 pub fn the_work() {
     let s = read_input();
-    println!("{:?}", both_parts(&s));
+    println!("Part One: {}", part_one(&s));
+    let (one, two) = both_parts(&s);
+    println!("Part One: {}\nPart Two: {}", one, two);
 }
 
 fn parse(input: &str) -> (Vec<&str>, Vec<&str>) {
     let mut blocks = input.split("\n\n").map(|b| b.lines().collect::<Vec<_>>());
     (blocks.next().unwrap(), blocks.next().unwrap())
-}
-
-fn get_rules(input: &str) -> Vec<&str> {
-    parse(input).0
 }
 
 fn part_one(input: &str) -> usize {
@@ -212,7 +210,7 @@ aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba"#;
 
     #[test]
     fn example_two() {
-        let rules = get_rules(EXAMPLE_TWO);
+        let rules = parse(EXAMPLE_TWO).0;
         let flattener = Flattener::new(&rules);
         let re = flattener.flattened();
         println!("{}", re);
