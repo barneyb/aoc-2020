@@ -1,5 +1,7 @@
 # Advent of Code 2020
 
+Index of Advent of Code solutions: https://github.com/barneyb/aoc2017
+
 My Advent of Code 2020 solutions/solvers in Rust. It's the usual:
 
     # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
